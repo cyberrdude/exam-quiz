@@ -1,0 +1,3669 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azərbaycan Tarixi Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+  {
+    "number": "1.",
+    "question": "Daş dövrü 3 mərhələyə bölünür:",
+    "options": [
+      "Paleolit, Mezolit, Neolit (Eneolit)",
+      "Daş dövrü, Tunc dövrü, Dəmir\ndövrü",
+      "Alt paleolit, Orta Paleolit, Üst\npaleolit",
+      "Erkən tunc dövrü, Orta tunc\ndövrü, Son tunc dövrü"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "2.",
+    "question": "Daş dövrünün axırıncı mərhələsi Neolit dövründə:",
+    "options": [
+      "İnsanlar qəbilə\nicması şəraitində\nyaşamış, ana\nxaqanlığı hökm sürmüşdür",
+      "İnsanlar daşı cilalamış,\novçuluq əsas peşəyə\nçevrilmiş, ölülər evin\ndöşəməsi altında dəfn\nedilirdi",
+      "İnsanlar Ön Asiya ilə\nünsiyyətdə olmuş, metal\nəmək alətlərini mübadilə\netmiş, daşı deşməyi\nöyrənmişlər",
+      "Toxa əkinçiliyi\ngenişlənmiş, ana\nxaqanlığı hökm\nsürmüş, boyalı\nqablar istehsal\nolunmuşdur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "3.",
+    "question": "Toxa əkinçiliyi xış əkinçiliyi\nilə əvəz olunur:",
+    "options": [
+      "İlk tunc dövründə",
+      "Eneolit dövründə",
+      "Orta tunc dövründə",
+      "Neolit dövründə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "4.",
+    "question": "Azərbaycan tarixi hansı\nqaynaqlar, mənbələr əsasında öyrənilir?",
+    "options": [
+      "Arxeoloji və yazılı\nabidələr",
+      "Qəbir abidələri,\nqayaüstü abidələr və\nyazılı abidələr",
+      "Heyvan və bitki qalıqları,\nqayaüstü rəsmlər, qəbir\nabidələri, yaşayış yerləri",
+      "Qədim yaşayış\nyerləri və qəbir abidələri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "Xocalı Gədəbəy arxeoloji\nmədəniyyətinin əhatə etdiyi dövr?",
+    "options": [
+      "E.ə. XIV-VIII əsrlər",
+      "E.ə. II minilliyin sonu",
+      "E.ə. II minillik-\nI minilliyin əvvəlləri",
+      "E.ə. XVVII əsrlər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "Manna hökmdarlarının xarici\nsiyasətdə Assuriyaya meyilli\nsiyasəti:",
+    "options": [
+      "Ön Asiyanın bu\nqüdrətli dövlətini\nMannanın\nhavadarına\nçevirmişdi",
+      "Mannanın daxili\nmüstəqilliyi qorundu,\nfeodal özbaşınalığına son qoyu\nldu",
+      "Urartu hökmdarı\nII Sarqonun işğal etdiyi\ntorpaqlar e.ə 745-\nci ildə geri qaytarıldı",
+      "Assuriyanın\nxəzinəsinə xərac\nvaxtlıvaxtında gətirildi,\nənənəvi məbəd\ntikintisinə başlandı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "7.",
+    "question": "Azərbaycan ərazisində\nməskunlaşan ən qədim tayfaları\ngöstərin?",
+    "options": [
+      "Atropotenlər,\nkadusilər,\nmidiyalılar",
+      "Albanlar, mannalılar, utilər",
+      "Kassitlər, sabirlər, qarqarlar",
+      "Lullubəy, kuti,\nturukki, su"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "8.",
+    "question": "II Sarqonun yürüşü zamanı\nMannalılar assur çarının\nqoşununu təmin etməli idilər:",
+    "options": [
+      "Silahla",
+      "At, qoşqu vasitəsi ilə",
+      "İsti geyimlə",
+      "Әrzaqla"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "9.",
+    "question": "II Sarqonun şərəfinə abidə\nqoydurmuş Manna hökmdarı:",
+    "options": [
+      "Ualli",
+      "Ahşeri",
+      "Erisinni",
+      "Ullusun"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "10.",
+    "question": "E.ə. 713-cü ildə Mannaya yenidən yürüş təşkil edən\nII Sarqon:",
+    "options": [
+      "Hakimiyyətə\nUallini gətirdi və\nAssuriyadan\nasılılığı bərpa etdi",
+      "Assuriyanın siyasi\nmüstəqilliyini tanımaqdan imti\nna etdi, Mannada öz\nhakimiyyətini gücləndirdi",
+      "Sübi vilayətində baş vermiş üsya\nnı amansızlıqla yatırır\nvə qənimət almaqla geri\nqayıdır",
+      "Ullusunudan xərac\nalıb Midiya\ntorpaqlarına daxil\nolur və burada\ndağıntılar törədir"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "11.",
+    "question": "E.ə.II əsrdə Albaniya hökmdarı Aranın idarə etdiyi\nərazi:",
+    "options": [
+      "Kür – Araz\nqovşağından\nQafqaz\ndağətəklərinədək\nərazini",
+      "Araz çayından Xəzər\ndənizinə kimi",
+      "Araz çayından Göyçə gölü hövzəs\ninədək",
+      "Araz çayından\nİberiya səhəddinə\nkimi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "12.",
+    "question": "Albaniya vilayətlərini vahid\nmərkəzdə birləşdirən\nAlbaniya hökmdarı:",
+    "options": [
+      "Sanatürk",
+      "I Vaçe",
+      "Mömin III Vaçaqan",
+      "I Vaçaqan"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "13.",
+    "question": "Azatlar üçün səciyyəvidir:",
+    "options": [
+      "Asılı kəndli olmaları",
+      "Patriklərin vassalı olmaları",
+      "Xostaka sahib olmaları",
+      "Can vergisi ödəmələri"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "14.",
+    "question": "Sasani şahı I Şapur Roma ordusunu məğlubiyyətə\nuğratdı:",
+    "options": [
+      "270-ci ildə",
+      "260-cı ildə",
+      "250-ci ildə",
+      "280-ci ildə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "15.",
+    "question": "E.ə . 36 – cı ildə Parfiyaya\nqarşı başlayan yürüşə\nrəhbərlik etmiş Roma\nsərkərdəsi:",
+    "options": [
+      "Lukul",
+      "Antoni",
+      "Antiox",
+      "Pompey"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "16.",
+    "question": "Әli ibn əbu Talib vergilərin\ntoplanmasına dair ədalətli göstəriş verib əsas diqqəti\nyönəltmişdi:",
+    "options": [
+      "Toplanan vergilərin\nmiqdarı sasanilərdə\nolduğundan az olmalı və naiblər\ntərəfindən\ntoplanılmasına",
+      "Xəracı yığmağa deyiltorpağı\nsəmərəli\nşəkildə əkib becərməyə",
+      "Suvarılan əkin sahələrdən\nödənilən vergilərin\nmiqdarına",
+      "Toplanan xəracın məhsulla\ndeyil,\npulla\nödənilməsinə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "17.",
+    "question": "Әməvilər Sülaləsinin hakimiyyət dövründə\nAzərbaycanın cənub\nsərhəddi hansı şəhərdə\nqurtarırdı:",
+    "options": [
+      "Zəncanda",
+      "Həmədanda",
+      "Kaşanda",
+      "Marağada"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "18.",
+    "question": "Azərbaycan ərazisində\nxilafətin əsas dayağı hesab\nolunurdu:",
+    "options": [
+      "Yerli feodallar və\nhərbiçilər",
+      "Әrəb əyanları və\nsilahlı qüvvələr",
+      "Әmirlər və yerli əyanlar",
+      "mövlalar və ərəb\nəyanları"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "19.",
+    "question": "808 –ci ildə ərəblərə qarşı baş\nvermiş İsfahan üsyanına\nhansı şəhərlərdən ciddi dəstəkgəlmişdi:",
+    "options": [
+      "Qəzvindən, Kirmandan,\nYəzddən",
+      "Qumdan, Həmədan,\nKaşandan",
+      "Reydən, Həmədandan,\nGirədən",
+      "Reydən,\nZəncandan,\nUrmiyadan"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "20.",
+    "question": "Xəlifə iqtası torpaq mülkiyyətformaları içərisində hansı\nnövə şamil edilirdi:",
+    "options": [
+      "Bağışlanan iqta",
+      "Xəlifə torpağı",
+      "İcarə edilən iqta",
+      "İcma torpaqları"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "21.",
+    "question": "IX-XI əsrlərdə Azərbaycanda\nhökmdara və onun sülaləsinə mənsub torpaqlar adlanırdı?",
+    "options": [
+      "Mülk",
+      "Tiyul",
+      "Әmlakı xasse",
+      "İcma"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "22.",
+    "question": "Xilafətdə bir sıra hərbi-\ninzibati vəzifələr icra etmiş; Әrməniyə və Azərbaycanda\nxilafətin valisi olmuşdur;\nBərdədə vəfat etmişdir --- Məzyədilər sülaləsinin hansı\nnümayəndəsinə aiddir:",
+    "options": [
+      "Məhəmməd ibn Yəzid",
+      "Heysəm ibn Xalid",
+      "Yəzid ibn Məziyəd",
+      "Әsəd ibn Məziyəd"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "23.",
+    "question": "Məhəmməd ibn Sacın adına pul kəsilirdi:",
+    "options": [
+      "900-998-ci ildə",
+      "879-800-ci ildə",
+      "898-900-cu ildə",
+      "898-970-ci ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "24.",
+    "question": "Mərzuban ibn Məhəmmədin dövründə 2 cür vergi\ntoplanırdı:",
+    "options": [
+      "Soyurqal və xostak",
+      "Tiyul və iqta",
+      "Torpaq və əmlak",
+      "Töycü və malcəhət"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "25.",
+    "question": "Dəmirçi İbrahim 1063-cü ildə Gəncənin dəmir qapılarını\ndüzəltdi:",
+    "options": [
+      "Әbüləsvar Şavurun dövründə",
+      "Fəzl ibn Məhəmmədin\ndövründə",
+      "Məhəmməd ibn Şəddadın\ndövründə",
+      "Әbu sac Divdadın dövründə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "26.",
+    "question": "Göstərilənlər aiddir:\n1.Səlcuq türklərinə\nmüqavimət göstərdi\n2.XI əsrin 60-cı illərində asılı hala düşdü\n3.Şah titulundan məhrum oldu",
+    "options": [
+      "I Fəribürza",
+      "I Axsitana",
+      "II Mənucöhrə",
+      "III Mənucöhrə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "27.",
+    "question": "1071-ci ildə avqustun 26-da Səlcuqlarla Bizans\nimperiyası arasında baş vermiş müharibə adlanırdı:",
+    "options": [
+      "Malazgird",
+      "Xudafərin",
+      "Çıldır",
+      "Didqori"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "28.",
+    "question": "Cahan hökmdarı adlanırdı:",
+    "options": [
+      "Məlikşah",
+      "Toğrul",
+      "Alp arslan",
+      "Börgüyarıq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "29.",
+    "question": "Sultan Səncərin hakimiyyət illəri:",
+    "options": [
+      "1118-1157-ci illər",
+      "1110-1140-cı illər",
+      "1114-1115-ci illər",
+      "1118-1160-cı illər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "30.",
+    "question": "Sultan Məlikşah 70 min dinar bac və hər il 40 min dinar\nxərac verməyə məcbur etdi:",
+    "options": [
+      "Şirvanşah I Fəribrzu",
+      "Şirvanşah Fərrux Yasarı",
+      "Şirvanşah I Xəlillullahı",
+      "Şirvanşah I Axsitanı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "31.",
+    "question": "1117-ci ildə Şirvanşahlar hücumuna məruz qaldı:",
+    "options": [
+      "Alanların",
+      "Gürcülərin",
+      "Xəzərlərin",
+      "Qıpçaqların"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "32.",
+    "question": "1122-ci ildə ləğv edildi:",
+    "options": [
+      "Gürcü çarı IV Davidin\nhakimiyyıti",
+      "Tiflis müsəlman əmrliyi",
+      "Kəsranilər sülaləsi",
+      "Şirvanşahlar dövləti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "33.",
+    "question": "İraq səlcuq dövlətinin böyük atabəyi adlandı:",
+    "options": [
+      "Sultan Arslan",
+      "Şəmsəddin Eldəniz",
+      "Məhəmməd Cahan Pəhləvan",
+      "Atabəy Özbək"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "34.",
+    "question": "Әmirlərin və feodalların hakimiyyətini\nməhdudlaşdırdı:",
+    "options": [
+      "Sultan Arslan",
+      "Şəmsəddin Eldəniz",
+      "Məhəmməd Cahan Pəhləvan",
+      "Atabəy Özbək"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "35.",
+    "question": "Atabəy Özbəyin hakimiyyətinə son qoydu:",
+    "options": [
+      "Şirvanşahlar dövləti",
+      "Xarəzmşahlar dövləti",
+      "Cəlalilər dövlətinin zəifləməsi",
+      "Şirvanşahların qüdrətli\nolması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "36.",
+    "question": "1191-ci ildə xəlifə ən-Nasirin razılığı ilə özünü sultan\nelan etdi::",
+    "options": [
+      "Atabəy Özbək",
+      "Qızıl Arslan",
+      "Məhəmməd Cahan Pəhləvan",
+      "Şəmsəddin Eldəniz"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "37.",
+    "question": "Monqolların I yürüşü ərəfəsində Azərbaycan üçün\nsəciyyəvidir:",
+    "options": [
+      "Hülakilər dövlətinin zəifləməsi",
+      "Vahid mərkəzi dövlətin\nolmaması",
+      "Cəlalilər dövlətinin zəifləməsi",
+      "Şirvanşahların qüdrətli\nolması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "38.",
+    "question": "Qazan xanın islahatları nəticəsində:\n1.Monqol əyanlarının özbaşnalığına son qoyuldu\n2.Yerli əyanlar sıxışdırıldı\n3.Ölkədəki iqtisadi böhrana son qoyuldu\n4.İslam dini sıxışdırıldı\n5.Oturaq əyanların nüfuzu sarsıldı",
+    "options": [
+      "4,5",
+      "1,3",
+      "2,3",
+      "1,4"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "39.",
+    "question": "Eyni ilə aiddir:\n1.Bəndər üsyanının baş verməsi 2.Monqolların\nDərbəndi istila etməsi\n3.Monqolların Gəncəni işğal etməsi\n4.Hülakilər dövlətinin yaranması\n5.Monqolların Azərbaycana II yürüşünün başlanması",
+    "options": [
+      "2,3",
+      "2,4",
+      "3,5",
+      "1,5"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "40.",
+    "question": "Xronoloji ardıcıllığı müəyyən edin:\n1. Qızıl Arslanın hakimiyyətə gəlməsi\n2. Atabəylər dövlətinin süqut etməsi\n3. Şəmsəddin Eldənizin Arana hakim təyin edilmsi",
+    "options": [
+      "1,3,2",
+      "1,2,3",
+      "2,1,3",
+      "3,1,2"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "41.",
+    "question": "Xronoloji ardıcıllığı müəyyən edin\n1. Azərbaycanın Cəlairilər dövlətinin tərkibinə qatılması\n2.Әmir Teymurun 3-cü dəfə Azərbaycana hücum etməsi\n3. I İbrahimin Təbrizi tərk etməsi",
+    "options": [
+      "2,3,1",
+      "1,3, 2",
+      "3,2,1",
+      "1,2,3"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "42.",
+    "question": "Çobanilərin hakimiyyəti üçün səciyyəvidir:",
+    "options": [
+      "Şirvanşahlar dövlətinin ləğv\nedilməsi",
+      "Çaonun tədavülə buraxılması",
+      "Әmir Teymurun məğlub edilməsi",
+      "Әhalinin talan edilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "43.",
+    "question": "Xronoloji ardıcıllığı müəyyən edin:\n1.Atabəylər dövlətinin yaranması\n2.Monqolların Dərbəndi tutması\n3.Cəlaləddin Təbrizi işğal etməsi\n4.Monqolların II yürüşünün başlanması",
+    "options": [
+      "2,3,1,4",
+      "1,3,2,4",
+      "4,1,2,3",
+      "1,3,4,2"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "44.",
+    "question": "Qazan xana aiddir:\n1.Marağa rəsədxanasının açılması\n2.Çaonun tədavülə buraxılması\n3.İslam dinin qəbul edilməsi\n4.Kəndlilərin torpağa təhkim edilməsi\n5.Yerli əyanların sıxışdırılması",
+    "options": [
+      "2,4",
+      "4,5",
+      "3,4",
+      "1,5"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "45.",
+    "question": "Çapaqçuar döyüşündə məğlub oldu:",
+    "options": [
+      "Miranşah",
+      "Qara Yusif",
+      "Әmir Teymur",
+      "Uzun Həsən"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "46.",
+    "question": "Heratı ələ keçirmiş Qaraqoyunlu hpkmdarı:",
+    "options": [
+      "Qara Yusif",
+      "Pirbulaq",
+      "Cahanşah",
+      "Həsənli"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "47.",
+    "question": "Gödək Әhmədə aiddir:",
+    "options": [
+      "Gürcüstana hərbi səfərin təşkil\nedilməsi",
+      "Venesiya ilə sülh müqaviləsinin\nbağlanması",
+      "Sultaniyyə yaxınlığındakı\ndöyüşdə qələbə qazanması",
+      "Әbhər müharibəsinin\nbaşlanması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "48.",
+    "question": "1420-ci ildə Teymuri Şahruxun Azərbaycana hücumunu\nasanlaşdırdı:",
+    "options": [
+      "Qaraqoyunlu dövlətinin iki yerə\nparçalanması",
+      "Həsənəlinin qiyam qaldırması",
+      "Qara Yusifin ölümündən sonra\ndaxili çəkişmələrin başlanması",
+      "Cəlairilərin Təbrizi işğal\netməsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "49.",
+    "question": "Teymur Şirvan qoşunları ilə birlikdə Toxtamışın hərbi\nqüvvələrini məğlub etdi:",
+    "options": [
+      "1394-cü ilin yayında Bağdad\nyaxınlığında baş vermiş döyüşdə",
+      "1387-ci ilin baharında Çapaqçur\ndöyüşündə",
+      "1395-ci ilin aprelin 15-də Terek\nsahilindəki vuruşmada",
+      "1408-ci ildə Təbriz\nyaxınlığındakı Sərdrud adlı\nyerdə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "50.",
+    "question": "Ağqoyunlu dövlətinin ərazisini göstərin:",
+    "options": [
+      "Şimali Azərbaycan, Qərbi\nGürcüstan, Ermənistan,\nKürdüstan.",
+      "Diyarbəkir",
+      "Cənubi Azərbaycan, Şirvan,\nDağıstan, Diyarbəkir.",
+      "Cənubi Azərbaycan,\nKürdüstan, Ermənistan,\nQərbi İran, İraq, Diyarbəkir."
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "51.",
+    "question": "Azərbaycanda ən qədim paleolit düşərgəsidir və ən qədim\ndaş alətlər burada tapılmışdır:",
+    "options": [
+      "Buzeyr mağarasında",
+      "Qazma mağarasında",
+      "Zar mağarasında",
+      "Azıx mağarasında"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "52.",
+    "question": "Yeni insan tipi Neandertal adamı meydana gəlmişdir",
+    "options": [
+      "Neolitdə",
+      "Üst paleolitdəst",
+      "Alt paleolitdə",
+      "Orta paleolitdə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "53.",
+    "question": "Müasir insan tipi olan Ağıllı insan meydana çıxmışdır:",
+    "options": [
+      "Neolitdə",
+      "Orta paleolitdə",
+      "Alt paleolitdə",
+      "Üst paleolitdə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "54.",
+    "question": "İlk insan tipi Bacarıqlı insan meydana gəlmişdir:",
+    "options": [
+      "Neolitdə",
+      "Orta paleolitdə",
+      "Üst paleolitdə",
+      "Alt paleolitdə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "55.",
+    "question": "İri tayfa birlikləri yarandı:",
+    "options": [
+      "Mezolitdə",
+      "Orta tunc dövründə",
+      "Erkən tunc dövründə",
+      "Son tunc dövründə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "56.",
+    "question": "E.ə. 331-ci ildə qanlı döyüş baş verdi:",
+    "options": [
+      "Amid döyüşü",
+      "Biriaks üsyanı",
+      "Maqneziya döyüşü",
+      "Cancal (Qavqamella)\ndöyüşü"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "57.",
+    "question": "350 il müstəqilliyini saxlmışdı:",
+    "options": [
+      "Atropatena",
+      "Albaniya",
+      "Manna",
+      "Arran"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "58.",
+    "question": "Albanlara mərhəmət göstərdi. Qafqazda düşərgə salaraq\nAlban hökmdarı Oroysa düzənliyə enməyi əmr etdi:",
+    "options": [
+      "Roma sərkərdəsi Pompey",
+      "Makedoniyalı İsgəndər",
+      "Atropat",
+      "Roma sərkərdəsi Lukull"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "59.",
+    "question": "Roma sərkərdəsi Pompeyi Xəzər dənizi sahilinə çıxmaq\nniyyətindən daşındırdı:",
+    "options": [
+      "Albanların yenidən üsyana\nqalxması və yolun çətinliyi",
+      "Albanların yenidən məğlub\nolması və asılı vəziyyətə\ndüşməsi",
+      "Atropatenanın məğlub olması",
+      "Atropatenanın yenidən\nüsyana qalxması və yolun\nçətinliyi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "60.",
+    "question": "Atropatena sülaləsinin sonuncu hökmdarı:",
+    "options": [
+      "Ariovast",
+      "Arran",
+      "Artoban",
+      "Atropat"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "61.",
+    "question": "Dərbənddən Beşbarmaq dağına qədər Xəzər dənizi\nboyuca uzanırdı:",
+    "options": [
+      "Lipina vilayəti",
+      "Çola vilayəti",
+      "Uti vilayəti",
+      "Arsax vilayəti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "62.",
+    "question": "Sağsahil Albaniyasının vilayətlırindən biri idi:",
+    "options": [
+      "Şəki vilayəti",
+      "Arsax vilayəti",
+      "Uti vilayəti",
+      "Çola vilayəti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "63.",
+    "question": "Albaniyanın şimal-şərqində yrləşirdi:",
+    "options": [
+      "Çola vilayəti",
+      "Şəki vilayəti",
+      "Lipina vilayəti",
+      "Arsax vilayəti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "64.",
+    "question": "Çola ilə Şəki arasında yerləşirdi:",
+    "options": [
+      "Şəki vilayəti",
+      "Lipina vilayəti",
+      "Uti vilayəti",
+      "Arsax vilayəti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "65.",
+    "question": "Kürün sağ sahilində yerləşirdi:",
+    "options": [
+      "Şəki vilayəti",
+      "Uti vilayəti",
+      "Çola vilayəti",
+      "Arsax vilayəti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "66.",
+    "question": "İndiki Azərbaycan Respublikasının cənub-şərq hissəsində\nyeləşirdi:",
+    "options": [
+      "Şəki vilayəti",
+      "Pytakaran vilayəti",
+      "Uti vilayəti",
+      "Arsax vilayəti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "67.",
+    "question": "Pul atası ləqəbi verilmişdi:",
+    "options": [
+      "Xəlifə Hişama",
+      "Xəlifə əl-Mənsura",
+      "Xəlifə Müaviyyəyə",
+      "Xəlifə Harun ər-Rəşidə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "68.",
+    "question": "Xürrəmilər Babəkə qədər Xilafətə qarşı iki dəfə üsyan\netdilər:",
+    "options": [
+      "708 və 808-ci illərdə",
+      "778 və 808-ci illərdə",
+      "778 və 878-ci illərdə",
+      "78 və 808-ci illərdə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "69.",
+    "question": "Xəlifə Hişamın dövründə Azərbaycanda əhali, mal-qara,\ntorpaq siyahıya alındı:",
+    "options": [
+      "925-ci ildə",
+      "825-ci ildə",
+      "725-ci ildə",
+      "625-ci ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "70.",
+    "question": "835-ci ildə xürrəmilərə qarşı vuruşan ərəb ordusuna baş\nkomandan təyin edildi:",
+    "options": [
+      "Tərxan",
+      "Məhəmməd ibn Hümeyd",
+      "Afşin Heydər ibn Kavus",
+      "İshaq ibn İbrahim"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "71.",
+    "question": "Şəddadilərin Gəncəni paytaxt seçməsi ilə:",
+    "options": [
+      "Bakı diqqətdən və abadlıq\nişlərindən kənarda qalmışdı",
+      "Әrdəbil şəhəri diqqətdən və\nabadlıq işlərindən kənarda\nqalmışdı",
+      "Bərdə şəhəri diqqətdən və abadlıq\nişlərindən kənarda qalmışdı",
+      "Şirvan şəhəri diqqətdən və\nabadlıq işlərindən kənarda\nqalmışdı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "72.",
+    "question": "953-cü ildə əsirlikdən qaçıb Әrdəbilə gələrək\nhakimiyyətini bərpa etdi:",
+    "options": [
+      "Məhəmməd ibn Şəddad",
+      "Məhəmməd ibn Sac",
+      "Mərzuban ibn Məhəmməd",
+      "İbrahim ibn Məhəmməd"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "73.",
+    "question": "Mərzuban ibn Məhəmməd Qəzvinə yürüş etdi:",
+    "options": [
+      "953-cü ildə",
+      "958-ci ildə",
+      "938-ci ildə",
+      "948-ci ildə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "74.",
+    "question": "914-cü ildə 500 gəminin hər birində 100 nəfər döyüşçü\nolmaqla Azərbaycanın Xəzər volayətinə gəidi:",
+    "options": [
+      "50 mindən artıq qazax",
+      "50 mindən artıq türk",
+      "50 mindən artıq bulqar",
+      "50 mindən artıq slavyan"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "75.",
+    "question": "Slavyanlara qarşı təkcə quruda deyil, düşmənlə dənizdə\ndə döyüşürdü:",
+    "options": [
+      "Әbu Sac Divdad",
+      "Heysəm ibn Xalid",
+      "Yezid ibn Məzyəd",
+      "Әli ibn Heysəm"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "76.",
+    "question": "Sacilər dövlətinin hakimi slavyanlarla vuruşmalı oldu:",
+    "options": [
+      "Deysəm ibn Sac",
+      "Məhəmməd ibn Sac",
+      "Әbu Sac Divdad",
+      "Yusif ibn Sac"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "77.",
+    "question": "1049-1067-ci illərdə Şəddadilər dövləti daha da\nmöhkəmləndi:",
+    "options": [
+      "III Fəzlin dövründə",
+      "Məhəmməd ibn Şəddadın\ndövründə",
+      "Fəzil ibn Şəddadın dövründə",
+      "Әbüləsvar Şavurun\ndövründə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "78.",
+    "question": "1048-ci ildə Səlcuq qoşunu Arrandan keçərək\nŞəddadilərlə birlikdə məğlub etdilər:",
+    "options": [
+      "Qəznəvi sultanı Məsudu",
+      "Roma-erməni-gürcü hərbi\nqüvvələrini",
+      "Yunan-erməni-gürcü hərbi\nqüvvələrini",
+      "Bizans-erməni-gürcü hərbi\nqüvvələrini"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "79.",
+    "question": "1054-cü ildə müqavimətsiz səlcuq sultanına tabe oldu:",
+    "options": [
+      "Məhəmməd ibn Sac",
+      "Məhəmməd ibn Şəddad",
+      "Fəzil ibn Şəddad",
+      "Rəvvadi hökmdarı\nVəhsudan"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "80.",
+    "question": "Alp Arslanın əmri ilə qulaqlarına qızıl həlqə taxıldı və bu\no demək idi ki, rumluların hökmdarı səlcuq sultanının\nquludur ifadəsi aiddir:",
+    "options": [
+      "III Roman Diogenə",
+      "I Konstantinə",
+      "II İrakliyə",
+      "IV Roman Diogenə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "81.",
+    "question": "1027-1034-cü illərdə hakimiyyətə gəlməsi ilə\nŞirvanşahlar dövlətində Məzyədilər sülaləsinin\nhakimiyyəti başa çatdı:",
+    "options": [
+      "I Mənuçöhrün",
+      "II Mənuçöhrün",
+      "III Mənuçöhrün",
+      "I Axsitanın"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "82.",
+    "question": "I Axsitan gürcü əyanlarının III Georgiyə qarşı üsyanın\nyatırılmasında iştirak etmişdi:",
+    "options": [
+      "1173-cü ildə",
+      "1174-cü ildə",
+      "1170-ci ildə",
+      "1175-ci ildə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "83.",
+    "question": "1225-1244-cü illərdə Şirvanla gürcü çarlığı arasında\nəlaqə kəsildi:",
+    "options": [
+      "III Fəriburzun hakimiyyətə\ngəlməsi ilə",
+      "II Fəriburzun hakimiyyətə\ngəlməsi ilə",
+      "I Fəriburzun hakimiyyətə gəlməsi\nilə",
+      "IV Fəriburzun hakimiyyətə\ngəlməsi ilə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "84.",
+    "question": "1160-cı ilin payızında 20 min süvari ilə Həmədana daxil\noldu:",
+    "options": [
+      "Şəmsəddin Eldəniz",
+      "Qızıl Arslan",
+      "Arslan şah",
+      "Məhəmməd Cahan Pəhlivan"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "85.",
+    "question": "Şəmsəddin Eldəniz 1160-cı ildə Həmədana gəldi və silah\ngücünə sultan taxtına əyləşdirdi, başına tac qoydu:",
+    "options": [
+      "II Toğrulu",
+      "Qızıl Arslanı",
+      "Arslan şahı",
+      "Məhəmməd Cahan\nPəhlivanı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "86.",
+    "question": "Həmədan yaxınlığındakı döyüşdə Qızıl Arslan",
+    "options": [
+      "1183-ci ilin martında",
+      "1180-ci ilin martında",
+      "1188-ci ilin martında",
+      "1189-ci ilin martında"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "87.",
+    "question": "Hülaki xan Elxani titulunu qəbul etmişdi:",
+    "options": [
+      "1267-ci ildə",
+      "1266-cı ildə",
+      "1265-ci ildə",
+      "1264-cü ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "88.",
+    "question": "Abaqa xanın zamanından başlayaraq dövlətin paytaxtı\noldu:",
+    "options": [
+      "Bağdad",
+      "Həmədan",
+      "Təbriz",
+      "Şamaxı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "89.",
+    "question": "III əsrdə şəhərlərin sənətkar və tacirlərindən alınan vergi\nadlanırdı:",
+    "options": [
+      "Divan",
+      "İncu",
+      "Tamğa",
+      "Tümən"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "90.",
+    "question": "Qazan xanın hakiniyyəti dövründə kəndlilər öz\ntorpaqlarını tərk edə bilməzdi:",
+    "options": [
+      "1305-cü il fərmanına əsasən",
+      "1304-cü il fərmanına əsasən",
+      "1303-cü il fərmanına əsasən",
+      "1301-cü il fərmanına əsasən"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "91.",
+    "question": "Elxanilər dövlətinin süqutu daha da sürətləndi:",
+    "options": [
+      "1316-cı ildə Әbu Səidin\nhakimiyyətə gəldikdən sonra",
+      "1340-cı ildə Satəbəy xatun\nhakimiyyətdən məhrum\nedildikdən sonra",
+      "1335-ci ildə Әbu Səidin\nölümündən sonra",
+      "1340-cı ildə Süleyman xanı\npadişah elen etdikdən sonra"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "92.",
+    "question": "Cəlairi əmiri Şeyx Üveys Azərbaycana yürüş etdi:",
+    "options": [
+      "1379-cu ildə",
+      "1351-ci ildə",
+      "1369-cu ildə",
+      "1359-cu ildə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "93.",
+    "question": "Hülakilər dövlətinin tənəzzülə uğraması\nvəparçalanmasından istifadə edən Şirvanşahalr dövləti\nyenidən müstəqillik əldə etdilər:",
+    "options": [
+      "1340-cı ildə",
+      "1357-ci ildə",
+      "1364-cü ildə",
+      "1338-ci ildə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "94.",
+    "question": "1406-cı ilin iyununda Sultan Әhməd və Qara Yusif Zəbt\netdi:",
+    "options": [
+      "Tehranı",
+      "Təbrizi",
+      "Şamaxını",
+      "Bağdadı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "95.",
+    "question": "Teymurilərin vassalı olmaq şərti ilə Qaraqoyunlu\ndövlətinin hökmdarı kimi tanıdı:",
+    "options": [
+      "İsgəndəri",
+      "Qara Yusifi",
+      "Sahrux xanı",
+      "Cahanşahı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "96.",
+    "question": "Ağqoyunlu dövləti Qara dənizə yeganə çıxış yolunu\nitirdi:",
+    "options": [
+      "Bizansın II Mehmet tərəfindən\nfəth edilməsi ilə",
+      "Təbrizin II Mehmet tərəfindən\nfəth edilməsi ilə",
+      "Gürcüstanın II Mehmet tərəfindən\nfəth edilməsi ilə",
+      "Trabzonun II Mehmet\ntərəfindən fəth edilməsi ilə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "97.",
+    "question": "Cahanşah Muş düzündə Ağqoyunlu Uzun Həsənin böyük\nqoşunu ilə döyüşə girdi:",
+    "options": [
+      "1469-cu ilin noyabrın 11-də",
+      "1468-ci ilin noyabrın 11-də",
+      "1464-cü ilin noyabrın 11-də",
+      "1467-ci ilin noyabrın 11-də"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "98.",
+    "question": "1478-ci il iyulun 15-də hakimiyyətə gəldi:",
+    "options": [
+      "Uzun Həsən",
+      "Yaqub Mirzə",
+      "Rüstəm Mirzə",
+      "Uğurlu Məhəmməd"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "99.",
+    "question": "Gödək Әhmədin ölümündən özünü mütləq hakim elan\netdi:",
+    "options": [
+      "Div Sultan",
+      "Әbih Sultan",
+      "Әlvənd Mirzə",
+      "Murad Mirzə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "100.",
+    "question": "1497-ci ildə Diyarbəkrə gələrək Ağqoyunlu taxtı uğrunda\nmübarizəyə başladı:",
+    "options": [
+      "Murad Mirzə",
+      "Әlvənd Mirzə",
+      "Baysunqur",
+      "Rüstəm Mirzə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "101.",
+    "question": "“Qazi” və “Sufi” dəstələri ilk dəfə qızılbaş adlanmağa\nbaşladılar:",
+    "options": [
+      "Şeyx Cüneydin dövründən\nbaşlayaraq",
+      "Şeyx Heydərin dövründən\nbaşlayaraq",
+      "Şeyx Cəfərin dövründən\nbaşlayaraq",
+      "Şeyx Səfiəddinin dövründən\nbaşlayaraq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "102.",
+    "question": "Şəki hakimliyinin müstəqilliyinə son qoydu:",
+    "options": [
+      "1538-ci ildə Şah I Təhmasib",
+      "1551-ci ildə Şah I Təhmasib",
+      "1778-ci ildə Osmanlı qoşunları",
+      "1585-ci ildə Niyazabad\ndöyüşündə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "103.",
+    "question": "Osmanlılar Səfəvi torpaqlarından tamamilə çıxarıldı:",
+    "options": [
+      "1736-cı ilin sonunda",
+      "1735-ci ilin sonunda",
+      "1734-cü ilin sonunda",
+      "1737-ci ilin sonunda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "104.",
+    "question": "Xronoloji ardıcıllığı müəyyən edin: 1. İlk müstəqil\nxanlıq; 2. Şeyx Cüneyd Әrdəbili tərk etdi; 3.\nQaraqoyunlu tayfa ittifaqı dağıldı; 4. I Aleksandrın Şərqi\nGürcüstanın Rusiyaya birləşdirilməsi haqqında\n“Manifest” verdi;",
+    "options": [
+      "2;1;4;3",
+      "3,2,1,4",
+      "3;2;4;1",
+      "1;4;3;2"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "105.",
+    "question": "Qəqəhə qalasındakı zindana salındı:",
+    "options": [
+      "Məhəmməd bəy Ustaclı",
+      "Әlqas Mirzə",
+      "Hülafə bəy",
+      "Әbdül Fəttah"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "106.",
+    "question": "Səfəvi – Osmanlı müharibələrinin əsas səbəblərini\ngöstərin:",
+    "options": [
+      "Xam ipək istehsalını və ticarət\nyollarını ələ keçirmək",
+      "Avropa dövlətlərini Osmanlı\nhücumundan qorumaq",
+      "Qara dənizə çıxmaq.",
+      "Sünni təriqətini yaymaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "107.",
+    "question": "Qaraqoyunlu Cahanşahın Şeyx Cüneydən dövlətin\nərazisini tərk etməyi tələb etməsinin səbəbi:",
+    "options": [
+      "Şeyx Cüneydin\nqüvvətlənməsindən ehtiyatlandığı\nüçün",
+      "Onun şiyə təriqətini\nQaraqoyunlu ərazisində geniş\nyaydığından ehtiyat etdiyi üçün",
+      "Şeyx Cüneydin Şirvanşahlarla\nittifaq yaratdığı üçün",
+      "Ağqoyunlu Uzun Həsənlə\nQaraqoyunlulara qarşı\nittifaq yaratdığı üçün."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "108.",
+    "question": "Səfəvilər Osmanlı imperiyasına qarşı birgə cıxış etmək\nücün Venesiya ilə danışıqlar aparırdılar:",
+    "options": [
+      "1505-ci ildə",
+      "1510-cu ildə",
+      "1507-ci ildə",
+      "1508-ci ildə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "109.",
+    "question": "Səfəvilər dövlətinin mərkəzi Təbrizdən İsfahana\nköçürülür, dövlətin mahiyyəti dəyişir:",
+    "options": [
+      "1587-1736-cl illərdə",
+      "II Təhmasibin zamanında",
+      "15011587ci illərdə",
+      "I Təhmasibin zamanında"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "110.",
+    "question": "I Şah Abbasın keçirdiyi hərbi inzibati islahatlara aiddir:\n1. Paytaxtın Təbrizdən Qəzvinə köçürülməsi; 2.\nQızılbaşlarla bərabər başqa tayfalara da qoşuna daxil\nolmaq hüququnun verilməsi; 3. Tayfa başçılığında irsilik\nqaydasının tətbiq edilməsi; 4. Qoşunun tayfa müxtəlifliyi\nprinsipi əsasında təşkil edilməsi",
+    "options": [
+      "3, 4",
+      "2, 4",
+      "1, 2",
+      "1, 3"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "111.",
+    "question": "I Şah Abbasın osmanlılarla 1603-1607ci illərdə apardığı\nmüharibənin nəticəsi:",
+    "options": [
+      "Osmanlılar tutduqları torpaqlarda\ndaha da möhkəmləndilər",
+      "Bütün Azərbaycan torpaqları\nosmanlılardan geri alındı",
+      "Səfəvilər məğlub oldular",
+      "Təbriz, Ordubad\nşəhərlərindən başqa digər\nərazilər Osmanlılarınəlində\nqaldı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "112.",
+    "question": "Azərbaycan torpaqları Səfəvilərin tərkibində qalırdı;\nӘrəb İraqı Bağdad da daxil olmaqla Osmanlılara keçirdi:",
+    "options": [
+      "1813-cü il Gülüstan sülhünün\nşərtlərinə əsasən",
+      "1639cu il Qəsri-Şirin sülhünün\nşərtlərinə əsasən",
+      "1828-ci il Türkmənçay sülhünün\nşərtlərinə əsasən",
+      "1724-cü il İstanbul\nsülhünün şərtlərinə əsasən"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "113.",
+    "question": "I Pyotrun ölümündən sonra Rusiya hökumətinin\nXəzəryanı bölgələri qaytarmaq fikrinə düşməsinin\nsəbəbləri: 1. Osmanlı təzyiqinə davam gətirməməsi; 2.\nBuradakı ordunun saxlanmasına çəkilən xərcin götürülən\ngəlirdən 4 dəfə sox olması; 3. İngiltərənin Hindistanın\nşərq sərhədlərindən\nRusiyanı çıxarmaq üçün gördüyü tədbirlər; 4. Rus\nəsgərlərinin iqlimə uyğunlaşmaması",
+    "options": [
+      "1, 3",
+      "2, 4",
+      "2, 3",
+      "1, 4"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "114.",
+    "question": "1735-ci ildə baş vermiş hadisələri göstərin:",
+    "options": [
+      "Osmanlı ilə Səfəvi arasında\nBağdad müqaviləsinin\nbağlanması",
+      "Osmanlı ilə\nSəfəvi arasında Kirmanşah\nmüqaviləsinin imzalanması",
+      "Gəncə müqaviləsinə əsasən\nrusların Azərbaycan\ntorpaqlarından çıxarılması",
+      "Rusiya ilə Peterburq sülh\nmüqaviləsinin imzalanması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "115.",
+    "question": "Göstərilən şərtlər hansı müqaviləyə aiddir: 1. İrəvan,\nGəncə, Şirvan torpaqları Osmanlıda qaldı və Araz çayı\niki dövlət arasında sərhəd\nelan olundu 2. Kirmanşah, Həmədan, ərdəbil və Təbriz\nSəfəvilərə qaytarıldı",
+    "options": [
+      "1724cü il İstanbul sülh\nmüqaviləsinə",
+      "1732ci il Rəşt müqaviləsinə",
+      "1732ci il Kirmanşah sülh\nmüqaviləsinə",
+      "1733cü il Bağdad\nmüqaviləsinə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "116.",
+    "question": "I Pyotrun yürüşü ilə bağlı hadisələrin xronoloji\nardıcıllığını müəyyən edin: 1. Bakının ruslar tərəfindən\nişğalı 2. I Pyotrun Azərbaycan\ntorpaqlarına yürüşünün başlanması 3. Rus qoşunlarının\nDərbəndi işğal etməsi",
+    "options": [
+      "1, 2, 3",
+      "3, 2, 1",
+      "2, 3, 1",
+      "2, 1, 3"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "117.",
+    "question": "1732-ci il 16 yanvarda sülh müqaviləsi imzalandı:",
+    "options": [
+      "Səfəvilərlə Qacar dövləti arasında",
+      "Səfəvilərlə Rusiya arasında",
+      "Səfəvilərlə Osmanlılar arasında",
+      "Quba və Şəki xanlıqları\narasında"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "118.",
+    "question": "1767-ci ildə Şirvan ərazisinə hücuma keçdilər:",
+    "options": [
+      "Qarabağ və Şəki xanlığının\nbirləşmiş qüvvələri",
+      "Quba və Şamaxı xanlığının\nbirləşmiş qüvvələri",
+      "Quba və Şəki xanlığının birləşmiş\nqüvvələri",
+      "Gəncə və Bakı xanlığının\nbirləşmiş qüvvələri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "119.",
+    "question": "1755-ci ildə Şirvana hücum etdi, müvəffəqiyyət\nqazanmadı:",
+    "options": [
+      "Ağakişi xan",
+      "Səlim xan",
+      "Hüseyn xan",
+      "Hacı Çələbi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "120.",
+    "question": "1775-ci ilin martında rus ordusunun köməyi ilə\nDərbəndin mühasirəsini ləğv etdi:",
+    "options": [
+      "Nadir xan",
+      "Fətəli xan Әfşar",
+      "Әmir Həmzə",
+      "Qubalı Fətəli xan"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "121.",
+    "question": "XVIII əsrin 30-cu illərinə aiddir",
+    "options": [
+      "Qəsri-Şirin müqaviləsinin\nbağlanması",
+      "Nabur müqaviləsinin\nbağlanması",
+      "S. Razinin Xəzərsahili vilayətləri\ntalan etməsi",
+      "Rus ordusunun Xəzəryanı\nvilayətləri tərk etməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "122.",
+    "question": "Göstərilənlər aiddir:\n1.XVIII əsrin ortalarında meydana gəlmişdir\n2.Әsası Fətəli xan Әfşar tərəfindən qoyulmuşdur",
+    "options": [
+      "Sərab xanlığı",
+      "Qaradağ xanlığı",
+      "Әrdəbil xanlığı",
+      "Urmiya xanlığı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "123.",
+    "question": "Məhəmmədhəsən xan Qacara aid deyil",
+    "options": [
+      "Qarabağ xanlığına yürüş edilməsi",
+      "Təbriz və Urmiyanın tutulması",
+      "Zəndlərin məğlub edilmsəi",
+      "Şuşanın işğal edilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "124.",
+    "question": "1735-ci ilə aiddir:\n1.III Abbasın şah elan edilməsi\n2.Kirmanşah müqaviləsinin bağlanması\n3.Üçmüədzin döyüşündə Nadir xan Әfşarın qələbə\nqazanması\n4.Nabur sazişinin bağlanması\n5.Səfəvilərlə Rusiya arasında Gəncə müqaviləsinin\nbağlanması",
+    "options": [
+      "4,5",
+      "1,2",
+      "1,3",
+      "3,5"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "125.",
+    "question": "II Rusiya-İran müharibəsində həlledici döyüş hesab\nedilir:",
+    "options": [
+      "Gəncə",
+      "Qəmərli",
+      "Qarababa",
+      "Gümrü"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "126.",
+    "question": "Qacarlar dövlətinin ticarətində rolu getdikcə artırdı:",
+    "options": [
+      "Avropa dövlətlərinin",
+      "Şərq dövlətlərinin",
+      "Rusiyanın",
+      "Osmanlı imperiyasının"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "127.",
+    "question": "1827-ci il sentyabrın 20-də İrəvan xanın ciddi\nmüqavimətinə baxmayaraq hansı qala ələ keçdi:",
+    "options": [
+      "Sərdərabad qalası",
+      "İrəvan qalası",
+      "Abbasabad qalası",
+      "Naxçıvan qalası"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "128.",
+    "question": "Türkmənçay müqaviləsinə əsasən İran:",
+    "options": [
+      "Rusiya təzminat verməli idi",
+      "Mərəndi Rusiyaya verməli idi",
+      "Qarabağ Rusiyaya verilməli idi",
+      "Әhəri Rusiyaya verməli idi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "129.",
+    "question": "1827-ci il iyunun 5-də ruslar qalib gəldilər:",
+    "options": [
+      "Cavanbulaq döyüşündə",
+      "Gəncə istiqamətində gedən\ndöyüşdə",
+      "Aslandüzdə",
+      "Tifli-Gəncə istiqamətində\ngedən döyüşdə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "130.",
+    "question": "1828-ci il Türkmənçay müqaviləzində danışıqlarda\ntərcüməçi kimi iştirak edirdi:",
+    "options": [
+      "A.Bakıxanov",
+      "Abbas Mirzə",
+      "M.Kazımbəy",
+      "M.F.Axundzadə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "131.",
+    "question": "Bakı şəhər Dumasına ilk seçilənlər arasında yox idi:",
+    "options": [
+      "H.Z.Tağıyev",
+      "Ş.Әsədullayev",
+      "H.Zərdabi",
+      "M.Nağıyev"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "132.",
+    "question": "1889-cu ildə baş vermişdir:",
+    "options": [
+      "Qubernator bağının salınması",
+      "Konka nəqliyyatının işə\nsalınması",
+      "Gildiya ticarət qaydasının tətbiq\nedilməsi",
+      "Ticarət yarmarkasının\nformalaşdırılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "133.",
+    "question": "II Rusiya – Qacar müharibəsinin gedişində Rusiya üçün\nböyük əhəmiyyəti oldu:",
+    "options": [
+      "Naxçıvanın işğal edilməsi",
+      "İrəvanın işğal edilməsi",
+      "Qarabağın işğal edilməsi",
+      "Gəncənin işğal edilməsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "134.",
+    "question": "İmperator I Aleksandr 1801-ci il sentyabrın 12-də\nManifest imzaladı:",
+    "options": [
+      "Azərbaycanın Rusiyaya\nbirləşdirilməsi haqqında",
+      "Gürcüstanın Rusiyaya\nbirləşdirilməsi haqqında",
+      "Cənubi Qafqazın Rusiyaya\nbirləşdirilməsi haqqında",
+      "Şimali Qafqazın Rusiyaya\nbirləşdirilməsi haqqında"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "135.",
+    "question": "Gəncə qalasını ələ keçirmək işində ruslara əllərindən\ngələn köməyi əsirgəmirdilər:",
+    "options": [
+      "Gürcülər",
+      "Ermənilər",
+      "Ruslar",
+      "Ləzgilər"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "136.",
+    "question": "Rusiya şimal Azərbaycan torpaqlarının işğalına başlarkən\nilk hədəf kimi seçdi:",
+    "options": [
+      "İrəvanı",
+      "Car-Balakəni",
+      "Dərbəndi",
+      "Quba xanlığını"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "137.",
+    "question": "Car-Balakəndən sonra Rusiya işğal etdi:",
+    "options": [
+      "Qəbələ sultanlığını",
+      "Qazax sultanlığını",
+      "İlisu sultanlığını",
+      "Şəmşəddil sultanlığını"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "138.",
+    "question": "XX əsrin əvvəllərində Şimali Azərbaycanda filiz\nçıxarılması zamanı qazma işində əl əməyini əvəz etdi:",
+    "options": [
+      "Buxar maşınları",
+      "Dəzgahlar",
+      "Elektrik enerjisi",
+      "Mühərriklər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "139.",
+    "question": "XX əsrin əvvəllərində sənayenin xüsusi çəkisi və\nfəhlələrin sayına görə Şimali Azərbaycanda ikinci şəhər\nidi:",
+    "options": [
+      "Gədəbəy",
+      "Bakı",
+      "Nuxa",
+      "Lənkəran"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "140.",
+    "question": "1912-ci il aqrar qanunu şamil edilmədi:",
+    "options": [
+      "Dağlıq Qarabağ kəndlilərinə",
+      "İrəvan quberniyası kəndlilərinə",
+      "Zaqatala dairəsi kəndlilərinə",
+      "Lənkəran qəzası\nkəndlilərinə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "141.",
+    "question": "XX əsrin əvvəllərində\nNuxada fəaliyyət göstərən ilk\ntənbəki fabriki məxsus\nolmuşdur?",
+    "options": [
+      "İ. Nağıyevə",
+      "H. Z. Tağıyevə",
+      "M. H. Dadaşova",
+      "S.Lətifova"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "142.",
+    "question": "Şimali Azərbaycanda torpaq\npulu vergisi neçənciildən\netibarən töycü ilə əvəz",
+    "options": [
+      "1905",
+      "1913",
+      "1901",
+      "1904"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "143.",
+    "question": "Azərbaycan səhnəsinin zinəti adlandırılan aktyor:",
+    "options": [
+      "H.Әrəblinski",
+      "C.Zeynalov",
+      "H.Sarabski",
+      "Sidqi Ruhulla"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "144.",
+    "question": "Bakıda milli eser təşkilatı\nolan İttifaq partiyası\nyaradılmışdı:",
+    "options": [
+      "1903 ci ildə",
+      "1900 ci ildə",
+      "1904 ci ildə",
+      "1905 ci ildə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "145.",
+    "question": "Birinci Dünya müharibəsində Qərb cəbhəsində suvari dvi\nziyaya komandanlıq edirdi:",
+    "options": [
+      "İbrahim ağa\nVəkilov",
+      "Әliağa Şıxlinski",
+      "Teymur Novruzov",
+      "Hüseyn xan\nNaxçıvanski"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "146.",
+    "question": "1908-ci ildə bağlanmış Difai\ntəşkilatının üzvləri hansı partiyanın sıralarına qoşuldular?",
+    "options": [
+      "Hümmət",
+      "Qeyrət",
+      "Müdafiə",
+      "Musavat"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "147.",
+    "question": "Difai partiyasının şöbələrinin ən böyüyü harada yerləşirdi\n?",
+    "options": [
+      "Gəncədə",
+      "Naxçıvanda",
+      "İrəvanda",
+      "Şuşada"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "148.",
+    "question": "XX əsrin əvvəllərində ipək\nemalı sənayesi Şimali\nAzərbaycanın hansı\nbölgələrində geniş yayılmışdı?",
+    "options": [
+      "Naxçıvan, Gəncə, Şəmkir, Ordu\nbad",
+      "Quba, Qusar, Mərkəzi\nAran, Zaqatala",
+      "Şamaxı, Bakı, Gəncə,\nQuba",
+      "Naxçıvan, Şəki,\nNuxa-Zaqatala,\nQarabağ"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "149.",
+    "question": "I Dövlət Duması buraxıldıqdan sonra Viborq\nmüraciətnaməsini imzalamış azərbaycanlı deputatlar:",
+    "options": [
+      "X.Xasməmmədov M. Y. Cəfərov",
+      "M. Mahmudov, Z.Zeynalov",
+      "Ә. Muradxanov, M.Әliyev",
+      "Ә.M.Topçubaşov,\nİ.Ziyadxanov"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "150.",
+    "question": "Məhəmməd Xudabəndənin hakimiyyət illəri üçün\nxarakterikdir:",
+    "options": [
+      "Mərkəzi hakimiyyətin\nqüvvətləndirilməsi",
+      "Azərbaycan torpaqlarının\nbirləşdirilməsinin başa çatması",
+      "Sultan I Suleymanın Təbrizi\ntutması",
+      "Dövlətin zəifləməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "151.",
+    "question": "1612-ci il Sərab sülhünün şərtləri hansı bənddə düzgün\nəks etdirilmişdir:",
+    "options": [
+      "Osmanlı dövləti Azərbaycanın,\nqismən Ermənistan və\nGürcüstanın, habelə Kürdüstanın\nSəfəvilərə keçməsini tanıdı",
+      "Şimali Gücüstan və\nAzərbaycanın böyük hissəsi\nosmanlılara verildi",
+      "Şimali və Cənubi Azərbaycan hər\niki tərəf arasında bölündü və\nSəfəvilər Osmanlı dövlətinə ildə\n300 yük ipək verməli idilər",
+      "Şirvan istisna olmaqla,\nSəfəvilər bütün\nAzərbaycanı və\nGürcüstanın bir hissəsinə\nyenidən sahib ola bildilər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "152.",
+    "question": "İsgəndər bəy Münşi kim idi:",
+    "options": [
+      "Şah I Abbasın Səfəvi sarayında\ndivan katibi olmuş tarixçi",
+      "Şah II Abbasın Səfəvi sarayında\ndivan katibi olmuş tarixçi",
+      "Şah III Abbasın Səfəvi sarayında\ndivan katibi olmuş tarixçi",
+      "Şah I Təhmasibin Səfəvi\nsarayında divan katibi\nolmuş tarixçi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "153.",
+    "question": "Həsən bəy Rumlu kim idi:",
+    "options": [
+      "Şah I Təhmasibin sarayında\nqulluq etmiş, onun yürüşlərinin\niştirakçısı olmuş tarixçi",
+      "Şah II Təhmasibin sarayında\nqulluq etmiş, onun yürüşlərinin\niştirakçısı olmuş tarixçi",
+      "Şah I İsmayılın sarayında qulluq\netmiş, onun yürüşlərinin\niştirakçısı olmuş tarixçi",
+      "Şah I Abbasın sarayında\nqulluq etmiş, onun\nyürüşlərinin iştirakçısı\nolmuş tarixçi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "154.",
+    "question": "Atasının siyasətini davam etdirdi 2. Səfəvi\nmüridlərindən nizamlı dəstələr yaratdı\n3. Tabasaranda Şirvanşahlarla Ağqoyunluların birləşmiş\nqoşununa məğlub olaraq öldürüldü Göstərilənlər aiddir:",
+    "options": [
+      "Şeyx Heydərə",
+      "Şeyx Cüneydə",
+      "Şeyx Cəfərə",
+      "Sultanəliyə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "155.",
+    "question": "Səfəvilərin ərdəbil hakimliyi dövrünə aid olan döyüşləri\nmüəyyən edin: 1. Şəməsi döyüşü 2. Şərur döyüşü 3.\nAlmabulağı döyüşü 4.\nÇaldıran döyüşü",
+    "options": [
+      "1,2",
+      "1,3",
+      "2,3",
+      "2,4"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "156.",
+    "question": "Әrdəbil hakimi Sultanəlinin iştirak etdiyi döyüşləri\ngöstərin: 1. Әhər 2. Bərdə 3. Samur 4. Şəməsi",
+    "options": [
+      "1,4",
+      "2,3",
+      "2,4",
+      "1,3"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "157.",
+    "question": "I Şah Abbas özbək xanı Məhəmməd xanı məğlub etdi:",
+    "options": [
+      "1587-ci ildə",
+      "1590-cı ildə",
+      "1599-cu ildə",
+      "1629-cu ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "158.",
+    "question": "I Abbas öz təsirini Mavəraənnəhrə yaydı:",
+    "options": [
+      "Әfqanları məğlub etməklə",
+      "Osmanlını məğlub etməklə",
+      "Şeybaniləri məğlub etməklə",
+      "Şimali Hindistanı ələ\nkeçirməklə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "159.",
+    "question": "1677-ci ildə Qacar və Bayat\ntayfalarının qiyamı üçün səciyyəvidir:",
+    "options": [
+      "Әfqanlara qarşı yönəlməsi",
+      "Osmanlıya qarşı yönəlməsi",
+      "Səfəvilərə qarşı yönəlməsi",
+      "Hacı Davuda qarşı\nyönəlməsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "160.",
+    "question": "XVIII əsrin II yarısnda\nŞirvandakıara\nmüharibələrinin təsvirinə\nmüxəmməs həsr etmişdir:",
+    "options": [
+      "Molla Vəli Vidadi",
+      "Әbdülrəzzaq bəy",
+      "Ağa Məsihi",
+      "Şakir Şirvani"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "161.",
+    "question": "1762-ci ildə Şəki xanlığının\nsarayı kim tərəfindən\ntikilmişdir:",
+    "options": [
+      "Mir İbad Qəzvini",
+      "Hacı Məhəmməd\nZare",
+      "Hacı Zeynalabdin\nŞirazi",
+      "Məhəmməd Mömin"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "162.",
+    "question": "İbrahimxəlil xan öz təsirini\nhansı xanlıqlar üzərində\nsaxlayırdı:",
+    "options": [
+      "Qarabağ, Naxçıvan, Xoy, Әrdəbil",
+      "Marağa, Qaradağ, Xoy, Quba",
+      "Qaradağ, Әrdəbil,\nNaxçıvan, Gəncə",
+      "Şirvan, Şəki,\nTəbriz, İrəvan"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "163.",
+    "question": "Xan qoşununun əsas hissəsini təşkil edirdi:",
+    "options": [
+      "Rəncbərlər",
+      "Rəiyyətlər",
+      "Maaflar",
+      "Bəylər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "164.",
+    "question": "Xanlıqlar inzibati cəhətdən bölünürdü:",
+    "options": [
+      "Bəylərbəyiliklərə",
+      "Mahallara",
+      "Nahiyələrə",
+      "Kəndlərə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "165.",
+    "question": "Xan sarayında maliyyə işlərinə baxırdı:",
+    "options": [
+      "Eşikağası",
+      "Sərkərəli",
+      "Baş vəzir",
+      "Anbar ağası"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "166.",
+    "question": "Azərbaycan xanlıqlarının münasibət saxladıqları\ndövlətlər sırasına daxil deyil:",
+    "options": [
+      "İran",
+      "Fransa",
+      "Osmanlı imperiyası",
+      "Rusiya"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "167.",
+    "question": "Şəki xanlığı üçün\nDəsturürəməl adlanan\nxüsusi qanunnamə yazmışdı:",
+    "options": [
+      "Səlim xan",
+      "Məhəmmədhəsən\nxan",
+      "Hacı Çələbi xan",
+      "Ağakişi bəy"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "168.",
+    "question": "1722-ci ildə İsfahanı ələ keçirdilər:",
+    "options": [
+      "Ruslar",
+      "Әfqanlar",
+      "Osmanlılar",
+      "Özbəklər"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "169.",
+    "question": "Ticarətə və tacirlərə xüsusi yer verilir, onların mənafeyi\nilə əlaqədar aydın tələblər irəli sürülürdü:",
+    "options": [
+      "İri tacirlərin üzərinə ağır vergi\nqoymaq və onların xarici ticarətdə\nmövqeyini azaltmaq",
+      "Babilər hərəkatı zamanı Babin\nmüddəalarında",
+      "Azərbaycan Әyalət Komitəsində",
+      "İran Demokrat Partiyasının\nӘyalət Komitəsində"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "170.",
+    "question": "Bakı, Tiflis və İrəvan\nQuberniyaları hesabına\nyaradılmışdı:",
+    "options": [
+      "Zaqatala dairəsi",
+      "Yelizavetpol\nquberniyası",
+      "Dərbənd quberniyası",
+      "Zəngəzur qəzası"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "171.",
+    "question": "Rusiyanın Azərbaycanda komendant idarə üsulunu\nyaratmaqda məqsədi:",
+    "options": [
+      "Azərbaycanın əvvəlki dövlətçilik\nqaydalarını qismən saxlamaqla\nrus idarəçilik sistemi yaratmaq",
+      "Azərbaycanda əvvəllər mövcud\nolmuş dövlətçilik ənənələrini\nləğv etmək və imperiyaya\nsədaqətli məmurlar yetişdirmək",
+      "İmperiyaya sədaqətli məmurların\nrəhbərlik etdiyi quberniya idarə\nsistemi yaratmaq",
+      "Müsəlman əhalisinin\ndövlətçilik ənənələrini\nqoruyub saxlamaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "172.",
+    "question": "Şimali Azərbaycana köçürülmüş ermənilərə aiddir:",
+    "options": [
+      "Altı il vergi və\nmükəlləfiyyətlərdən azad edilir,\nonlara vəsait verilirdi",
+      "Qaratorpaq ərazilərə\nköçürülməyə icazə verilirdi",
+      "Müsəlmanların sıx yaşadığı\nərazilərə getmək qadağan edilirdi",
+      "Bakı və Lənkəran\nbölgələrinə getmək qadağan\nedilirdi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "173.",
+    "question": "XIX əsrin 30-50-də Şimali Azərbaycanda manufaktura\ndaha çox yayılmışdı:",
+    "options": [
+      "İpək emalı sənayesində",
+      "Pambıq istehsalında",
+      "Şərabçılıq və konyak istehsalında",
+      "Dağ-mədən sənayesində"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "174.",
+    "question": "1846-cı il\ndekabr tarixli çar\nfərmanı ilə:",
+    "options": [
+      "Bəy və ağaların\ntorpaq üzərində\nxüsusi mülkiyyət\nhüqüqu təsdiq edildi",
+      "Bəy və ağalara\nkəndlilərin bir yerdən\nbaşqa yerə getmələrinə\nimkan verildi",
+      "Kəndlilərdən toplanan\nvergilərin bütünlüklə pulla ödəni\nlməsini təsdiq etdi",
+      "15 yaşından yuxarı kişi\ncinsindən olan\nşəxslərə 3 desyatinə\nqədər torpaq verildi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "175.",
+    "question": "Babın yeni yaradılacaq cəmiyyətdə istədikləri və\ngörüşlərində ayrıca dəstəklənən təbəqə hansı idi:",
+    "options": [
+      "İnsanlar arasında bərabərlik,\nədalət, şəxsiyyət toxunulmazlığı\nyaratmaq istədiyini bildirir,\ngörüşlərində ticarətə və tacirlərə\nayrıca yer verilir, onların\nmənafeyi dəstəklənirdi",
+      "İnsanlar arasında sülh,\nəminamanlıq, bərabərlik\nyaratmaq istədiyi bildirilir, din\nxadimləri və sənətkarlar\nmüdafiə olunur, dəstəklənirdi",
+      "Hakim sinfə qarşı nifrət, istismar\nolunan kütləyə hörmət istəyi\nbildirilir, sənətkarlar və din\nxadimləri dəstəklənirdi",
+      "İnsanlar arasında bərabərlik,\nədalət, şəxsiyyət\ntoxunulmazlığı yaratmaq\nistədiyini bildirir, kəndlilər\nvə sənətkarlar müdafiə\nedilir, dəstəklənirdi."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "176.",
+    "question": "Fevral inqilabından sonra Azərbaycanda fəaliyyəti",
+    "options": [
+      "“Hümmət”, “Әdalət”, “Birlik”",
+      "“İttifaqi-islam”, “Әdalət”,",
+      "“Müsavat”, “Federalistlər”,",
+      "“Nəşri-maarif”, “Səadət”,"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "177.",
+    "question": "1904-cü ildə çap edilmiş “Muxtəsər Qafqaz tarixi”\nəsərinin müəllifi:",
+    "options": [
+      "Bəhruz Kəngərli",
+      "Hacı Şeyx Həsən Mollazadə",
+      "Rəşid bəy İsmayılov",
+      "Qafur Rəşad Mirzəzadə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "178.",
+    "question": "Ә. Talıbov, Z. Marağayi və Ә. Şəbüstəri kimdir?",
+    "options": [
+      "Tarixçi",
+      "Coğrafiyaşünas",
+      "Әdəbiyyatçı",
+      "Rəssam"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "179.",
+    "question": "Üzeyir Hacıbəyovun\nyaradıcılığına aid deyil:",
+    "options": [
+      "“Әsli və Kərəm” operası",
+      "“Arşın mal alan” komediyası",
+      "“Şah İsmayıl” operası",
+      "“Şeyx Sənan” operası"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "180.",
+    "question": "1917-ci il oktyabrın 26-da Müsavat partiyasının I\nqurultayının giriş sözündə müstəqil Azərbaycan\ndövlətinin yaradılacağını söyləmişdi:",
+    "options": [
+      "N.Yusifbəyli",
+      "F.Xoyski",
+      "M.Ә.Rəsulzadə",
+      "M.Hacınski"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "181.",
+    "question": "Azərbaycandakı şəhər məktəbləri ali ibtidai məktəblərə\nçevrildi:",
+    "options": [
+      "1912-ci il Әsasnaməsinə əsasən",
+      "1912-ci il Әsasnaməsinə əsasən",
+      "1912-ci il Әsasnaməsinə əsasən",
+      "1912-ci il Әsasnaməsinə\nəsasən"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "182.",
+    "question": "İlk azərbaycanlı hərbi təyyarəçi:",
+    "options": [
+      "Tərlan Әliyarbəyov",
+      "Teymur Novruzov",
+      "Fərrux ağa Qayıbov",
+      "Qalib Vəkilov"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "183.",
+    "question": "Bakı XKS öz səlahiyyətlərindən əl çəkdi:",
+    "options": [
+      "1918-ci il iyulun 11-də",
+      "1918-ci il iyulun 30-də",
+      "1918-ci il iyulun 31-də",
+      "1918-ci il iyulun 1-də"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "184.",
+    "question": "Xosrov paşa bəy Sultanov təyin edildi:",
+    "options": [
+      "İrəvan general –\nqubernatorluğuna general\nqubernator",
+      "Naxçıvan general –\nqubernatorluğuna general\nqubernator",
+      "Qarabağ general –\nqubernatorluğuna general\nqubernator",
+      "Hərbi Nazir"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "185.",
+    "question": "Məğlubiyyət təhlükəsi ilə üzləşən Bakı XKS ümid\nbəsləyirdi:",
+    "options": [
+      "Kazak dəstəsinin komandiri\nL.Biçeraxovun və ingilislərin\nköməyinə",
+      "Ermənistanın və İngilislərin\nköməyinə",
+      "Moskvanın diplomatik yardımına\nvə ermənilərin köməyinə",
+      "Moskvanın diplomatik\nyardımına və Kazak\ndəstəsinin komandiri\nL.Biçeraxovun köməyinə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "186.",
+    "question": "Tarixi hadisələrin yanlış göstərildiyi variantı müəyyən\nedin:",
+    "options": [
+      "27 may 1918-ci il – Müvəqqəti\nMilli Şura yaradıldı",
+      "28 may 1918-ci il --Azərbaycan\ndövlət müstəqilliyi elan olundu",
+      "4 iyun 1918-ci il -- Batumidə\nOsmanlı dövləti ilə Sülh və\ndostluq müqaviləsi bağlandı",
+      "29 may 1918-ci il --\nAzərbaycan Xalq\nCümhuriyyətinin\nyaradılması haqqında\nməlumat radioteleqrafla\nxarici dövlətlərin\nbaşçılarına bildirildi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "187.",
+    "question": "AXC-nin ilk beynəlxalq sazişi:",
+    "options": [
+      "Brest-litovsk",
+      "Trabzon",
+      "Әrzincan",
+      "Batum"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "188.",
+    "question": "AXC-yə aid deyil:",
+    "options": [
+      "Erməni qiyamları",
+      "Parlamentin açılması",
+      "Batum müqaviləsi",
+      "Qars müqaviləsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "189.",
+    "question": "AXC-də icraedici hakimiyyət məxsus idi:",
+    "options": [
+      "Müəssisələr Məclisinə",
+      "Milli Şuraya",
+      "Parlamentə",
+      "Parlament qarşısında məsul\nolan hökümətə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "190.",
+    "question": "Osmanlı qoşunları Cənubi Azırbaycanın çox hissəsini\ntutmuşdu:",
+    "options": [
+      "1917-cü ilin axırında",
+      "1915-cü ilin axırında",
+      "1916-cü ilin axırında",
+      "1914-cü ilin axırında"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "191.",
+    "question": "1918-ci ilin yazında rus hərbi hissələri Cənubi\nAzərbaycanı tərk etdikdən sonra ingilislər:",
+    "options": [
+      "Әrdəbil, Әrzincan, Xoy və\nZəncanı ələ keçirdilər",
+      "Bakı,Şamaxı, Xoy və Urmiyanı\nələ keçirdilər",
+      "Təbriz və Tehranı ələ keçirdilər",
+      "Zəncan, Miyanə, Xoy və\nUrmiyanı ələ keçirdilər"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "192.",
+    "question": "Әmək haqqında qanun verildi:",
+    "options": [
+      "1946-cı il dekabrın 12-də",
+      "1946-cı il yanvarın 16-da",
+      "1946-cı il fevralın 16-da",
+      "1946-cı il mayın 12-də"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "193.",
+    "question": "Milli hökümətin yaranmasının ildönümü günü\nmünasibətilə:",
+    "options": [
+      "1977-ci ildə ən iri fəhlə çıxışı",
+      "1978-ci ildə ən iri tələbə çıxışı",
+      "1977-ci ildə ən iri tələbə çıxışı\nolmuşdu",
+      "1979-cu ildə ən iri tələbə\nçıxışı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "194.",
+    "question": "Sovet İran sərhəddində sərhəd qurğularının dağılması və\nŞimali Azərbaycanda dövlət müstqilliyinin bərpa\nedilməsi Cənubda da milli təfəkkürdə yeni bir canlanma\nyaratdı:",
+    "options": [
+      "1988-ci ilin dekabrında",
+      "1989-cu ilin yanvarında",
+      "1989-cu ilin dekabrında",
+      "1990-cı ilin dekabrında"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "195.",
+    "question": "1908-ci il iyulun 18-də kiçik dəstəsilə hücuma keçdi:",
+    "options": [
+      "Ş.M.Xiyabani",
+      "S.C.Pişəvəri",
+      "Səttərxan",
+      "Məhəmməd xan"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "196.",
+    "question": "İnqilabçılara pulla yardım göstərirdilər:",
+    "options": [
+      "M.Muxtarov və N.Mütəllibov",
+      "S.C.Pişəvəri və H.Z.Tağıyev",
+      "H.Z.Tağıyev, N.Mütəllibov",
+      "H.Ağayev və M.Nağıyev"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "197.",
+    "question": "Ermənistanın ərazisi Ararat vadisi və Göyçə hövzəsi ilə\nməhdudlaşırdı, qalan ərazilər Türkiyəyə verildi:",
+    "options": [
+      "1921-ci il martın 16-da Moskvada\nRSFSR ilə Türkiyə arasında\nDostluq və qardaşlıq haqqında",
+      "1921-ci il sentyabr-oktyabr\naylarında keçirilən Qars\nkonfransına əsasən",
+      "1920-ci il dekabrın 2-də Gümrü\nsülh müqaviləsinə əsasən",
+      "1920-ci il dekabrın12-də\nGümrü sülh müqaviləsinə\nəsasən"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "198.",
+    "question": "1920-ci ilin yayından yaradılmağa başlanıldı:",
+    "options": [
+      "Mədəni inqilab",
+      "Sənayeləşdirmə",
+      "Kollektiv təsərrüfat",
+      "Maşın traktor stansiyaları"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "199.",
+    "question": "1930-cu ildə Azərbaycanda həyata keçirilən\nkollektivləşmənin mahiyəti:",
+    "options": [
+      "Kollektiv təsərrüfatı ləğv etmək\nidi",
+      "Kənddə çoxukladlılığı və xırda\nkəndli təsərrüfatını ləğv etmək\nidi",
+      "Yeni iqtisadi siyasəti ləğv etmək\nidi",
+      "Sənayeləşdirməni ləğv\netmək idi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "200.",
+    "question": "Sovet dövləti qolçomaqları məhdudlaşdırmaq siyasəti\nyeridirdi",
+    "options": [
+      "1939-cu ilə kimi",
+      "1928-ci ilə kimi",
+      "1937-ci ilə kimi",
+      "1936-cı ilə kimi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "201.",
+    "question": "1917ci ilin aprelində\nAçıq söz\nqəzetinin nəşrinə\n25 min manat\nvəsait vermişdi",
+    "options": [
+      "H.Z.Tağıyev",
+      "M.Nağıyev",
+      "Ş.Әsədullayev",
+      "M.Muxtarov"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "202.",
+    "question": "1917-ci il noyabrın 11-də yaradıldı:",
+    "options": [
+      "Cənubi Qafqaz Xüssusi Komitəsi",
+      "Cənubi Qafqaz Komissarlığı",
+      "Ümumrusiya Müəssisələr Məclisi",
+      "Cənubi Qafqaz Komissiyası"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "203.",
+    "question": "1917-ci il noyabrın 11-də ləğv edildi:",
+    "options": [
+      "Cənubi Qafqaz Komissarlığı",
+      "Cənubi Qafqaz Xüssusi\nKomitəsi",
+      "Bakı Soveti",
+      "Cənubi Qafqaz Komissiyası"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "204.",
+    "question": "Cənubi Qafqaz Komissarlığı Türkiyə ilə:",
+    "options": [
+      "1917-ci il Әrzurumda 14\nmaddədən ibarət barışıq\nmüqaviləsi imzaladı",
+      "1917-ci il Әrzincanda 14\nmaddədən ibarət barışıq\nmüqaviləsi imzaladı",
+      "1917-ci il Әrdəbildə 14 maddədən\nibarət barışıq müqaviləsi imzaladı",
+      "1917-ci il Әnzəlidə 14\nmaddədən ibarət barışıq\nmüqaviləsi imzaladı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "205.",
+    "question": "Trabzonda Cənubi Qafqaz Seyminin nümayəndə heyəti\nilə Türkiyə arasında sülh konfranzı açıldı:",
+    "options": [
+      "1918-ci il martın 14-də",
+      "1918-ci il martın 15-də",
+      "1917-ci il martın 14-də",
+      "1918-ci il martın 16-də"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "206.",
+    "question": "Bakı Şəhər Duması buraxıldı:",
+    "options": [
+      "1918-ci il aprelin 20-də",
+      "1918-ci il aprelin 25-də",
+      "1919-ci il aprelin 20-də",
+      "1917-ci il aprelin 20-də"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "207.",
+    "question": "1918-ci il iyunun 5-də yaradıldı:",
+    "options": [
+      "Bakı Xalq Komissarları (XKS)",
+      "Cənubi Qafqaz Komissarlığı",
+      "Cənubi Qafqaz komissiyası",
+      "Ümumrusiya Müəssisələr\nMəclisi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "208.",
+    "question": "Bakı XKS-ni erməni sovet höküməti adlandırmışdı:",
+    "options": [
+      "A.Xatisov",
+      "S.Şaumyan",
+      "F.Xoyski",
+      "V.İ.Lenin"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "209.",
+    "question": "30 mart 1918-ci ildə:",
+    "options": [
+      "Ermənilər tərəfindən\nazərbaycanlılar üzərinə ilk atəş\nedildi",
+      "Naxçıvan bölgəsi ermənirərin\nəlinə keçdi",
+      "Araz Türk Respublikası yaradıldı",
+      "Tiflisdə Azərbaycanla\nErmənistan arasında saziş\nimzalandı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "210.",
+    "question": "Azərbaycanın müstəqillik ideyalarına, milli-demokratik\nqüvvələrə ağır zərbə vurmaq məqsədilə təşkil edilmişdi:",
+    "options": [
+      "1918-ci il mart soyqırımı",
+      "1905-1907-ci illlər I Rusiya\nburjua inqilabı",
+      "Fevral burjua inqilabı",
+      "Milli-demokratik qüvvələr"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "211.",
+    "question": "Milli Şuranın Tiflisdə qəbul etdiyi “İstiqlaliyyət\nbəyannaməsi” ilə XX əsrin əvvəllərində itirilmiş\ndövlətçiliyimiz Azərbaycan Cümhuriyyəti formasında\nbərpa olundu:",
+    "options": [
+      "1918-ci il mayın 28-də",
+      "1918-ci il mayın 29-də",
+      "1919-cu il mayın 28-də",
+      "1918-ci il mayın 27-də"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "212.",
+    "question": "1918-ci il iyununda Borçalıda baş verən silahlı\ntoqquşmada:",
+    "options": [
+      "Alman-gürcü qoşunları Osmanlı\nordu hissələrinə məğlub oldular",
+      "Rus-gürcü qoşunları Osmanlı\nordu hissələrinə məğlub oldular",
+      "İslam ordusu gəncəyə gəldi",
+      "Alman-gürcü qoşunları\nOsmanlı ordusuna qarşı\nqələbə qazandılar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "213.",
+    "question": "Azərbaycan vətəndaşlığı haqqında fərman verildi:",
+    "options": [
+      "1919-cu ilin avqustunda",
+      "1917-ci ilin avqustunda",
+      "1918-ci ilin aprelində",
+      "1918-ci ilin avqustunda"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "214.",
+    "question": "1908-ci ilin sonu – 1909-cu ilin başlanğıcında\nC. Azərbaycanın əksinqilabçılardan azad edilməmiş qərb\nvilayəti",
+    "options": [
+      "Urmiya",
+      "Marağa",
+      "Salmas",
+      "Maku"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "215.",
+    "question": "1946-cı ilin iyununda",
+    "options": [
+      "Cənubi Azərbaycan milli azadlıq\nhərəkatının ikinci mərhələsi\nbaşlandı",
+      "İran qoşunları Təbriz üzərinə\nhücuma keçdi",
+      "Cənubi Azərbaycanda Milli\nHökumət təşkil edildi",
+      "İranın Qəvalmüs-Səltənə\nhökuməti Cənubi\nAzərbaycanın Milli\nhökuməti ilə müqavilə\nbağladı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "216.",
+    "question": "Ş.M.Xiyabaninin",
+    "options": [
+      "Sənətkarlar,",
+      "İstehsaldan əli çıxmış",
+      "İxtisara salınmış jandarm",
+      "Emalatxanalarda"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "217.",
+    "question": "İkinci dünya müharibəsi illərində Cənubi Azərbaycanda\ndemokratik hərəkata rəhbərlik edirdi",
+    "options": [
+      "Ş. M. Xiyabani",
+      "Səttarxan",
+      "Bağırxan",
+      "S. C. Pişəvəri"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "218.",
+    "question": "Uyğunluq gözlənilmişdir:\n1.”21 Azər” hərəkatı a) 1946\n2.Təbriz Universitetinin açılması b) 1978\n3.”29 Bəhmən” Təbriz üsyanı\nc) 1945",
+    "options": [
+      "1c,2b,3a",
+      "1b,2c,3a",
+      "1c,2a,3b",
+      "1a,2c,3b"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "219.",
+    "question": "İranda şovinist milli siyasət aparılırdı",
+    "options": [
+      "“İnsan haqlarının qorunması” adı\naltında",
+      "“Bərabərhüquqlu xalqlar” adı\naltında",
+      "“Vahid İran ümməti” adı altında",
+      "“Xalqların öz\nmüqəddəratını təyin etməsi”\nadı altında"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "220.",
+    "question": "Cənubi Azərbaycanlıların\nbirləşdirən ədalət təşkilatı\nHümmətdən ayrıldı:",
+    "options": [
+      "1918-ci ildə",
+      "1915-ci ildə",
+      "1917-ci ildə",
+      "1913-cü ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "221.",
+    "question": "1905-ci il dekabrın 12-də Tehranda baş nazir\nEynüddövlənin qəndin qiymətinin bahalaşmasını bəhanə\nedərək həbs etdirdi:",
+    "options": [
+      "15 taciri",
+      "19 taciri",
+      "17 taciri",
+      "12 taciri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "222.",
+    "question": "Təbrizdə “Gizli mərkəz”in başçılığı ilə İran inqilabı\ndövründə İlk silahlı üsyan başladı:",
+    "options": [
+      "1927-ci il fevralın 8-də",
+      "1917-ci il fevralın 8-də",
+      "1907-ci il fevralın 8-də",
+      "1907-ci il fevralın 7-də"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "223.",
+    "question": "1908-ci il iyunun 23-də şahın göstərişi ilə:",
+    "options": [
+      "Marağada əksinqilabı dövlət\nçevrilişi baş verdi",
+      "Təbrizdə əksinqilabı dövlət\nçevrilişi baş verdi",
+      "Tehranda əksinqilabı dövlət\nçevrilişi baş verdi",
+      "Zəncanda əksinqilabı dövlət\nçevrilişi baş verdi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "224.",
+    "question": "1918-ci ilin yazına qədər ingilislər işğal etdilər:",
+    "options": [
+      "Әrdəbil və Miyanəni",
+      "Zəncan və Marağanı",
+      "Zəncan və Miyanəni",
+      "Zəncan və Urmiyanı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "225.",
+    "question": "“Bir xalqın istiqlaliyyəti yoxdursa, o xalqın heç nəyi\nyoxdur” kim demişdir:",
+    "options": [
+      "M.Ә.Rəsulzadə",
+      "S.C.Pişəvəri",
+      "Ş.M.Xiyabani",
+      "Səttarxan"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "226.",
+    "question": "1909-cu il aprelin 25-də güya xarici təbəələri qorumaq\nbəhanəsilə şəhərə qoşun yeritdi:",
+    "options": [
+      "İngitərə və Türkiyə",
+      "İngitərə və Rusiya",
+      "Fransa və Rusiya",
+      "İngitərə və Fransa"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "227.",
+    "question": "1922-ci il dekabrın\n30-da Birinci\nSovetlər\nqurultayında\nyenidən köhnə\nRusiya imperiyasınıSSRİ adı ilə bərpa\nedən Lenin:",
+    "options": [
+      "Azərbaycanın Rusiyanın xamma\nl bazasına\nçevrilməsinə, kənd\ntəsərrüfatının\nyüksəlişinə nail oldu",
+      "Yerlərdəki\nhakimiyyəti daha dazəiflətmiş\nvə onların\nmərkəzdən\nasılılığını, eləcə də bir-\nbirindən\nasılılığını artırmışdır",
+      "Yerlərdə xan-\nbəy torpaqlarını əvəzsiz\nolaraq kəndlilərə\nverilməsinə nail oldu",
+      "Yerlərdəki\nixtisaslı kadrlara\nhörmətlə\nyanaşır,\nmərkəzdən\nasılılığı eləcə\ndə bir-\nbirindən asılığıazaltmışdı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "228.",
+    "question": "Azərbaycan\nİnqilabi\nKomitəsinin torpaq haqqında\ndekretində nəzərdə\ntutulurdu",
+    "options": [
+      "Әrzaq vergisinin\nərzaq sapalağı ilə\nəvəz olunması",
+      "Vergi alınması\nmüqabilində\ntorpağın\nkəndlilərin\nistifadəsinə\nverilməsini",
+      "Kəndlilərin artıq taxılının\ndövlət tərəfindən baha\nqiymətə alınması",
+      "Kəndlərdə\notlaq\nsahələrindən\nistifadə üçün\ntoplanan vergininləğv olun\nmasını"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "229.",
+    "question": "Azərbaycan SSRdə ərzaq vergisi\npulla ödənilən\nvahid kənd\ntəsərrüfatı vergisi\nilə əvəz olunmuşdu?",
+    "options": [
+      "1924",
+      "1923",
+      "1920",
+      "1922"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "230.",
+    "question": "1934cü ildə fəaliyyətə\nbaşlayan gizli\nAzərbaycan\nMilli Təşkilatının\nbaşında dururdu",
+    "options": [
+      "R.Axundov",
+      "Ә.Xanbulaq",
+      "M.Müşfiq",
+      "B.Talıblı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "231.",
+    "question": "1921¬ci il mayın 6¬da Bakıda keçirilən Azərbaycan SSR\nbirinci sovetlər qurultayında",
+    "options": [
+      "Azərbaycan SSR-nin birinci\nKonstitusiyası qəbul olundu",
+      "M.C.Bağırov Azərbaycan\nFövqəladə Komissiyasının sədri\ntəyin edildi",
+      "Azərbaycan SSR Müvəqqəti\nİnqilab Komitəsi yaradıldı",
+      "ZSFSR¬in yaradılması\nhaqqında qərar qəbul\nolundu"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "232.",
+    "question": "Aşağıdakı tədbirlərdən hansı Hərbi\nkommunizm\nsiyasəti dövrünə\naiddir?",
+    "options": [
+      "Әrzaq sapalağı",
+      "Yeni iqtisadi siyasət",
+      "“QOELRO” planı",
+      "Sənayeləşdirmə\nvə\nkollektivləşdirmə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "233.",
+    "question": "1921-ci il mayın 6-da Bakıda toplandı:",
+    "options": [
+      "Azərbaycan SSR-in I Sovetlər\nqurultayı",
+      "Azərbaycan SSR-in II Sovetlər\nqurultayı",
+      "Azərbaycan SSR-in III Sovetlər\nqurultayı",
+      "Azərbaycan SSR-in IV\nSovetlər qurultayı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "234.",
+    "question": "Naxçıvan statusu məsələsinin Azərbaycanın xeyrinə həll\nedilməsində böyük rolu olmuşdur:",
+    "options": [
+      "Türkiyənin",
+      "İranın",
+      "Rusiyanın",
+      "Gürcüstanın"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "235.",
+    "question": "1920-ci illərdə Naxçıvanın ststusu məsələsini\naktuallaşdıran amillərdən biri:",
+    "options": [
+      "Rusiyanın Naxçıvana qoşun\nyeritməsi",
+      "Naxçıvanın Ermənistanın işğal\naltında olması",
+      "Mudros konfransı",
+      "Ermənistanın Naxçıvana\nəsassız iddiaları"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "236.",
+    "question": "1923-cü il iyulun 7-də yaradıldığı elan edildi:",
+    "options": [
+      "Azərbaycan SSR-in tərkibində\nDağlı Vilayəti",
+      "Azərbaycan SSR-in tərkibində\nNaxçıvan MSSR",
+      "Azərbaycan SSR-in tərkibində\nTalış Muğan Respublikası",
+      "Azərbaycan SSR-in\ntərkibində Dağlıq Qarabağ\nMuxtar Vilayəti"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "237.",
+    "question": "Azərbaycan SSR-in tərkibində Naxçıvan MSSR\nyaradıldı:",
+    "options": [
+      "1929-cü ildə",
+      "1923-cü ildə",
+      "1925-ci ildə",
+      "1924-cü ildə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "238.",
+    "question": "İkinci dünya\nmüharibəsi zamanı SSRİ Ali Baş Komandanlığı\nAzərbaycan SSRdə hərbi vəziyyət\nelan etdi",
+    "options": [
+      "noyabr 1941",
+      "iyun 1941",
+      "yanvar 1940",
+      "sentyabr 1942"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "239.",
+    "question": "1988ci il 4 dekabrda\nAzadlıq\nmeydanında\nkeçirilən mitinq",
+    "options": [
+      "Azərbaycanm\nsərhəd\nbölgələrində\nermənilərin\nfitnəkarlığmm\nqarşısını almaq\nüçün könüllü\nbirləşmələr\nyaratdı",
+      "Ermənistandan\ndidərgin salınmış\nAzərbaycan\ntürklərinin Dağlıq\nQarabağa köçürülməsi\nhaqda qərar qəbul\netdi",
+      "Azərbaycanm SSR-\nnin tərkibindən çıxmasını\nzəruri saydı",
+      "Xalq hərəkatmın\nbirinci kortəbii\nmərhələsinin\nzirvəsi idi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "240.",
+    "question": "1942-ci ilin mayında respublikada yenidən\nkomplektləşdirildi:",
+    "options": [
+      "Krımın müdafiəsində şəxsi\nheyətinin çoxunu itirmiş 75-ci\ndiviziya",
+      "Krımın müdafiəsində şəxsi\nheyətinin çoxunu itirmiş 402-ci\ndiviziya",
+      "Krımın müdafiəsində şəxsi\nheyətinin çoxunu itirmiş 71-ci\ndiviziya",
+      "Krımın müdafiəsində şəxsi\nheyətinin çoxunu itirmiş 77-\nci diviziya"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "241.",
+    "question": "Polşa və Çexoslavakiyanın azad edilməsində iştirak\netmişdi:",
+    "options": [
+      "277-ci milli atıcı diviziya",
+      "71-ci milli atıcı diviziya",
+      "271-ci milli atıcı diviziya",
+      "21-ci milli atıcı diviziya"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "242.",
+    "question": "Hüseyn Әjdərov qələbə bayrağını qaldırdı:",
+    "options": [
+      "Kursk şəhəri üzərində",
+      "Moskva şəhəri üzərində",
+      "Oryol şəhəri üzərində",
+      "Pustinka kəndi uğrunda\ngedən döyüşlərdə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "243.",
+    "question": "Sovet ordusunun mayoru Pribaltikada almanların tərəfinə\nkeçdi:",
+    "options": [
+      "Mehdi Hüseynzadə",
+      "M.Ә.Rəsulzadə",
+      "Ә.Fətəlibəyli-Düdəndinski",
+      "İsrafil Məmmədov"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "244.",
+    "question": "1954-cü ilə aid olmayan hadisəni müəyyən edin:",
+    "options": [
+      "Daşkəsəndə dəmir filizi üçün\nsaflaşdırma kombinatının\nistifadəyə verilməsi",
+      "Abşeron DRES-in istifadəyə\nverilməsi",
+      "Qaradağ sement zavodunun\nistifadəyə verilməsi",
+      "N.S.Xruşşovun\nSov.İKPMK-nın I katibi\nseçilməsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "245.",
+    "question": "SSRİ-də milli münaqişə ocaqlarının ən ziddiyyətlisi\nmövcud idi:",
+    "options": [
+      "Gürcüstan SSR-in Borçalı\nbölgəsində",
+      "Qazaxıstan SSR-in Oş\nvilayətində",
+      "Azərbaycan SSR-in Dağlıq\nQarabağ bölgəsində",
+      "Ukrayna SSR-in Dnestryanı\nvilayətində"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "246.",
+    "question": "1948-1953-cü illərdə Qərbi Azərbaycan (Ermənistan SSR\nərazisindən) torpaqlarından deportasiya edilmiş\nsoydaçlarımızın yerləşdirildiyi rayonlardan deyildir:",
+    "options": [
+      "Saatlı",
+      "İmişli",
+      "Yevlax",
+      "Göyçay"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "247.",
+    "question": "A.Mikoyanın təşəbbüsü ilə 1940-cı illərin ortalarında\nErmənistanda gizli olaraq yaradılmışdı:",
+    "options": [
+      "Asala təşkilatı",
+      "Qarabağ komitəsi",
+      "Qarabağı Müdafiə Komitəsi",
+      "Erməni Milli komitəsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "248.",
+    "question": "1947-ci ildə SSRİ-də, ocümlədən, Azərbaycanda ləğv\nedildi:",
+    "options": [
+      "MTS-lər",
+      "Kartoçka sistemi",
+      "Fövqəladə komissiya",
+      "Siyasi şöbələr"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "249.",
+    "question": "1958-1966-cı illərdə tikilən müəssisələrə aid deyil",
+    "options": [
+      "Sumqayıt kimya kombinatı",
+      "Mingəçevir SES",
+      "Bakı soyuducular zavodu",
+      "Mingəçevir kabel zavodu"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "250.",
+    "question": "1978-ci ilin aprelində Azərbaycan SSR-də",
+    "options": [
+      "Kartoçka sistemi ləğv olundu",
+      "Yeni Konstitusiya qəbul olundu",
+      "D ə n i z d ə i l k n eft quyusu istifadəyə\nverildi",
+      "İlk parlament seçkiləri\nkeçirildi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "251.",
+    "question": "YIS dayandırıldı:",
+    "options": [
+      "1930-cu ildə",
+      "1927-ci ildə",
+      "1937-ci ildə",
+      "1917-ci ildə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "252.",
+    "question": "1921-ci il avqustun 17-də ləğv edildi:",
+    "options": [
+      "YİS",
+      "Әrzaq sapalağı",
+      "Çanaq vergisi",
+      "Әrzaq payı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "253.",
+    "question": "1922-ci il dekabrın 10-da Bakıda keçirildi",
+    "options": [
+      "Cənubi Qafqaz respublikalarının\nSovetlərinin II qurultayı",
+      "Cənubi Qafqaz\nrespublikalarının Sovetlərinin I\nqurultayı",
+      "Cənubi Qafqaz respublikalarının\nSovetlərinin IV qurultayı",
+      "Cənubi Qafqaz\nrespublikalarının\nSovetlərinin III qurultayı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "254.",
+    "question": "Sovet Respublikaları Rusiya Federasiyası ilə ilk saziş\nimzaladı:",
+    "options": [
+      "1922-ci il dekabrın 30-da",
+      "1922-ci il fevralın 22-də",
+      "1921-ci il iyunun 5-də",
+      "1923-cü il iyulun 7-də"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "255.",
+    "question": "Heydər Әliyevin təşəbbüsü ilə Cəmşid Naxçıvanski adına\nixtisaslaşdırılmış orta internat məktəbi açılmışdı:",
+    "options": [
+      "1970-ci ildə",
+      "1971-ci ildə",
+      "1969-cu ildə",
+      "1973-cü ildə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "256.",
+    "question": "SSRİ-ni ən böyük astronomiya mərkəzlərindən biri:",
+    "options": [
+      "Xəzər elmi mərkəzi",
+      "Şamaxı rəsədxanası",
+      "Bakıda Kosmik Araşdırmalar üzrə\nElmi Tədqiqat Birliyi",
+      "Neft Akademiyası"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "257.",
+    "question": "Məhsul istehsalı müharibədən əvvəlki səviyyəyə\nçatdırıldı:",
+    "options": [
+      "1938-ci ildə",
+      "1958-ci ildə",
+      "1948-ci ildə",
+      "1968-ci ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "258.",
+    "question": "Neft daşlarında ilk dəniz neft quyusu fontan vurdu:",
+    "options": [
+      "1969-cu il noyabrın 7-də",
+      "1959-cu il noyabrın 7-də",
+      "1949-cu il noyabrın 7-də",
+      "1979-cu il noyabrın 7-də"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "259.",
+    "question": "1948-1954-cü illərdə yaradıldı:",
+    "options": [
+      "Әli-Bayramlıda istilik-elektrik\nstansiyası",
+      "Qaradağ sement zavodu",
+      "Daşkəsən filizsaflaşdırma\nkombinatı",
+      "Sumqayıt şəhərində Kimya\nzavodu"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "260.",
+    "question": "Bakıda Kosmik Tədqiqatlar Elmi-İstehsalat Birliyi\nfəaliyyətə başldı:",
+    "options": [
+      "1990-cı ildə",
+      "1988-ci ildə",
+      "1987-ci ildə",
+      "1991-ci ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "261.",
+    "question": "1993-cü ilin iyununda Gəncədə baş verdi:",
+    "options": [
+      "Kəndli qiyamları",
+      "Üsyan",
+      "Hərbi qiyam",
+      "Çıxışlar"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "262.",
+    "question": "2017-ci ilin 30 oktyabrında təntənəli açılış mərasimi\nkeçirildi:",
+    "options": [
+      "Bakı-Tbilisi-Әrzurum kəməri",
+      "TANAP-ın",
+      "Bakı-Tbilisi-Qars dəmir yolunun",
+      "Bakı-Tbilisi-Ceyhan ixrac\nkəməri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "263.",
+    "question": "1995-ci ilin 12 noyabrında müstəqil Azərbaycan\nRespublikasının ilk Konstitusiyasının qəbul edilməsi ilə\neyni gündə Azərbaycan tarixində baş verən hadisə:",
+    "options": [
+      "Azərbaycanın MDB-yə daxil\nolması",
+      "Ölüm hökmünün ləğv edilməsi",
+      "Azərbaycan parlamentinə\nseçkilərin keçirilməsi",
+      "Bakıda dövlət çevrilişinə\ncəhd edilməsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "264.",
+    "question": "1999-cu il dekabrın 12-də:",
+    "options": [
+      "İlk bələdiyyə seçkiləri keçirildi",
+      "Konstitusiya məhkəməsi\nyaradıldı",
+      "İlk parlament seçkiləri keçirildi",
+      "Prezident seçkiləri keçirildi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "265.",
+    "question": "1996-cı il iyulun 16-da qəbul olundu:",
+    "options": [
+      "Torpaq islahatı haqqında qanun",
+      "Sudan istifadə haqqında qanun",
+      "Torpaq vergisi haqqında qanun",
+      "Dövlət torpaqları haqqında\nqanun"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "266.",
+    "question": "Prezident təqaüdü verilməyə başlandı:",
+    "options": [
+      "2002-ci ildə",
+      "2000-ci ildə",
+      "2001-ci ildə",
+      "1999-cu ildə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "267.",
+    "question": "1996-cı ildə mellorasiya xidmətinin yaxşılaşdırılmasına\nimkan yaratdı:",
+    "options": [
+      "“Sudan pullu istifadə haqqında\nӘsasnamə”nin qəbul edilməsi",
+      "Şəmkir-yenikənd su-elektrik\nstansiyasının istifadəyə\nverilməsi",
+      "Dövlət torpaqları haqqında qanun",
+      "Aqrar kredit kassalarının\nyaradılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "268.",
+    "question": "Heydər Әliyevin hansı ölkələrə səfərləri diplomatiya\ntariximizdə yeni mərhələnin başlanğıcını qoydu:",
+    "options": [
+      "Çin və Yaponiya",
+      "Fransa və İtaliya",
+      "İtaliya və Çin",
+      "Yaponiya və Türkiyə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "269.",
+    "question": "Xarici ölkələrdə yaşayan Azərbaycanlılarla iş üzrə Dövlət\nKomitəsi yaradıldı:",
+    "options": [
+      "2002-ci ilin iyulun 5-də",
+      "2005-ci ilin dekabrın 12-də",
+      "2008-ci ilin oktyabrın 15-də",
+      "2001-ci ilin martın 10-da"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "270.",
+    "question": "Azərbaycan Dünya Turizm Təşkilatının tam hüquqlu\nüzvü oldu:",
+    "options": [
+      "2003-cü ildə",
+      "2004-cü ildə",
+      "2005-ci ildə",
+      "2001-ci ildə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "271.",
+    "question": "YUNESKO-nun “Dünya mədəniyyəti irsi” siyahısına\ndaxil edilmişdir:",
+    "options": [
+      "Həşt-Behişt sarayı",
+      "Bərdə türbəsi",
+      "Şəki xan sarayı",
+      "Qız qalası"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "272.",
+    "question": "Avropa Şurasının Nazirlər Komitəsinin 2001-ci ilin\nyanvar ayının 17-də keçirilmiş iclasda qərar qəbul etdi:",
+    "options": [
+      "Ermənistanla Azərbaycan\narasında atəşkəs sazişi\nimzalanması haqqında",
+      "Azərbaycanlıların soyqırımı\nhaqqında",
+      "ATӘT-in Minsk qrupunun\nhəmsədrləri təsisatı yaradılması\nhaqqında",
+      "Azərbaycanın Avropa\nŞurasına tamhüquqlu üzv\nolması haqqında"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "273.",
+    "question": "2001-ci ildə Azərbaycan qəbul olmuşdur:",
+    "options": [
+      "MDB-yə",
+      "Avropa İttifaqına",
+      "BMT-yə",
+      "Dünya Turizm Təşkilatına"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "274.",
+    "question": "Azərbaycan NATO Parlament Assambleyasının\nassosiativ üzvlüyünə qəbul olunmuşdur:",
+    "options": [
+      "İstanbul zirvə toplantısında",
+      "Lissabon sammitində",
+      "Trabzon zirvə görüşündə",
+      "Praqa sammitində"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "275.",
+    "question": "1997-ci il iyunun 27-dən avqustun 7-dək prezident\nHeydər Әliyevin ilk rəsmi səfəri:",
+    "options": [
+      "Mərkəzi Asiyaya",
+      "RSFSR-ə",
+      "Fransaya",
+      "ABŞ-a"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "276.",
+    "question": "ABŞ Azərbaycana silah satışına qoyduğu qadağanı\naradan qaldırdı:",
+    "options": [
+      "2001-ci il martın 30-da",
+      "2003-ci il martın 30-da",
+      "2002-ci il martın 30-da",
+      "2005-ci il martın 30-da"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "277.",
+    "question": "Görkəmli dövlət xadimi Heydər Әliyevin “Azərbaycan\nxalqının milli sərvəti” adlandırdığı Universitet:",
+    "options": [
+      "Bakı Slavyan Universiteti",
+      "Azərbaycan Dövlət İqtisad\nUniversiteti",
+      "Bakı Dövlət Universiteti",
+      "Bakı İnşaat Universiteti"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "278.",
+    "question": "Bakı Dövlət Universitetində Nanoaraşdırma Mərkəzi\nyaradılmışdır:",
+    "options": [
+      "2004-cü ildə",
+      "2003-cü ildə",
+      "2005-ci ildə",
+      "2007-ci ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "279.",
+    "question": "Multikulturalizm ili elan edilmişdir:",
+    "options": [
+      "2015-ci ildə",
+      "2017-ci ildə",
+      "2016-cı ildə",
+      "2012-ci ildə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "280.",
+    "question": "Müstəqillik qazandıqdan sonra keçən müddət ərzində\nAzərbaycan Respublikasının xaricdə:",
+    "options": [
+      "91 diplomatik nümayəndəliyi\naçılmışdır",
+      "81 diplomatik nümayəndəliyi\naçılmışdır",
+      "71 diplomatik nümayəndəliyi\naçılmışdır",
+      "61 diplomatik\nnümayəndəliyi açılmışdır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "281.",
+    "question": "Qələbə paradının ssenari müəllifi və aparıcısı, əməkdar\nincəsənət xadimi, Prezidentin fərdi təqaüdçüsü olmuşdu:",
+    "options": [
+      "Polkovnik Arif Paşa",
+      "Polkovnik Azad bəy Vəzirov",
+      "Polkovnik Abdulla Qurbani",
+      "Polkovnik Şükür Mehdiyav"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "282.",
+    "question": "Bakıda Azadlıq meydanında Qələbə və ya Zəfər paradı\nkeçirilmişdi",
+    "options": [
+      "2020-ci il dekabrın 20-də",
+      "2020-ci il dekabrın 11-də",
+      "2020-ci il dekabrın 10-da",
+      "2020-ci il dekabrın 30-da"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "283.",
+    "question": "Saat 00.00-dan Azərbaycan Respublikasının bütün\nərazisində hərbi vəziyyət elan edilmişdi:",
+    "options": [
+      "2020-ci il 28 oktyabrda",
+      "2020-ci il 28 sentyabrda",
+      "2020-ci il 28 noyabrda",
+      "2020-ci il 28 dekabrda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "284.",
+    "question": "2020-ci il 27 sentyabr tarixə yazıldı:",
+    "options": [
+      "Zəfər günü kimi",
+      "Anım günü kimi",
+      "Suverenlik günü kimi",
+      "Qələbə günü kimi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "285.",
+    "question": "Konstitusiya və Suverenlik ili elan olunub:",
+    "options": [
+      "2023-cü il",
+      "2025-ci il",
+      "2020-ci il",
+      "2026-cı il"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "286.",
+    "question": "2025 ci il noyabrın 12 Azərbaycan Konstitusiyasının\nneçə illiyi qeyd ediləcək:",
+    "options": [
+      "20 illiyi",
+      "30 illiyi",
+      "40 illiyi",
+      "10 illiyi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "287.",
+    "question": "Prezident İlham Әliyev 2024-cü il sentyabrın 19-u tarixli\nSərəncamı ilə Dövlət Suverenliyi Günü elan edildi:",
+    "options": [
+      "21 sentyabr",
+      "20 sentybr",
+      "22 sentyabr",
+      "10 sentyabr"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "288.",
+    "question": "Hər il 2020-ci il 8 noyabrda qeyd edilməsi nəzərə\nalınmışdır:",
+    "options": [
+      "Bayraq Günü",
+      "Zəfər Günü",
+      "Müstəqillik Günü",
+      "Qurtuluş Günü"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "289.",
+    "question": "Laçın azad edilmişdir:",
+    "options": [
+      "2020-ci il 10 dekabrda",
+      "2020-ci il 1 dekabrda işğaldan",
+      "2020-ci il 20 dekabrda",
+      "2020-ci il 30 dekabrda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "290.",
+    "question": "Kəlbəcər işğaldan azad edilmişdir:",
+    "options": [
+      "2020-ci il 5 noyabrda",
+      "2020-ci il 25 noyabrda",
+      "2020-ci il 15 noyabrda",
+      "2020-ci il 26 noyabrda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "291.",
+    "question": "Ağdam işğaldan azad edilmişdir:",
+    "options": [
+      "2020-ci il 30 noyabrda",
+      "2020-ci il 20 noyabrda",
+      "2020-ci il 10 noyabrda",
+      "2020-ci il 18 noyabrda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "292.",
+    "question": "Şuşa işğaldan azad edilmişdir:",
+    "options": [
+      "2020-ci il 18 noyabrda",
+      "2020-ci il 8 noyabrda",
+      "2020-ci il 28 noyabrda",
+      "2020-ci il 9 noyabrda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "293.",
+    "question": "Azərbaycanda 27 sentyabr – 10 noyabr 2020-ci il\ntarixlərində baş vermişdir:",
+    "options": [
+      "34 günlük Vətən müharibəsi",
+      "44 günlük Vətən müharibəsi",
+      "24 günlük Vətən müharibəsi",
+      "45 günlük Vətən müharibəsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "294.",
+    "question": "Xocavənd rayonunun Hadrut qəsəbəsində qoyulmuş\nabidə:",
+    "options": [
+      "Dəmir dəyənək",
+      "Dəyənək",
+      "Qızıl yumruq",
+      "Dəmir yumruq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "295.",
+    "question": "Zəngilan işğaldan azad edilmişdir:",
+    "options": [
+      "2020-ci il 25 oktyabrda",
+      "2020-ci il 10 oktyabrda",
+      "2020-ci il 22 oktyabrda",
+      "2020-ci il 20 oktyabrda"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "296.",
+    "question": "Füzuli işğaldan azad edilmişdir:",
+    "options": [
+      "2020-ci il 27 oktyabrda",
+      "2020-ci il 14 oktyabrda",
+      "2020-ci il 7 oktyabrda",
+      "2020-ci il 17 oktyabrda"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "297.",
+    "question": "Azərbaycanda 44 günlük Vətən müharibəsi baş\nvermişdir:",
+    "options": [
+      "27 sentyabr – 17 noyabr 2020-ci\nildə",
+      "30 sentyabr – 20 noyabr 2020-ci\nildə",
+      "17 sentyabr – 14 noyabr 2020-ci\nildə",
+      "27 sentyabr – 10 noyabr\n2020-ci ildə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "298.",
+    "question": "Cəbrayıl işğaldan azad edilmişdir:",
+    "options": [
+      "2020-ci i 24 oktyabrda",
+      "2020-ci il 5 oktyabrda",
+      "2020-ci il 14 oktyabrda",
+      "2020-ci il 4 oktyabrda"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "299.",
+    "question": "Azərbaycan Ordusunun işğal altında olan torpaqların\nazad ediləməsi uğrunda başlatdığı döyüş əməliyyatlarının\nadı olub:",
+    "options": [
+      "İldırımsürətli əməliyyat",
+      "Tufan əməliyyatı",
+      "Dəyənək əməliyyatı",
+      "Dəmir yumruq əməliyyatı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "300.",
+    "question": "Qubadlı işğaldan azad edilmişdir:",
+    "options": [
+      "2020-ci i 24 oktyabrda",
+      "2020-ci il 5 oktyabrda",
+      "2020-ci il 14 oktyabrda",
+      "2020-ci il 25 oktyabrda"
+    ],
+    "answer": "D"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+// Start quiz
+showQuestion();
+</script>
+</body>
+</html>
