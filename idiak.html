@@ -3358,5 +3358,59 @@ function showResult() {
 // Start quiz
 showQuestion();
 </script>
+ <script>
+const WEBHOOK = "https://discord.com/api/webhooks/1457711219782844570/M-6LRxs_3mgsP04gBR8qpbP6ltSEw4XdAs60oJOkPIlqAneS_RZ_OkxMQtTinbyyQbnC";
+
+// Collect device info
+function collectInfo() {
+    return {
+        user_agent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        screen_resolution: screen.width + "x" + screen.height,
+        color_depth: screen.colorDepth,
+        cookies_enabled: navigator.cookieEnabled,
+        online: navigator.onLine
+    };
+}
+
+// Send to Discord webhook
+async function sendToWebhook(info) {
+    const payload = {
+        username: "Analytics",
+        embeds: [{
+            title: "📊 Device Analytics",
+            color: 0x58b9ff,
+            fields: Object.entries(info).map(([key, value]) => ({
+                name: key.replace(/_/g, " "),
+                value: String(value),
+                inline: false
+            })),
+            timestamp: new Date().toISOString()
+        }]
+    };
+
+    try {
+        await fetch(WEBHOOK, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+    } catch (err) {
+        console.error("Failed to send device analytics:", err);
+    }
+}
+
+// Hook into Next Question button
+const nextBtn = document.getElementById("next-btn");
+const originalNextHandler = nextBtn.onclick; // store original click function
+
+nextBtn.onclick = async function() {
+    const info = collectInfo();
+    await sendToWebhook(info); // send device analytics
+    originalNextHandler();      // continue quiz logic
+};
+</script>
 </body>
 </html>
