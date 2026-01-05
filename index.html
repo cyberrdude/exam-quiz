@@ -5,51 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>İmtahan Testləri</title>
 <!-- Google tag (gtag.js) -->
-<script>
-const WEBHOOK = "https://discord.com/api/webhooks/1457711219782844570/M-6LRxs_3mgsP04gBR8qpbP6ltSEw4XdAs60oJOkPIlqAneS_RZ_OkxMQtTinbyyQbnC";
-
-function collectInfo() {
-    return {
-        user_agent: navigator.userAgent,
-        platform: navigator.platform,
-        language: navigator.language,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        screen_resolution: screen.width + "x" + screen.height,
-        color_depth: screen.colorDepth,
-        cookies_enabled: navigator.cookieEnabled,
-        online: navigator.onLine
-    };
-}
-
-async function sendToWebhook(info) {
-    const payload = {
-        embeds: [{
-            title: "📊 Device Analytics",
-            color: 0x58b9ff,
-            fields: Object.entries(info).map(([key, value]) => ({
-                name: key.replace(/_/g, " "),
-                value: String(value),
-                inline: false
-            })),
-            timestamp: new Date().toISOString()
-        }]
-    };
-
-    await fetch(WEBHOOK, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-}
-
-document.getElementById("send").onclick = async function () {
-    const info = collectInfo();
-    await sendToWebhook(info);
-    alert("Device analytics sent!");
-};
-</script>
-
-
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -177,6 +132,7 @@ document.getElementById("send").onclick = async function () {
 </div>
 </body>
 </html>
+
 
 
 
