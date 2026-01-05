@@ -1,0 +1,3694 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ IQT Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+ .back-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+}
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="/exam-quiz" class="back-btn">⟵ Geri Qayıt</a>
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+  {
+    "number": "1.",
+    "question": "«Azərbaycan iqtisadiyyatı» fənninin əsas predmeti nəyi öyrənir?",
+    "options": [
+      "Dövlət idarəetmə sistemini",
+      "Milli iqtisadiyyatın formalaşması və inkişaf qanunauyğunluqlarını",
+      "Maliyyə siyasətini",
+      "istehsal güclərini"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "2.",
+    "question": "Azərbaycan iqtisadiyyatı hansı sistemin tərkib hissəsidir?",
+    "options": [
+      "MDB məkanının",
+      "Dünya təsərrüfat sisteminin",
+      "Avropa İttifaqının",
+      "Orta Asiya regionunun"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "3.",
+    "question": "Azərbaycan iqtisadiyyatı hansı vasitələrlə öz predmetini öyrənir?",
+    "options": [
+      "Statistik məlumatlarla",
+      "İqtisadi kateqoriyalarla",
+      "Dövlət proqramları ilə",
+      "Hüquqi sənədlərlə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "4.",
+    "question": "«Azərbaycan iqtisadiyyatı» elminin funksiyalarından biri hansıdır?",
+    "options": [
+      "Nəzəri biliklərin formalaşdırılması",
+      "Mədəniyyətin inkişafı",
+      "İncəsənətin təbliği",
+      "Hüquqi islahatların aparılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "Uyğunluq seçimi: İqtisadi maraqları uyğunlaşdırın. 1.Şəxsi mənafe 2. Milli mənafe 3. Ümumbəşəri mənafe a.Dövlətin iqtisadi inkişafı b.Fərdin marağı c.Bütün bəşəriyyətin marağı",
+    "options": [
+      "1-b, 2-a, 3-c",
+      "1-a, 2-b, 3-c",
+      "1-c, 2-a, 3-b",
+      "1-b, 2-c, 3-a"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "İqtisadi müstəqilliyin əsas şərtlərindən biri hansıdır?",
+    "options": [
+      "Xarici yardımlardan asılılıq",
+      "İxracdan imtina",
+      "Milli sərvətin sahibinə çevrilmək",
+      "İdxalın məhdudlaşdırılması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "7.",
+    "question": "Azərbaycan iqtisadiyyatı hansı münasibətləri öyrənir?",
+    "options": [
+      "Hüquqi münasibətləri",
+      "Diplomatik münasibətləri",
+      "İqtisadi münasibətləri",
+      "Mədəni münasibətləri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "8.",
+    "question": "Elmi abstraksiya metodunun mahiyyəti nədir?",
+    "options": [
+      "Təcrübə aparmaq",
+      "Statistik cədvəllər tərtib etmək",
+      "İqtisadi hadisələrin əsas cəhətlərini ümumiləşdirmək",
+      "Hüquqi qərarlar qəbul etmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "9.",
+    "question": "Azərbaycan iqtisadiyyatının əsas vəzifələrindən biri nədir?",
+    "options": [
+      "Siyasi ideologiyanı inkişaf etdirmək",
+      "Sənaye sektorunu gücləndirmək",
+      "kənd təsərrüfatını inkişaf etdirmək",
+      "İqtisadi nəzəriyyəni ehkamçılıqdan qurtarmaq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "10.",
+    "question": "Azərbaycan iqtisadiyyatının nəzəri funksiyası nədən ibarətdir?",
+    "options": [
+      "İqtisadi qanunların obyektivliyini aşkara çıxarmaq",
+      "Dövlət idarəçiliyini tənzimləmək",
+      "Ədəbiyyatı inkişaf etdirmək",
+      "Sosial mədəniyyət yaratmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "Uyğunluq: Metod və məzmunu uyğunlaşdırın. 1.Analiz 2.Sintez",
+    "options": [
+      "1-b, 2-c, 3-a",
+      "1-a, 2-c, 3-b",
+      "1-a, 2-b, 3-c",
+      "1-c, 2-a, 3-b"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "12.",
+    "question": "«Azərbaycan iqtisadiyyatı» fənnində abstraktdan konkretə hərəkətin məqsədi nədir?",
+    "options": [
+      "Praktiki nəticə əldə etmək",
+      "İqtisadi hadisələrin mahiyyətini daha dərindən dərk etmək",
+      "Hüquqi sistem qurmaq",
+      "Siyasi partiya formalaşdırmaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "13.",
+    "question": "İqtisadi müstəqilliyin göstəricilərindən biri hansıdır?",
+    "options": [
+      "Xarici borcdan asılılıq",
+      "Milli valyutanın möhkəmliyi",
+      "Xarici bazarlardan imtina",
+      "Dövlət idarəçiliyinin ləğvi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "14.",
+    "question": "İqtisadi nəzəriyyənin məqsədi nədir?",
+    "options": [
+      "İqtisadi qanun və prinsipləri aşkara çıxarmaq",
+      "Hüquqi normaları hazırlamaq",
+      "Diplomatik əlaqələri gücləndirmək",
+      "Sosial mədəniyyəti formalaşdırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "Uyğunluq: Milli iqtisadi müstəqilliyin tərkib elementləri. 1.Özünütəkrar istehsal 2.Möhkəm valyuta 3.Sosial infrastruktur a.Dövlətin bank sistemi b.İqtisadi bazarın dayanıqlılığı c.Cəmiyyətin sosial təminatı",
+    "options": [
+      "1-a, 2-b, 3-c",
+      "1-c, 2-a, 3-b",
+      "1-b, 2-a, 3-c",
+      "1-b, 2-c, 3-a"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "16.",
+    "question": "Azərbaycan iqtisadiyyatının nəzəri və əməli funksiyalarının əlaqəsi nədən ibarətdir?",
+    "options": [
+      "Nəzəri funksiya əməli nəticələrdən asılıdır",
+      "Onlar tamamilə bir-birindən asılı deyil",
+      "Əməli funksiya nəzəri biliklərin praktikaya tətbiqinə əsaslanır",
+      "Əməli funksiya nəzəriyyədən kənar işləyir"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "17.",
+    "question": "İqtisadi münasibətlərin izahında tarixi və məntiqi metodların vəhdəti nəyi təmin edir?",
+    "options": [
+      "Hüquqi təcrübənin genişlənməsini",
+      "Milli maraqların təmin olunmasını",
+      "Hadisələrin obyektiv qanunauyğunluqlar əsasında öyrənilməsini",
+      "Siyasi idarəetmənin asanlaşmasını"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "18.",
+    "question": "Milli iqtisadiyyat inkişaf etmədən ________ sahəsində nailiyyətlər qazanmaq qeyri-mümkündür.",
+    "options": [
+      "kənd təsərrüfatı",
+      "beynəlxalq əlaqələr",
+      "istehsal texnologiyaları",
+      "üstqurum"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "19.",
+    "question": "Uyğunluq: İqtisadi müstəqilliyin şərtləri və tələbləri. 1.Özünün yetkin bazarı 2.Çevik təsərrüfat mexanizmi 3.Müstəqil maliyyə-kredit sistemi a.Dövlət idarəetmə ənənələri b.Milli bazarın strukturu c.Bank və kredit sistemi",
+    "options": [
+      "1-b, 2-a, 3-c",
+      "1-a, 2-b, 3-c",
+      "1-c, 2-a, 3-b",
+      "1-b, 2-c, 3-a"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "İq tisadi abstraksiyanın məqsədi konkret hadisələrin hansı xüsusiyyətlərini üzə çıxarmaqdır?",
+    "options": [
+      "Əsas və mühüm cəhətlərini",
+      "Təsadüfi tərəflərini",
+      "Hüquqi xarakterini",
+      "Sosial nəticələrini"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Azərbaycan müstəqilliyini hansı tarixdə əldə etmişdir?",
+    "options": [
+      "12 noyabr 1995",
+      "15 iyun 1993",
+      "1 yanvar 1992",
+      "18 oktyabr 1991"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "22.",
+    "question": "SS Rİ-nin dağılması ilə Azərbaycan hansı iqtisadi çətinliklə üzləşmişdi?",
+    "options": [
+      "Torpaq vergilərinin artması",
+      "Xarici borcların ödənilməsi",
+      "Əmək haqqının artması",
+      "Ümumi bazarların itirilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "23.",
+    "question": "1991-1994-cü illərdə Azərbaycanda ÜDM neçə faiz azalmışdı?",
+    "options": [
+      "0,2",
+      "0,53",
+      "0,7",
+      "0,1"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "24.",
+    "question": "Azərbaycanın ilk milli valyutası – ______ 1992-ci ildə dövriyyəyə buraxıldı.",
+    "options": [
+      "Rubl",
+      "Manat",
+      "Lirə",
+      "Dollar"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "25.",
+    "question": "Uyğunluq: Dövr və əsas hadisə 1.1991-1994 2.1995-2003 3.2003-dən sonra a.İlham Əliyev dövrü",
+    "options": [
+      "1-c, 2-a, 3-b",
+      "1-b, 2-c, 3-a",
+      "1-a, 2-b, 3-c",
+      "1-b, 2-a, 3-c"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "26.",
+    "question": "1994-cü ildə Ermənistanla atəşkəs imzalanması hansı nəticəni verdi?",
+    "options": [
+      "İnflyasiyanı artırdı",
+      "Dövlət büdcəsini böyütdü",
+      "İqtisadi keçid prosesinə sürət verdi",
+      "İşsizliyi artırdı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "27.",
+    "question": "1995-ci ildə qəbul edilmiş Azərbaycan Konstitusiyası hansı istiqaməti təsbit etdi?",
+    "options": [
+      "Mərkəzləşdirilmiş planın davamını",
+      "Sovet iqtisadi sistemini",
+      "Liberal bazar iqtisadiyyatının qurulmasını",
+      "kənd təsərrüfatı prioritetini"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "28.",
+    "question": "Azərbaycan iqtisadiyyatında 1990-cı illərdə hansı problem kəskin idi?",
+    "options": [
+      "Yüksək ixrac",
+      "Güclü sənaye artımı",
+      "Hiperinflyasiya",
+      "Əhalinin gəlirlərinin çoxalması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "29.",
+    "question": "1999-cu ildə yaradılmış mühüm iqtisadi fond hansıdır?",
+    "options": [
+      "Dövlət Sığorta Fondu",
+      "Dövlət Sosial Müdafiə Fondu",
+      "İnkişaf Fondu",
+      "Dövlət Neft Fondu"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "30.",
+    "question": "1992-94-cü illərdə Azərbaycanda ÜDM-in orta illik azalması neçə faiz təşkil edirdi?",
+    "options": [
+      "3-5%",
+      "1-2%",
+      "30-40%",
+      "13-20%"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "31.",
+    "question": "“Ə srin Müqaviləsi” hansı ildə imzalanmışdır?",
+    "options": [
+      "1991",
+      "1995",
+      "1999",
+      "1994"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "32.",
+    "question": "1998-ci ildə Azərbaycanda qəbul edilmiş qanunlardan biri hansıdır?",
+    "options": [
+      "Elektro-energetika haqqında",
+      "Gömrük haqqında",
+      "Özəlləşdirmə haqqında",
+      "Vergi Məcəlləsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "Uyğunluq: İslahat və sahə 1.Torpaq islahatı 2.Kiçik müəssisələrin özəlləşdirilməsi 3.Neft fondunun yaradılması a.1993-1997 b.1995-1997 c.1999",
+    "options": [
+      "1-b, 2-c, 3-a",
+      "1-a, 2-b, 3-c",
+      "1-c, 2-a, 3-b",
+      "1-b, 2-a, 3-c"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "34.",
+    "question": "2000-ci ildə Azərbaycanda inflyasiya hansı səviyyəyə düşmüşdür?",
+    "options": [
+      "0,18",
+      "1.8%",
+      "0,25",
+      "1"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "35.",
+    "question": "2001-ci ildə imzalanmış “Yoxsulluğun azaldılması və iqtisadi inkişaf üzrə dövlət proqramı” hansı dövrü əhatə edirdi?",
+    "options": [
+      "1995-2000",
+      "2003-2008",
+      "2008-2015",
+      "1991-1994"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "36.",
+    "question": "2003-cü ildən sonra iqtisadi siyasətin əsas məqsədlərindən biri nə olmuşdur?",
+    "options": [
+      "Qeyri-neft sektorunun inkişafı",
+      "Neft hasilatının artırılması",
+      "Dövlətin iqtisadiyyatdan çıxması",
+      "Sənayenin tam özəlləşdirilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "Uyğunluq: Dövr və iqtisadi nəticə 1.1995-2003 2.2003-dən sonrakı illər 3.2018 a.Qeyri-neft ixracının artması b.Əsrin müqaviləsi və konstitusiyanın qəbulu c.Dövlət büdcəsində profisit",
+    "options": [
+      "1-b, 2-a, 3-c",
+      "1-a, 2-c, 3-b",
+      "1-c, 2-b, 3-a",
+      "1-a, 2-b, 3-c"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "2018-ci ildə dövlət büdcəsinin gəlirləri təqribən neçə milyard manat olmuşdur?",
+    "options": [
+      "10 mlrd",
+      "22.4 mlrd",
+      "50 mlrd",
+      "15 mlrd"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "39.",
+    "question": "Azərbaycanın “Qara qızılın insan qızılına çevrilməsi” layihəsi hansı ildən BMT proqramı çərçivəsində həyata keçirilməyə başlanmışdır?",
+    "options": [
+      "1999",
+      "2005",
+      "2001",
+      "2010"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "40.",
+    "question": "Uyğunluq: İqtisadi göstəricilər və artım faizi (1990-cı illərdən 2010-cu illərə) 1.ÜDM 2.Dövlət büdcə gəlirləri 3.Orta aylıq əmək haqqı a.4 dəfə",
+    "options": [
+      "1-b, 2-c, 3-a",
+      "1-a, 2-b, 3-c",
+      "1-c, 2-a, 3-b",
+      "1-a, 2-c, 3-b"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "41.",
+    "question": "Azərbaycanın neft strategiyasının əsasını kim müəyyən etmişdir?",
+    "options": [
+      "Heydər Əliyev",
+      "İlham Əliyev",
+      "Əbülfəz Elçibəy",
+      "Ziya Bünyadov"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "“Azərbaycanın neft strategiyasının əsasını qoyan ‘Əsrin müqaviləsi’ imzalanarkən ölkəyə hansı prezident rəhbərlik edirdi?”",
+    "options": [
+      "Əbülfəz Elçibəy",
+      "İlham Əliyev",
+      "Heydər Əliyev",
+      "Ziya Bünyadov"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "43.",
+    "question": "Azərbaycanın neft strategiyası hansı sahənin inkişafını prioritet götürmüşdür?",
+    "options": [
+      "Kənd təsərrüfatının",
+      "Turizmin",
+      "Təhsilin",
+      "Neft-qaz sənayesinin"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "44.",
+    "question": "1999-cu ildə yaradılan Azərbaycan Respublikası Dövlət Neft Fondunun əsas məqsədi nə idi?",
+    "options": [
+      "Neft gəlirlərini səmərəli idarə etmək",
+      "İdxalı artırmaq",
+      "Xarici borcları artırmaq",
+      "Yeni partiyalar yaratmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "Uyğunluq: 1.1994-cü il 2.1999-cu il 3.2006-cı il a.BTC kəmərinin istismara verilməsi b.Dövlət Neft Fondunun yaradılması c.Əsrin müqaviləsinin imzalanması",
+    "options": [
+      "1-b, 2-c, 3-a",
+      "1-a, 2-c, 3-b",
+      "1-c, 2-b, 3-a",
+      "1-c, 2-a, 3-b"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "46.",
+    "question": "BTC neft kəməri hansı ölkələrdən keçir?",
+    "options": [
+      "Azərbaycan, İran, Türkiyə",
+      "Azərbaycan, Rusiya, Gürcüstan",
+      "Azərbaycan, Gürcüstan, Türkiyə",
+      "Azərbaycan, Türkmənistan, Türkiyə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "47.",
+    "question": "Azərbaycanın neft strategiyasının əsas məqsədi nə idi?",
+    "options": [
+      "Nefti ucuz satmaq",
+      "Xarici bazardan imtina",
+      "Milli maraqlara uyğun neft resurslarından istifadə",
+      "daxili tələbatı ödəmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "48.",
+    "question": "“Ə srin müqaviləsi”nin imzalanmasında neçə xarici şirkət iştirak etmişdir?",
+    "options": [
+      "11",
+      "3",
+      "7",
+      "15"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "Neft strategiyası çərçivəsində əsas məqsəd nə idi?",
+    "options": [
+      "Bütün sahələrin özəlləşdirilməsi",
+      "Xarici borcun artırılması",
+      "Kənd təsərrüfatının sıradan çıxması",
+      "Neft gəlirlərinin qeyri-neft sektoruna yönəldilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "50.",
+    "question": "Ba kı-Tbilisi-Ceyhan kəməri 2006-cı ildə _______ terminalına neft çatdırmağa başladı.",
+    "options": [
+      "Ceyhan",
+      "Batumi",
+      "Novorossiysk",
+      "Bakı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "51.",
+    "question": "2000-ci illərdə Azərbaycanın ixracında əsas yeri hansı məhsul tuturdu?",
+    "options": [
+      "Neft və qaz",
+      "Pambıq",
+      "Alüminium",
+      "Fındıq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "52.",
+    "question": "Uyğunluq: 1.Əsrin müqaviləsi 2.BTC kəməri 3.Neft Fondu a.Enerji təhlükəsizliyi b.Gəlirlərin idarə olunması c.Xarici sərmayələrin cəlbi",
+    "options": [
+      "1-c, 2-a, 3-b",
+      "1-a, 2-b, 3-c",
+      "1-b, 2-c, 3-a",
+      "1-c, 2-b, 3-a"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "53.",
+    "question": "Neft strategiyasının ikinci mərhələsi nədən ibarət idi?",
+    "options": [
+      "Neft hasilatının artırılması",
+      "Neft gəlirlərinin qeyri-neft sektoruna yönəldilməsi",
+      "Neft ixracının məhdudlaşdırılması",
+      "Dövlət müəssisələrinin bağlanması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "54.",
+    "question": "Neft strategiyasının əsas prinsiplərindən biri hansıdır?",
+    "options": [
+      "Xarici maraqların təmin edilməsi",
+      "Milli maraqların qorunması",
+      "Bütün sahələrin dövlətləşdirilməsi",
+      "Xarici sərmayənin qarşısının alınması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "55.",
+    "question": "Ne ft Fondunun vəsaiti ilk növbədə _______ sahəsinə yönəldilmişdir.",
+    "options": [
+      "Hərbi xərclərə",
+      "Sosial və infrastruktur layihələrinə",
+      "Xarici borc ödənişlərinə",
+      "Bank sektoruna"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "56.",
+    "question": "Uyğunluq: Dövr və proses 1.1994 2.2006 3.2010",
+    "options": [
+      "1-b, 2-a, 3-c",
+      "1-a, 2-b, 3-c",
+      "1-b, 2-c, 3-a",
+      "1-c, 2-a, 3-b"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "57.",
+    "question": "“Ə srin müqaviləsi” çərçivəsində hasil olunan neftin əsas ixrac bazarı hansı ölkə idi?",
+    "options": [
+      "Türkiyə və Avropa ölkələri",
+      "Rusiya",
+      "İran",
+      "Çin"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "58.",
+    "question": "BT C kəmərinin Azərbaycanın enerji siyasətində rolu nədən ibarət idi?",
+    "options": [
+      "Azərbaycanın neft hasilatını dayandırmaq",
+      "Daxili bazara xidmət etmək",
+      "Regionun enerji təhlükəsizliyini təmin etmək",
+      "İdxal məhsullarını artırmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "59.",
+    "question": "Neft strategiyasının uzunmüddətli hədəfi nə idi?",
+    "options": [
+      "Neft hasilatını tam dayandırmaq",
+      "Xarici bazardan tam imtina",
+      "Azərbaycanın davamlı sosial- iqtisadi inkişafını təmin etmək",
+      "Bütün dövlət müəssisələrini bağlamaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "60.",
+    "question": "Uyğunluq: Məqsəd və nəticə 1.Xarici sərmayə cəlbi 2.Neft gəlirlərinin idarə olunması 3.Qeyri-neft sektorunun inkişafı a.Dövlət Neft Fondu b.Diversifikasiya siyasəti c.Əsrin müqaviləsi",
+    "options": [
+      "1-a, 2-b, 3-c",
+      "1-b, 2-c, 3-a",
+      "1-c, 2-a, 3-b",
+      "1-c, 2-b, 3-a"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "61.",
+    "question": "Qeyri-neft sektorunun inkişafı ilə bağlı Prezident İlham Əliyevin əsas məqsədi nə idi?",
+    "options": [
+      "Neft ixracını artırmaq",
+      "Kənd təsərrüfatını inkişaf etdirmək",
+      "Neft gəlirlərindən imtina etmək",
+      "İqtisadiyyatın şaxələndirilməsi və neftdən asılılığın azaldılması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "62.",
+    "question": "2014-cü ildə Azərbaycanda neçə sənaye müəssisəsi açılmışdır?",
+    "options": [
+      "230-dan çox",
+      "100",
+      "50",
+      "400"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "63.",
+    "question": "Qeyri-neft sektorunun əsas aparıcı sahəsi hansıdır?",
+    "options": [
+      "Sənaye",
+      "Rabitə",
+      "Turizm",
+      "Ticarət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "64.",
+    "question": "Qeyri-neft sektorunun inkişafı ölkə iqtisadiyyatına hansı təsiri göstərir?",
+    "options": [
+      "Neft hasilatını artırır",
+      "Enerji amilindən asılılığı azaldır",
+      "Xarici borcu artırır",
+      "İxracı azaldır"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "65.",
+    "question": "Qeyri-neft sektorunun inkişafı üçün əsas şərtlərdən biri hansıdır?",
+    "options": [
+      "Xarici investisiyaların artırılması",
+      "İnfrastruktur layihələrinin icrası",
+      "Neft hasilatının dayandırılması",
+      "İxracın məhdudlaşdırılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "66.",
+    "question": "2014-cü il Azərbaycanda hansı il elan olunmuşdur?",
+    "options": [
+      "Gənclər ili",
+      "Sənaye ili",
+      "Neft ili",
+      "Elm ili"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "67.",
+    "question": "Qeyri-neft sektorunun əsas məqsədlərindən biri:",
+    "options": [
+      "Kənd təsərrüfatını artırmaq",
+      "İxracı azaltmaq",
+      "Dayanıqlı iqtisadi inkişafı təmin etmək",
+      "neft gəlirlərini bölüşdürmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "68.",
+    "question": "Hansı sənaye sahəsi 2013-cü ildə qeyri-neft sənayesində ən böyük paya malik olmuşdur?",
+    "options": [
+      "Mədənçıxarma sənayesi",
+      "Neft-kimya",
+      "Emal sənayesi",
+      "Qida sənayesi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "69.",
+    "question": "Aşağıdakılardan hansı qeyri-neft sektorunun əsas istiqamətlərindən deyildir?",
+    "options": [
+      "Sənayenin inkişafı",
+      "Turizmin inkişafı",
+      "Neft hasilatının artırılması",
+      "İKT sektorunun gücləndirilməsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "70.",
+    "question": "Azərbaycan iqtisadiyyatının şaxələndirilməsi ___ asılılığını azaldır.",
+    "options": [
+      "enerji amilindən",
+      "kənd təsərrüfatından",
+      "xarici ticarətdən",
+      "sənayedən"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "71.",
+    "question": "Aşağıdakı dövlət proqramlarını uyğunlaşdırın: I Dövlət Proqramı → II Dövlət Proqramı → III Dövlət Proqramı →",
+    "options": [
+      "1 - sənaye; 2 - kənd təsərrüfatı; 3 - turizm",
+      "1 - rabitə; 2 - nəqliyyat; 3 - İKT",
+      "1 - kənd təsərrüfatı; 2 - sənaye; 3 - neft",
+      "1 - infrastrukturun qurulması; 2 - ənənəvi sahələrin dirçəldilməsi; 3 - sənaye potensialının artırılması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "72.",
+    "question": "Qeyri-neft sektorunun inkişafı ilə bağlı əsas məqsədlərdən biri nədir?",
+    "options": [
+      "Xarici borcları artırmaq",
+      "Neft ixracını dayandırmaq",
+      "Əhalinin sayını azaltmaq",
+      "ÜDM-də payını artırmaq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "73.",
+    "question": "İKT sektorunun inkişafı nəticəsində nə əldə edilmişdir?",
+    "options": [
+      "Neft hasilatının azalması",
+      "Təbii sərvətlərin tükənməsi",
+      "Xarici ticarətin azalması",
+      "Müasir infrastruktur və xidmətlərin diversifikasiyası"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "74.",
+    "question": "2013-cü ildə Sahibkarlığa Kömək Milli Fondu neçə milyon manatlıq layihəni maliyyələşdirmişdir?",
+    "options": [
+      "100 mln. manat",
+      "275 mln. manat",
+      "50 mln. manat",
+      "500 mln. manat"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "75.",
+    "question": "Qeyri-neft sektorunun inkişafı üçün hansı amil vacib deyil?",
+    "options": [
+      "İnnovasiyaların tətbiqi",
+      "Sahibkarlığın zəiflədilməsi",
+      "İnfrastruktur layihələrinin icrası",
+      "İnvestisiyaların artırılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "76.",
+    "question": "Azərbaycan iqtisadiyyatının əsas strateji hədəflərindən biri nədir?",
+    "options": [
+      "Neftdən tam imtina etmək",
+      "Yüksək gəlirli ölkəyə çevrilmək",
+      "İxracı dayandırmaq",
+      "sənayeni azaltmaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "77.",
+    "question": "“Açıq iqtisadiyyat” siyasətinin əsas xüsusiyyəti nədir?",
+    "options": [
+      "Daxili bazara yönəlmə",
+      "Xarici ticarətin məhdudlaşdırılması",
+      "İxrac və idxalın ÜDM-də çəkisinin yüksək olması",
+      "Neft ixracının dayandırılması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "78.",
+    "question": "Çin iqtisadiyyatının ixrac potensialının güclənməsi hansı amillərlə bağlıdır?",
+    "options": [
+      "Dövlət subsidiyaları",
+      "İdxalın artırılması",
+      "Daxili və xarici bazarların təhlili, bazar kanallarının optimallaşdırılması",
+      "Xarici borcların çoxalması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "79.",
+    "question": "Qeyri-neft sektorunun ixrac potensialını artırmaq üçün dövlət nə etməlidir?",
+    "options": [
+      "Neft hasilatını dayandırmalıdır",
+      "İxracı məhdudlaşdırmalıdır",
+      "Qloballaşma şəraitinə uyğun iqtisadi siyasət formalaşdırmalıdır",
+      "İxrac mallarının keyfiyyətini azaltmalıdır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "80.",
+    "question": "Ölkələr və ixrac dəstək siyasətləri arasında uyğunluğu müəyyən edin: 1.Almaniya → 2.Fransa → 3.ABŞ → 4.Yaponiya →",
+    "options": [
+      "1 - ixracatçı limitlərinin artırılması; 2 - kiçik biznesin maliyyə çıxışının genişləndirilməsi; 3 - inkişaf etməkdə olan ölkələrə ixrac stimulu; 4 - ticarət əməliyyatlarının maliyyələşdirilməsi",
+      "1 - idxalın dayandırılması; 2 - neft ixracı; 3 - daxili bazar; 4 - kənd təsərrüfatı",
+      "1 - turizm; 2 - təhsil; 3 - neft; 4 - qızıl",
+      "1 - avtomobil; 2 - kimya; 3 - neft; 4 - tekstil"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "81.",
+    "question": "Azərbaycanda sənayeləşmə prosesinin başlanğıcı hansı hadisə ilə əlaqələndirilir?",
+    "options": [
+      "XIX əsrdə pambıqçılığın inkişafı",
+      "1848-ci ildə Bakıda neftin sənaye üsulu ilə hasilatı",
+      "1918-ci ildə ADR-in yaradılması",
+      "1920-ci ildə sovetləşmə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "82.",
+    "question": "Heydər Əliyev dövründə sənayeləşmə prosesinin əsas xüsusiyyəti nə idi?",
+    "options": [
+      "Neft hasilatının artırılması",
+      "Yeni sənaye sahələrinin yaradılması və diversifikasiyanın sürətlənməsi",
+      "Sənayenin özəlləşdirilməsi",
+      "Kənd təsərrüfatına yönəlmə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "83.",
+    "question": "Sənayeləşmə təkcə iqtisadi baxımdan deyil, həm də ___ və ___ baxımından əhəmiyyətlidir.",
+    "options": [
+      "maliyyə və texniki",
+      "sosial və elmi",
+      "inzibati və hüquqi",
+      "beynəlxalq və siyasi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "84.",
+    "question": "Müstəqilliyin ilk illərində sənaye sahəsində tənəzzülün əsas səbəbi nə idi?",
+    "options": [
+      "Xarici sərmayələrin artması",
+      "Dövlət investisiyalarının çoxluğu",
+      "Planlı iqtisadiyyatdan bazar iqtisadiyyatına keçid və işğal nəticəsində itkilər",
+      "İnnovasiyaların olmaması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "85.",
+    "question": "2014-cü ilin “Sənaye ili” elan olunmasının əsas məqsədi nə idi?",
+    "options": [
+      "Neft hasilatının artırılması",
+      "Xarici ticarətin məhdudlaşdırılması",
+      "Yeni sənaye mərhələsinin başlanması və potensialdan səmərəli istifadə",
+      "Kənd təsərrüfatının inkişafı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "86.",
+    "question": "Sənaye iqtisadiyyatda hansı funksiyanı yerinə yetirir?",
+    "options": [
+      "Xidmət sektorunu dəstəkləyir",
+      "Ticarət dövriyyəsini azaldır",
+      "Bütün sahələrin inkişafını stimullaşdırır",
+      "İnvestisiyaları məhdudlaşdırır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "87.",
+    "question": "İnkişaf etməkdə olan ölkələrin emal sənayesində yaradılan əlavə dəyər 2000–2011-ci illərdə ___ artmışdır.",
+    "options": [
+      "dəyişməmişdir",
+      "üç dəfə",
+      "azalmışdır",
+      "təxminən iki dəfə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "88.",
+    "question": "Azərbaycan sənayesinin əsas struktur sahələri hansılardır?",
+    "options": [
+      "Turizm, ticarət, rabitə",
+      "Kənd təsərrüfatı, xidmət, nəqliyyat",
+      "İnfrastruktur, təhsil, sosial xidmət",
+      "Mədənçıxarma, emal, enerji və su təchizatı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "89.",
+    "question": "Azərbaycanda sənayeləşmə prosesinin genişlənməsində hansı amil həlledici rol oynamışdır?",
+    "options": [
+      "Dövlət borcunun azaldılması",
+      "Neft-qaz sektoruna xarici investisiyaların cəlbi",
+      "İdxalın artırılması",
+      "İqtisadiyyatın ticarət yönümlü olması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "90.",
+    "question": "2004-cü ildən sonra sənayeləşmənin əsas prioritet istiqaməti nə olmuşdur?",
+    "options": [
+      "Kənd təsərrüfatının gücləndirilməsi",
+      "Regional strukturun təkmilləşdirilməsi",
+      "Turizmin inkişafı",
+      "Bank sektorunun artımı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "91.",
+    "question": "Aşağıdakı müəssisələrdən hansı qeyri-neft sənayesinin inkişafı üçün yaradılmışdır?",
+    "options": [
+      "Dövlət Neft Şirkəti",
+      "Sumqayıt Texnologiyalar Parkı",
+      "Milli Aviasiya Akademiyası",
+      "Dövlət Neft Fondu"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "92.",
+    "question": "Azərbaycanda sənayenin inkişafını təmin edən əsas şərtlərdən biri hansıdır?",
+    "options": [
+      "Makroiqtisadi sabitliyin qorunması və biznes mühitinin əlverişliliyi",
+      "Neft hasilatının məhdudlaşdırılması",
+      "Xarici ticarətin azaldılması",
+      "İnvestisiya layihələrinin dayandırılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "93.",
+    "question": "Sənaye siyasətinin əsas məqsədi nədir?",
+    "options": [
+      "Rəqabət qabiliyyətinin artırılması",
+      "İxracın azaldılması",
+      "İşsizliyin artırılması",
+      "Dövlət nəzarətinin sərtləşdirilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "94.",
+    "question": "Sənayenin inkişafı ___ və ___ yanaşmasını tələb edir.",
+    "options": [
+      "qapalı və məhdudlaşdırıcı",
+      "daxili və inzibati",
+      "idxaləvəzləyici və ixracyönlü",
+      "fiskal və monetar"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "95.",
+    "question": "Aşağıdakı sahələri uyğunlaşdırın: 1.Ağır sənaye → 2.Emal sənayesi → 3.Yüksək texnologiyalar →",
+    "options": [
+      "1 - Tekstil, 2 - Neft, 3 - Kənd təsərrüfatı",
+      "1 - Qida, 2 - Turizm, 3 - Mebel",
+      "1 - Metallurgiya, 2 - Qida istehsalı, 3 - Elektronika",
+      "1 - Ticarət, 2 - İT, 3 - Kənd təsərrüfatı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "96.",
+    "question": "Sənayeləşmənin qlobal çağırışlarından biri hansıdır?",
+    "options": [
+      "İnnovasiyaların azalması",
+      "Sənaye işçilərinin sayının azalması",
+      "İstehsal zəncirlərinin mürəkkəbləşməsi",
+      "Ticarətin qapanması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "97.",
+    "question": "Sənayenin qlobal restrukturizasiyası nəticəsində hansı yeni tendensiya yaranmışdır?",
+    "options": [
+      "Texnoloji potensialın azalması",
+      "Əmək bazarının məhdudlaşması",
+      "neft sektoruna yönəlmə",
+      "Yüksək dəyər yaradan fəaliyyətlərin inkişaf etməkdə olan ölkələrə köçürülməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "98.",
+    "question": "Sənayenin rəqabət qabiliyyətinin artırılması üçün ___ və ___ siyasəti vacibdir.",
+    "options": [
+      "qapalı ticarət və yüksək borclanma",
+      "idxal məhdudiyyəti və ixrac qadağası",
+      "yüksək gömrük və fiskal sərtləşmə",
+      "çevik tarif və əlverişli vergi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "99.",
+    "question": "İnnovasiyaların təşviqi siyasətləri ölkələrdə hansı istiqamətləri əhatə edir?",
+    "options": [
+      "Texnologiya transferi, start- upların inkişafı, daxili potensialın artırılması",
+      "Vergi güzəştləri",
+      "Dövlət subsidiyaları",
+      "Sənayeləşmənin məhdudlaşdırılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "100.",
+    "question": "Sənaye siyasətində dövlətin rolu üzrə fəaliyyət istiqamətlərini uyğunlaşdırın: 1. Tənzimləyici → 2.Maliyyə tənzimləyicisi → 3. İstehsalçı → 4. İstehlakçı →",
+    "options": [
+      "1 - İdxal, 2 - İxrac, 3 - İnflyasiya, 4 - Ticarət",
+      "1 - Tarif və subsidiyalar, 2 - Kredit bazarına təsir, 3 - İqtisadi aktivlikdə iştirak, 4 - Satınalmalarla bazar təminatı",
+      "1 - Bank, 2 - Maliyyə, 3 - Vergi, 4 - Gömrük",
+      "1 - Kənd təsərrüfatı, 2 - Enerji, 3 - Neft, 4 - Təhsil"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "101.",
+    "question": "Kənd təsərrüfatının əsas rolu nədir?",
+    "options": [
+      "İxracı artırmaq",
+      "Sənayeni xammalla və əhalini ərzaqla təmin etmək",
+      "Heyvandarlığı inkişaf etdirmək",
+      "Ticarəti gücləndirmək"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "102.",
+    "question": "Müasir dövrdə kənd təsərrüfatı hansı yol ilə inkişaf etdirilməlidir?",
+    "options": [
+      "Ekstensivləşmə yolu ilə",
+      "İntensivləşmə yolu ilə",
+      "Heyvandarlıqla",
+      "tütünçülüklə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "103.",
+    "question": "Bazar iqtisadiyyatı dövründə daha çox mənfəət gətirən sahə hansıdır?",
+    "options": [
+      "Sənaye təsərrüfatı",
+      "Kənd təsərrüfatı",
+      "Balıqçılıq",
+      "Turizm"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "104.",
+    "question": "İstehsalın ixtisaslaşdırılmasında nəyə üstünlük verilməlidir?",
+    "options": [
+      "Millətin müasir və perspektiv mənafeyinə",
+      "Mənfəətə",
+      "Xarici təsirlərə",
+      "Fərdi maraqlara"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "105.",
+    "question": "Taxılçılıq hansı sahə ilə proporsional inkişaf edir?",
+    "options": [
+      "Tütünçülük",
+      "Pambıqçılıq",
+      "Kimya sənayesi",
+      "Heyvandarlıq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "106.",
+    "question": "Sovet dövründə Azərbaycanda hansı sahə monokulturaya çevrildi?",
+    "options": [
+      "Taxılçılıq",
+      "Heyvandarlıq",
+      "Tərəvəzçilik",
+      "Pambıqçılıq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "107.",
+    "question": "Kənd təsərrüfatı məhsullarının istehsalı nə üçün vacibdir?",
+    "options": [
+      "İxrac üçün",
+      "Şəhərlərin inkişafı üçün",
+      "Əhalinin ərzaq təminatı üçün",
+      "Vergilərin artırılması üçün"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "108.",
+    "question": "İx tisaslaşmada nəzərə alınmalı amillərdən biri hansıdır?",
+    "options": [
+      "İdxal mallarının qiyməti",
+      "Xarici turizm",
+      "Ekoloji vəziyyətə təsir",
+      "Neft hasilatı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "109.",
+    "question": "Pa mbıqçılığın genişləndirilməsi kənd həyatına necə təsir göstərmişdir?",
+    "options": [
+      "Heyvandarlıq məhsulları artmışdır",
+      "Qida məhsulları ucuzlaşmışdır",
+      "Ənənəvi təsərrüfat formaları zəiflədilmişdir",
+      "Qatıq istehsalı çoxalmışdır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "110.",
+    "question": "Pa mbıqçılıq ilə heyvandarlıq arasında hansı əlaqə var?",
+    "options": [
+      "Tərs mütənasib",
+      "Düz mütənasib",
+      "Neytral",
+      "Ziddiyyətli deyil"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "111.",
+    "question": "Taxılçılıq rayonlarında kəndlilərin imkanı necə idi?",
+    "options": [
+      "Heyvandarlıq tamamilə yox idi",
+      "İxrac malları üstünlük təşkil edirdi",
+      "Qida məhsulları az idi",
+      "Xüsusi mal-qaranı saxlamaq imkanı geniş idi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "112.",
+    "question": "Pambıqçılığın mənfi təsirlərindən biri hansıdır?",
+    "options": [
+      "Əhalinin gəlirlərinin artması",
+      "Çöl heyvanlarının yaşayış şəraitinin məhv edilməsi",
+      "Qida bolluğunun yaranması",
+      "Milli dəyərlərin qorunması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "113.",
+    "question": "Taxılçılığın inkişafı əhalinin hansı ehtiyacını daha dolğun ödəyirdi?",
+    "options": [
+      "İdxal mallarına olan tələbatı",
+      "Heyvandarlıq məhsullarına olan tələbatı",
+      "Sənaye mallarına olan tələbatı",
+      "Tütün məhsullarına olan tələbatı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "114.",
+    "question": "Pa mbıq məhsulu kəndli tərəfindən necə istifadə edilirdi?",
+    "options": [
+      "Daxili tələbat üçün istifadə olunurdu",
+      "Dövlətə maya dəyərindən aşağı satılırdı",
+      "Çörək istehsalı üçün işlədilirdi",
+      "Birbaşa yeyilirdi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "115.",
+    "question": "Taxıl biçilərkən yerə tökülən məhsuldan kim faydalanırdı?",
+    "options": [
+      "Yerli əhali",
+      "Dövlət anbarları",
+      "Emal müəssisələri",
+      "Xarici bazarlar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "116.",
+    "question": "Kəndlilərin ənənəvi təsərrüfat vərdişləri nədən ibarət idi?",
+    "options": [
+      "Pambıq becərmək",
+      "Tütün yetişdirmək",
+      "İdxal malları satmaq",
+      "Qoyun, inək, toyuq saxlamaq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "117.",
+    "question": "Monokultur təsərrüfat dedikdə nə başa düşülür?",
+    "options": [
+      "Çoxsahəli təsərrüfat",
+      "İxrac yönümlü təsərrüfat",
+      "Ənənəvi təsərrüfat",
+      "Bir sahənin genişləndirilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "118.",
+    "question": "Taxılçılığın inkişafı çöl heyvan və quşların çoxalmasına niyə şərait yaratdı?",
+    "options": [
+      "Suvarmanın azalması hesabına",
+      "Pambıqçılığın artması hesabına",
+      "İdxal məhsullarının gətirilməsi ilə",
+      "Yem mənbələrinin artması hesabına"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "119.",
+    "question": "Tuqay meşələrinin qırılması hansı sahənin genişləndirilməsi ilə bağlı idi?",
+    "options": [
+      "Pambıqçılıq",
+      "Taxılçılıq",
+      "Heyvandarlıq",
+      "Tütünçülük"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "120.",
+    "question": "İx tisaslaşmada yalnız iqtisadi faydalılığın əsas götürülməsi hansı nəticələrə səbəb ola bilər?",
+    "options": [
+      "Milli mənafeyin zərərə düşməsi",
+      "Sosial rifahın yüksəlməsi",
+      "Ərzaq bolluğu",
+      "Heyvandarlığın artması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "121.",
+    "question": "İnvestisiya nə deməkdir?",
+    "options": [
+      "İstehlak mallarının alınması",
+      "Vergi ödənişləri",
+      "Gələcəkdə mənfəət əldə etmək məqsədi ilə vəsait qoyuluşu",
+      "Dövlət subsidiyaları"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "122.",
+    "question": "İnvestisiya siyasətinin əsas məqsədi nədir?",
+    "options": [
+      "Vergiləri artırmaq",
+      "İdxalı artırmaq",
+      "İqtisadi inkişafı təmin etmək",
+      "Təkcə neft sektorunu dəstəkləmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "123.",
+    "question": "Xarici investisiya nədir?",
+    "options": [
+      "Yerli sahibkarın investisiyası",
+      "Dövlət büdcəsinin xərclənməsi",
+      "Xarici ölkə vəsaitlərinin ölkə iqtisadiyyatına yönəldilməsi",
+      "Vergi güzəştləri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "124.",
+    "question": "Hansı sahədə investisiyaların çoxluğu iqtisadi inkişaf üçün vacibdir?",
+    "options": [
+      "İstehsal və infrastruktur",
+      "Xidmət sektoru",
+      "Əyləncə və turizm",
+      "kənd təsərrüfatı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "125.",
+    "question": "İnvestisiya mühitinin yaxşı olması nə deməkdir?",
+    "options": [
+      "Vergilərin çox olması",
+      "İxracın qadağan edilməsi",
+      "İdxalın artırılması",
+      "Sahibkar üçün əlverişli iqtisadi şəraitin yaradılması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "126.",
+    "question": "Azərbaycan iqtisadiyyatında investisiya siyasətinin əhəmiyyəti nədən ibarətdir?",
+    "options": [
+      "İxracı məhdudlaşdırmaq",
+      "Dövlət borcunu artırmaq",
+      "Pul kütləsini azaltmaq",
+      "Dayanıqlı inkişafı təmin etmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "127.",
+    "question": "İnvestisiya siyasəti hansı istiqamətdə daha çox təsir göstərir?",
+    "options": [
+      "Yeni iş yerlərinin açılmasında",
+      "Əhalinin azalmasında",
+      "Pulun dəyərsizləşməsində",
+      "İdxalın artmasında"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "128.",
+    "question": "İnvestisiya siyasətində dövlətin rolu nədən ibarətdir?",
+    "options": [
+      "Vergi yığmaq",
+      "Hüquqi baza və əlverişli şərait yaratmaq",
+      "İdxalı artırmaq",
+      "Sahibkarlığı məhdudlaşdırmaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "129.",
+    "question": "İnvestisiya fəaliyyətində əsas risklərdən biri hansıdır?",
+    "options": [
+      "Yüksək gəlir əldə edilməsi",
+      "İqtisadi sabitliyin olmaması",
+      "Yeni iş yerlərinin yaradılması",
+      "İnfrastrukturun inkişafı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "130.",
+    "question": "İnvestisiya siyasətində prioritet istiqamət hansı ola bilər?",
+    "options": [
+      "Xidmət sahələri",
+      "Strateji əhəmiyyətli sahələr",
+      "İdxal malları",
+      "turizm"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "131.",
+    "question": "Xarici investisiya üçün dövlət hansı tədbirləri görə bilər?",
+    "options": [
+      "İdxalı artırmaq",
+      "Qiymətləri bahalaşdırmaq",
+      "İstehsalı məhdudlaşdırmaq",
+      "Vergi güzəştləri tətbiq etmək"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "132.",
+    "question": "İnvestisiya siyasətində beynəlxalq təşkilatların rolu nə ola bilər?",
+    "options": [
+      "Dövlət borcunu artırmaq",
+      "İdxalı məhdudlaşdırmaq",
+      "Əhalini azaltmaq",
+      "Kredit və maliyyə dəstəyi göstərmək"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "133.",
+    "question": "İnvestisiya mühitinə təsir edən əsas amillərdən biri hansıdır?",
+    "options": [
+      "Əhalinin azalması",
+      "İdxalın artması",
+      "Neft hasilatının azalması",
+      "Siyasi sabitlik"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "134.",
+    "question": "İnvestisiyalar əsasən hansı formada qoyula bilər?",
+    "options": [
+      "Pul şəklində",
+      "Pul, avadanlıq, texnologiya",
+      "Torpaq şəklində",
+      "idxal malları ilə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "135.",
+    "question": "İnvestisiya siyasətində sahibkarların rolu nədən ibarətdir?",
+    "options": [
+      "Vergi yığmaq",
+      "İstehsala və xidmət sahələrinə vəsait yatırmaq",
+      "İdxal etmək",
+      "Dövlət borcunu artırmaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "136.",
+    "question": "İnvestisiya siyasəti uzunmüddətli dövrdə hansı nəticəyə gətirir?",
+    "options": [
+      "İdxalın çoxalması",
+      "Dayanıqlı iqtisadi artım",
+      "Dövlət borcunun böyüməsi",
+      "Əhalinin azalması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "137.",
+    "question": "İnvestisiya siyasəti dövlətin hansı strateji maraqları ilə bağlıdır?",
+    "options": [
+      "Əhalinin miqrasiyasının artırılması",
+      "İdxalın gücləndirilməsi",
+      "İqtisadi təhlükəsizlik və inkişafın təmin olunması",
+      "Valyuta ehtiyatlarının azalması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "138.",
+    "question": "İnvestisiyaların prioritet istiqamətlərinin düzgün seçilməsi nəyə şərait yaradır?",
+    "options": [
+      "Maliyyə böhranına",
+      "İşsizlik səviyyəsinin artmasına",
+      "Resursların səmərəli istifadəsinə",
+      "Sahibkarlığın zəifləməsinə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "139.",
+    "question": "İnvestisiya siyasətində uzunmüddətli layihələr adətən hansı məqsədlə həyata keçirilir?",
+    "options": [
+      "Vergilərin artırılması",
+      "Dövlət xərclərinin çoxaldılması",
+      "İqtisadiyyatın strukturunun modernləşdirilməsi",
+      "Qısa müddətli gəlir əldə etmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "140.",
+    "question": "İnvestisiya siyasətində risklərin azaldılması üçün əsas tədbirlərdən biri hansıdır?",
+    "options": [
+      "Dövlət borcunun artırılması",
+      "İstehsalın dayandırılması",
+      "Əhalinin azalması",
+      "Hüquqi və iqtisadi sabitliyin təmin edilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "141.",
+    "question": "Azərbaycan Respublikasında “Regionların sosial- iqtisadi inkişafı Dövlət Proqramı” neçə dəfə qəbul olunmuşdur?",
+    "options": [
+      "2 dəfə",
+      "4 dəfə",
+      "3 dəfə",
+      "5 dəfə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "142.",
+    "question": "“Tam” qida sənayesi müəssisəsi hansı iqtisadi rayonda yerləşir?",
+    "options": [
+      "Gəncə-Qazax",
+      "Abşeron",
+      "Aran",
+      "Dağlıq Şirvan"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "143.",
+    "question": "Sumqayıtda yerləşən “Azkompozi” zavodunda əsasən nə istehsal olunurdu?",
+    "options": [
+      "Qənnadı məmulatları",
+      "Boru",
+      "Tekstil məhsulları",
+      "Alüminium"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "144.",
+    "question": "“Azərbaycan Prezidenti İlham Əliyev 2004-cü ildə ____ rayonunda ‘AtaSənaye’ quşçuluq fabrikində olmuşdur.”",
+    "options": [
+      "Şəmkir",
+      "Oğuz",
+      "Masallı",
+      "Yardımlı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "145.",
+    "question": "Gəncə şəhərində yerləşən “Jardin Royal” fabriki hansı məhsul istehsal edir?",
+    "options": [
+      "Un",
+      "Yağ",
+      "Çay",
+      "Şokolad"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "146.",
+    "question": "“Astara Çay-2” ASC-də əsasən hansı məhsul istehsal olunur?",
+    "options": [
+      "Süd məhsulları",
+      "Kərpic",
+      "Tekstil",
+      "Çay"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "147.",
+    "question": "“Lənkəran süd emalı zavodu”nun məhsulları hansı markayla tanınır?",
+    "options": [
+      "Nursüd",
+      "Azsüd",
+      "Şəki süd",
+      "Göyçay süd"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "148.",
+    "question": "“Bismak” MMC Qida-Sənaye Kompleksi əsas texnologiyaları hansı ölkələrdən gətirmişdir?",
+    "options": [
+      "Fransa, ABŞ, Çin",
+      "Almaniya, Rusiya, Türkiyə",
+      "İngiltərə, İtaliya, Yaponiya",
+      "Gürcüstan, İran, Qazaxıstan"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "149.",
+    "question": "Tamamlama: “Prezident İlham Əliyev 2007-ci ildə Qazax rayonunun ____ kəndində sement zavodunun təməlqoyma mərasimində iştirak etmişdir.”",
+    "options": [
+      "Qarayazı",
+      "Daş Salahlı",
+      "Həsənli",
+      "Böyük Dəhnə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "150.",
+    "question": "“Embawood” fabriki əsasən hansı məhsulları istehsal edir?",
+    "options": [
+      "Şərab",
+      "Mebel",
+      "Yağ",
+      "Qənnadı məmulatları"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "151.",
+    "question": "Prezident İlham Əliyev 2007-ci ildə hansı şəhərdə “Telemexanika” zavodunda olmuşdur?",
+    "options": [
+      "Əli Bayramlı",
+      "Şamaxı",
+      "Sumqayıt",
+      "Bərdə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "152.",
+    "question": "Uyğunlaşdırın: 1.Gəncə-Şərab-2 → 2.Dizayn-Genay → 3.Oplas MMC →",
+    "options": [
+      "1-Süd, 2-Qənnadı, 3-Kabel",
+      "1-Mebel, 2-Çörək, 3-Yağ",
+      "1-Şərab, 2-Boru, 3-Boru və aksesuarlar",
+      "1-Çay, 2-Şokolad, 3-Kərpic"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "153.",
+    "question": "“Azər-Yod” zavodu hansı rayonda yerləşir?",
+    "options": [
+      "Lənkəran",
+      "Quba",
+      "Neftçala",
+      "Göyçay"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "154.",
+    "question": "“Star Ltd” zavodunda əsasən hansı məhsullar istehsal edilirdi?",
+    "options": [
+      "Çörək",
+      "Yağ",
+      "Televizor",
+      "Çay"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "155.",
+    "question": "Tamamlama: “Azərbaycan Respublikasında ilk şəkər zavodu ____ rayonunda açılmışdır.”",
+    "options": [
+      "Goranboy",
+      "Salyan",
+      "Qəbələ",
+      "İmişli"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "156.",
+    "question": "Regional inkişaf siyasətinin həyata keçirilməsində dövlətin rolu nədən ibarətdir?",
+    "options": [
+      "Bütün regional fəaliyyətləri özəl sektora ötürmək",
+      "Regionlar arasında sərhədləri ləğv etmək",
+      "sosial təminat xərclərini artırmaq",
+      "İnfrastrukturun inkişafını, investisiya axınını və məşğulluğu tənzimləyən iqtisadi mexanizmləri formalaşdırmaq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "157.",
+    "question": "Uyğunlaşdırın: 1.“Azərkabel” SC → 2.“Bərdə Yağ-Pendir” ASC → 3.“Göyçay-Konserv” ASC →",
+    "options": [
+      "1-Qənnadı, 2-Yağ, 3-Mebel",
+      "1-Beton, 2-Çörək, 3-Süd",
+      "1-Çay, 2-Kərpic, 3-Şokolad",
+      "1-Kabel, 2-Süd məhsulları, 3- Konserv"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "158.",
+    "question": "Regionların sosial-iqtisadi inkişaf siyasətinin əsas məqsədi nədir?",
+    "options": [
+      "İri şəhərlərdə sənaye potensialını artırmaq",
+      "Regionlar arasında iqtisadi fərqləri azaltmaq və balanslı inkişafı təmin etmək",
+      "Dövlət büdcəsinin gəlirlərini artırmaq üçün yeni vergi növləri yaratmaq",
+      "Xarici investisiyaları paytaxtda cəmləmək"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "159.",
+    "question": "Regional inkişaf proqramlarında “klasterləşmə” prinsipi nəyi ifadə edir?",
+    "options": [
+      "Regionlarda təsadüfi investisiya bölgüsünün aparılması",
+      "Eyni və ya əlaqəli sahələrin bir coğrafi ərazidə birləşdirilərək səmərəliliyin artırılması",
+      "Müxtəlif sahələrin rəqabətini məhdudlaşdırmaq",
+      "Sənaye müəssisələrinin mərkəzdən uzaqlaşdırılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "160.",
+    "question": "Azərbaycan regionlarının sosial-iqtisadi inkişaf proqramlarında “dayanıqlılıq” anlayışı hansı mənanı verir?",
+    "options": [
+      "Sənaye istehsalının artırılması",
+      "İqtisadi artımın ekoloji, sosial və maliyyə baxımından uzunmüddətli davamlılığının təmin olunması",
+      "Maliyyə gəlirlərinin illik olaraq sabit qalması",
+      "Dövlət subsidiyalarının azaldılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "161.",
+    "question": "İstehsal infrastrukturuna hansı sahə aid edilir?",
+    "options": [
+      "Bank xidməti",
+      "Sığorta xidməti",
+      "Mədəniyyət müəssisələri",
+      "Nəqliyyat-anbar sistemi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "162.",
+    "question": "Sosial infrastruktur anlayışına aşağıdakılardan hansı daxildir?",
+    "options": [
+      "Vergi xidməti",
+      "Gömrük xidməti",
+      "Mərkəzi Bank",
+      "Təhsil və səhiyyə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "163.",
+    "question": "“İs tehsal infrastrukturunun əsas funksiyası məhsulların ______ təmin edilməsidir.”",
+    "options": [
+      "İnformasiyanın ötürülməsi",
+      "Bank kreditlərinin verilməsi",
+      "Sosial təminatın təşkili",
+      "Hərəkəti və saxlanması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "164.",
+    "question": "Sosial-məişət infrastrukturuna aşağıdakılardan hansı aiddir?",
+    "options": [
+      "Mənzil-kommunal təsərrüfatı",
+      "Universitetlər",
+      "Muzeylər",
+      "İdman arenaları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "165.",
+    "question": "Uyğunlaşdırın: 1.Sosial-mədəni infrastruktur → 2.Sosial-məişət infrastruktur →",
+    "options": [
+      "1-Qida, 2-Sənaye",
+      "1-Bank, 2-Sığorta",
+      "1-Kənd təsərrüfatı, 2-Ticarət",
+      "1-Təhsil, 2-Mənzil-kommunal təsərrüfatı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "166.",
+    "question": "Astara rayonunda ilk modul tipli elektrik stansiyasının açılışı hansı ildə olmuşdur?",
+    "options": [
+      "2006",
+      "2002",
+      "2008",
+      "2004"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "167.",
+    "question": "“Cənub” Elektrik Stansiyası harada inşa olunmuşdur?",
+    "options": [
+      "Əli Bayramlı",
+      "Gəncə",
+      "Şəki",
+      "Xaçmaz"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "168.",
+    "question": "Vayxır su anbarı hansı muxtar respublikada yerləşir?",
+    "options": [
+      "Daşkəsən",
+      "Şəki",
+      "Gəncə",
+      "Naxçıvan"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "169.",
+    "question": "“Azərbaycan Respublikası regionlarının sosial-iqtisadi inkişafı Dövlət Proqramı”na görə hansı hava limanı yenidən qurulmuşdur?",
+    "options": [
+      "Mingəçevir",
+      "Şirvan",
+      "Quba",
+      "Gəncə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "170.",
+    "question": "Bakı-Ələt-Qazax magistral yolunun Hacıqabul- Kürdəmir hissəsinin uzunluğu neçə km-dir?",
+    "options": [
+      "50 km",
+      "120 km",
+      "60 km",
+      "85 km"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "171.",
+    "question": "İnfrastrukturun iqtisadi inkişafdakı əsas funksiyası nədir?",
+    "options": [
+      "Dövlət büdcəsində sosial xərcləri azaltmaq",
+      "Valyuta bazarında sabitliyi qorumaq",
+      "İstehsal və xidmət sektorları arasında qarşılıqlı əlaqəni təmin etmək",
+      "nəqliyyat sahəsində inkişafa nail olmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "172.",
+    "question": "Azərbaycanda infrastruktur layihələrinin həyata keçirilməsində “dövlət-özəl tərəfdaşlığı”nın rolu nədən ibarətdir?",
+    "options": [
+      "Dövlətin iqtisadiyyatdakı rolunu minimuma endirmək",
+      "Xarici kreditlərin asılılığını artırmaq",
+      "Özəl kapitalın dövlət layihələrinə cəlb edilməsini təmin etməklə investisiya yükünü bölüşdürmək",
+      "kənd təsərrüfatı sektorunu maliyyələşdirmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "173.",
+    "question": "İnfrastrukturun regional inkişafda rolu nədən ibarətdir?",
+    "options": [
+      "Dövlət idarəçiliyinin gücləndirilməsini təmin etmək",
+      "Şəhərlərin əhalisini azaltmaq",
+      "Regionların iqtisadi potensialını artırmaq və investisiyaların cəlbini təmin etmək",
+      "Regionlararası ticarəti məhdudlaşdırmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "174.",
+    "question": "Azərbaycanda nəqliyyat infrastrukturunun inkişafında “Şimal-Cənub” və “Şərq-Qərb” dəhlizlərinin əsas əhəmiyyəti nədən ibarətdir?",
+    "options": [
+      "Ölkəni beynəlxalq logistika mərkəzinə çevirmək",
+      "Daxili daşımaları asanlaşdırmaq",
+      "Dəniz nəqliyyatını tam əvəz etmək",
+      "Daxili bazarın idxaldan asılılığını artırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "175.",
+    "question": "İnfrastruktur dəyişikliklərinin sosial rifaha təsirini müəyyən edən əsas amil hansıdır?",
+    "options": [
+      "Dövlət gəlirlərinin azaldılması",
+      "İstehsalın həcminin azalması",
+      "Əmək bazarının məhdudlaşdırılması",
+      "Xidmətlərin əlçatanlığı və keyfiyyətinin yüksəlməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "176.",
+    "question": "İnfrastrukturun idarə olunmasında institusional islahatların rolu nədən ibarətdir?",
+    "options": [
+      "İdarəetmənin səmərəliliyini artırmaq və şəffaf mexanizmlər yaratmaq",
+      "Dövlətin iqtisadi proseslərdən tam çəkilməsi",
+      "Maliyyə nəzarətinin zəiflədilməsi",
+      "Yerli orqanların fəaliyyətinin məhdudlaşdırılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "177.",
+    "question": "İnfrastruktur siyasətində “taraz inkişaf” prinsipi nəyi nəzərdə tutur?",
+    "options": [
+      "Sənaye şəhərlərinin inkişafı",
+      "Regionlar arasında iqtisadi, sosial və ekoloji balansın qorunması",
+      "İnvestisiyaların bərabər bölüşdürülməsinin qadağan edilməsi",
+      "Dövlət nəzarətinin minimuma endirilməsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "178.",
+    "question": "Azərbaycanda sosial infrastrukturun inkişafı hansı istiqamətdə daha çox prioritet hesab olunur?",
+    "options": [
+      "İdxal olunan məhsulların subsidiyalaşdırılması",
+      "Təhsil və səhiyyə sistemlərinin modernləşdirilməsi",
+      "Xarici ticarətin azaldılması",
+      "Dövlət orqanlarının sayının artırılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "179.",
+    "question": "İnfrastruktur sahəsində “multiplikativ təsir” nə deməkdir?",
+    "options": [
+      "Eyni layihənin bir neçə dəfə maliyyələşdirilməsi",
+      "İnfrastruktur investisiyalarının digər iqtisadi sahələrdə əlavə artım yaratması",
+      "İnvestisiya layihələrinin təkrar icrası",
+      "sosial təsirlərin qiymətləndirilməsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "180.",
+    "question": "Rəqəmsal infrastrukturun inkişafı iqtisadiyyata necə təsir edir?",
+    "options": [
+      "Əmək bazarını tam avtomatlaşdırır",
+      "Əl əməyini tamamilə aradan qaldırır",
+      "Maliyyə sektorunu zəiflədir",
+      "İstehsalın səmərəliliyini və idarəetmədə şəffaflığı artırmaqla rəqabət qabiliyyətini yüksəldir"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "181.",
+    "question": "Azərbaycan Respublikasında İKT sahəsində strateji xəttin müəllifi kimdir?",
+    "options": [
+      "İlham Əliyev",
+      "Nazim İsmayılov",
+      "Anar Məmmədov",
+      "Heydər Əliyev"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "182.",
+    "question": "2003–2012-ci illəri əhatə edən “İnformasiya- kommunikasiya texnologiyaları üzrə Milli Strategiya” sənədi ______ tərəfindən təsdiq edilmişdir.",
+    "options": [
+      "İlham Əliyev",
+      "BMT",
+      "Heydər Əliyev",
+      "Rabitə Nazirliyi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "183.",
+    "question": "Rabitə Nazirliyinin bazasında yaradılmış yeni qurumun adı necə idi?",
+    "options": [
+      "Elektron İnkişaf Agentliyi",
+      "Telekommunikasiya Komitəsi",
+      "Rabitə və İnformasiya Texnologiyaları Nazirliyi",
+      "İnformasiya Cəmiyyəti Mərkəzi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "184.",
+    "question": "“Elektron Azərbaycan” Dövlət Proqramı ______ illərini əhatə etmişdir.",
+    "options": [
+      "2008–2011",
+      "2003–2010",
+      "2005–2008",
+      "2006–2009"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "185.",
+    "question": "“Elektron imza və elektron sənəd haqqında” qanun hansı ildə qəbul olunmuşdur?",
+    "options": [
+      "2004",
+      "2003",
+      "2005",
+      "2006"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "186.",
+    "question": "İKT-nin əsas məqsədlərindən biri hansıdır?",
+    "options": [
+      "İnformasiya cəmiyyətinin formalaşdırılması",
+      "Neft hasilatının artırılması",
+      "Əmək bazarının ixtisarı",
+      "Dövlət büdcəsinin azaldılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "187.",
+    "question": "Uyğunluğu müəyyən edin: 1.“Poçt rabitəsi haqqında” 2.“Telekommunikasiya haqqında” 3.“Elektron ticarət haqqında” a.2004 b.2005 c.2005",
+    "options": [
+      "1–C; 2–A; 3–B",
+      "1–B; 2–C; 3–A",
+      "1–A; 2–B; 3–C",
+      "1–A; 2–C; 3–B"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "188.",
+    "question": "İKT-nin inkişafı nəticəsində hansı göstərici ən çox artmışdır?",
+    "options": [
+      "Elektrik istehsalı",
+      "Neft hasilatı",
+      "Mobil abunəçilərin sayı",
+      "Valyuta ehtiyatı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "189.",
+    "question": "Azərbaycanın İKT siyasətinin əsas məqsədi ölkədə ______ təmin etməkdir.",
+    "options": [
+      "kənd təsərrüfatının inkişafını",
+      "neft hasilatının azaldılmasını",
+      "informasiya cəmiyyətinə keçidi",
+      "xarici borcların ödənilməsini"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "190.",
+    "question": "“Elektron Azərbaycan” proqramının əsas istiqamətlərindən biri hansıdır?",
+    "options": [
+      "Neft ixracının artırılması",
+      "Kənd təsərrüfatının texnologiyalaşdırılması",
+      "Tikinti sektorunun genişləndirilməsi",
+      "Əhalinin maarifləndirilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "191.",
+    "question": "Gənclərin yüksək intellektə sahib olması üçün həyata keçirilən layihə hansıdır?",
+    "options": [
+      "Məktəblərin kompyuterləşməsi layihəsi",
+      "İnnovasiya parkı layihəsi",
+      "Azerspace layihəsi",
+      "Rəqəmsal bank sistemi layihəsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "192.",
+    "question": "Uyğunluğu müəyyən edin: 1.“Microsoft”",
+    "options": [
+      "1–B; 2–A; 3–A",
+      "1–A; 2–A; 3–A",
+      "1–C; 2–A; 3–B",
+      "1–A; 2–B; 3–C"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "193.",
+    "question": "Azərbaycan regionda ______ xidmətlərinin ixracatçısına çevrilmişdir.",
+    "options": [
+      "Neft",
+      "İnternet",
+      "Turizm",
+      "Enerji"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "194.",
+    "question": "İKT sahəsində ilk kompyuter istehsal edən zavod harada yaradılmışdır?",
+    "options": [
+      "Gəncədə",
+      "Mingəçevirdə",
+      "Sumqayıtda",
+      "Bakıda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "195.",
+    "question": "Uyğunluğu müəyyən edin: 1.Rəqəmli TV sistemi 2.Ağsu Radio-Televiziya kompleksi 3.“AztelekomNet” a.Yüksəksürətli internet b.Yayım keyfiyyətinin artırılması c.Rəqəmsal televiziya sınağı Doğru uyğunluq:",
+    "options": [
+      "1–C; 2–B; 3–A",
+      "1–B; 2–C; 3–A",
+      "1–A; 2–B; 3–C",
+      "1–C; 2–A; 3–B"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "196.",
+    "question": "İKT sektorunun neftdən sonra iqtisadiyyatda hansı rolu var?",
+    "options": [
+      "Ən çox inkişaf etmiş qeyri-neft sektoru",
+      "Dövlət büdcəsinin əsas gəlir mənbəyi",
+      "İxracın əsas istiqaməti",
+      "Turizm sahəsini əvəz edən sahə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "197.",
+    "question": "İKT sahəsində əldə olunan uğurlar Azərbaycanın ______ nüfuzunu artırmışdır.",
+    "options": [
+      "hərbi və dini",
+      "mədəni və turistik",
+      "maliyyə və inzibati",
+      "siyasi və iqtisadi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "198.",
+    "question": "Uyğunluğu müəyyən edin: Azerspace-1 Azerspace-2 Azersky Telekommunikasiya peyki Yer səthinin müşahidə peyki İkinci peyk layihəsi Doğru uyğunluq:",
+    "options": [
+      "1–C; 2–A; 3–B",
+      "1–A; 2–B; 3–C",
+      "1–B; 2–A; 3–C",
+      "1–A; 2–C; 3–B"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "199.",
+    "question": "Azərbaycanda kosmik fəaliyyətin idarə olunması üçün yaradılmış qurum hansıdır?",
+    "options": [
+      "Milli Aerokosmik Komitə",
+      "Peyk Nəzarət Mərkəzi",
+      "Rabitə Komitəsi",
+      "Kosmik Agentlik (“Azərkosmos” ASC-nin bazasında)"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "200.",
+    "question": "“Qərb–Şərq yüksəksürətli informasiya magistralı” layihəsinin əsas məqsədi nədir?",
+    "options": [
+      "Neft hasilatını artırmaq",
+      "Turizm axınını genişləndirmək",
+      "Qərbi Avropa və Şərqi Asiyanı informasiya şəbəkəsi ilə birləşdirmək",
+      "İdxalı azaltmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "201.",
+    "question": "Ticarət sahəsinin əsas funksiyası nədir?",
+    "options": [
+      "Yeni texnologiyaların istehsalı",
+      "Dövlət büdcəsinin formalaşdırılması",
+      "Malların istehsaldan istehlakçıya çatdırılması",
+      "Xarici siyasətin tənzimlənməsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "202.",
+    "question": "Ticarət və xidmət sahələrinin inkişafı nəyi gücləndirir?",
+    "options": [
+      "Dövlət borcunun artımını",
+      "İxracın azalmasını",
+      "Əhalinin məşğulluğunu və rifahını",
+      "İstehsalın dayanmasını"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "203.",
+    "question": "Ticarət fəaliyyəti iqtisadiyyatın _______ sektoruna daxildir.",
+    "options": [
+      "Qeyri-neft",
+      "Enerji",
+      "Neft",
+      "Müdafiə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "204.",
+    "question": "Pərakəndə ticarət nə deməkdir?",
+    "options": [
+      "Malların birbaşa istehlakçılara satılması",
+      "Malların topdan alınması",
+      "Malların ixrac edilməsi",
+      "Malların istehsal müəssisələrinə paylanması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "205.",
+    "question": "Xidmət sahəsinə aşağıdakılardan hansı aiddir?",
+    "options": [
+      "Metal istehsalı",
+      "Neft emalı",
+      "Kənd təsərrüfatı",
+      "İaşə xidməti"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "206.",
+    "question": "Aşağıdakı anlayışları uyğunlaşdırın: 1.Pərakəndə ticarət 2.Topdan ticarət 3.İaşə xidməti 4.Pullu xidmətlər Aşağıdakı variantlardan uyğun olanı seçin:",
+    "options": [
+      "1–İstehsal prosesinə nəzarət; 2– İxrac ticarəti; 3–Təhsil xidməti; 4–Neft satışları",
+      "1–Dövlət ticarəti; 2–Kənd təsərrüfatı malları; 3–Sənaye xidməti; 4–Nəqliyyat xidmətləri",
+      "1–İdxal əməliyyatı; 2–Ticarət təşkilatı; 3–Texniki xidmət; 4– İdxal nəzarəti",
+      "1–İstehlakçıya birbaşa satış; 2– Satıcılar arasında satış; 3–Qida və iaşə fəaliyyəti; 4–Əhaliyə ödənişli xidmətlər"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "207.",
+    "question": "Xidmət sahələrinin genişlənməsi hansı nəticəni doğurur?",
+    "options": [
+      "Dövlət borcunun artması",
+      "İstehsalın azalması",
+      "Yeni iş yerlərinin yaranması",
+      "Əhalinin gəlirlərinin azalması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "208.",
+    "question": "Ticarət və xidmət sahələrinin inkişafı iqtisadiyyatda hansı rolu oynayır?",
+    "options": [
+      "Enerji asılılığının artması",
+      "Əmək məhsuldarlığının azalması",
+      "Daxili bazarın canlanması",
+      "İnflyasiyanın dərinləşməsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "209.",
+    "question": "Ticarət və xidmət sahələrinin inkişafına hansı amil daha çox təsir edir?",
+    "options": [
+      "Sənayeləşmənin azalması",
+      "İnflyasiyanın artması",
+      "Əhalinin gəlir səviyyəsinin yüksəlməsi",
+      "Dövlət borcunun çoxalması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "210.",
+    "question": "Ticarət dövriyyəsinin artması nə deməkdir?",
+    "options": [
+      "Neft hasilatının azalması",
+      "Dövlət xərclərinin azalması",
+      "İstehsalın dayanması",
+      "Malların və xidmətlərin alqı-satqı həcminin artması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "211.",
+    "question": "Pərakəndə ticarət dövriyyəsi adətən _______ ticarət müəssisələrində həyata keçirilir.",
+    "options": [
+      "kiçik və orta",
+      "dövlət",
+      "beynəlxalq",
+      "ixrac"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "212.",
+    "question": "Aşağıdakı anlayışları uyğunlaşdırın: 1.Ticarət fəaliyyəti 2.Xidmət fəaliyyəti 3.Pullu xidmətlər 4.İaşə xidməti",
+    "options": [
+      "1–İxrac fəaliyyəti; 2–Sənaye istehsalı; 3–Neft hasilatı; 4– Maliyyə əməliyyatı",
+      "1–Alqı-satqı prosesi; 2– Əhaliyə xidmət; 3–Pul qarşılığında xidmət; 4–Yemək və qida xidməti",
+      "1–İstehsal prosesi; 2–İdxal fəaliyyəti; 3–Xarici ticarət; 4– Turizm xidməti",
+      "1–Sahibkarlıq fəaliyyəti; 2– Dövlət nəzarəti; 3–Əmək fəaliyyəti; 4–Tədris xidməti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "213.",
+    "question": "Xidmət sektorunun artması iqtisadiyyat üçün nə deməkdir?",
+    "options": [
+      "İstehsalın dayanması",
+      "İqtisadiyyatın diversifikasiyası",
+      "Neft sektorunun genişlənməsi",
+      "Kənd təsərrüfatının zəifləməsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "214.",
+    "question": "Xidmət sahələrində fəaliyyət göstərən fərdi sahibkarların çoxluğu nəyi göstərir?",
+    "options": [
+      "Dövlət sektorunun genişlənməsini",
+      "Kiçik biznesin inkişafını",
+      "Sənayeləşmənin azalmasını",
+      "Xarici investisiyaların azalmasını"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "215.",
+    "question": "Ticarət və xidmət sahələrinin inkişafı nəticəsində hansı nəticə əldə olunur?",
+    "options": [
+      "Sosial rifahın artması",
+      "Dövlət gəlirlərinin azalması",
+      "Əmək məhsuldarlığının düşməsi",
+      "İstehsalın azalması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "216.",
+    "question": "Xidmət sahələrinin inkişafı həmçinin _______ sektorunun güclənməsinə səbəb olur.",
+    "options": [
+      "enerji",
+      "dövlət idarəetməsi",
+      "sənaye",
+      "sahibkarlıq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "217.",
+    "question": "Ticarət və xidmət sektorunda investisiyaların artırılması hansı məqsədi daşıyır?",
+    "options": [
+      "Xarici ticarəti azaltmaq",
+      "Dövlət borcunu artırmaq",
+      "Neft ixracını məhdudlaşdırmaq",
+      "Dayanıqlı iqtisadi inkişafı təmin etmək"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "218.",
+    "question": "Ticarət və xidmət sektorunun inkişafında dövlət siyasətinin rolu nədən ibarətdir?",
+    "options": [
+      "Hüquqi bazanı yaratmaq və sahibkarlığı dəstəkləmək",
+      "Qiymətləri inzibati yolla artırmaq",
+      "Xarici bazarları bağlamaq",
+      "İnflyasiyanı süni şəkildə azaltmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "219.",
+    "question": "Aşağıdakı anlayışları uyğunlaşdırın: 1.Ticarət dövriyyəsi 2.İstehlak malları 3.Xidmət iqtisadiyyatı 4.Sahibkarlıq fəaliyyəti",
+    "options": [
+      "1–İdxal malları; 2–Dövlət məhsulları; 3–Sənaye istehsalı; 4–Təhsil fəaliyyəti",
+      "1–İxrac dövriyyəsi; 2–Kənd məhsulları; 3–Neft sənayesi; 4–Dövlət xidməti",
+      "1–Malların və xidmətlərin hərəkəti; 2–Əhalinin tələbatını ödəyən məhsullar; 3– Xidmətlərin iqtisadiyyatda artan payı; 4–Mənfəət məqsədilə aparılan iqtisadi fəaliyyət",
+      "1–Təhsil dövriyyəsi; 2–Məhsul istehsalı; 3–İdxal fəaliyyəti; 4– Texniki xidmət"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "220.",
+    "question": "Xidmət sahələrinin genişlənməsi hansı qlobal iqtisadi tendensiyanın tərkib hissəsidir?",
+    "options": [
+      "Aqrar inqilab",
+      "Neft iqtisadiyyatı",
+      "Postindustrial inkişaf mərhələsi",
+      "Təbii resurs ticarəti"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "221.",
+    "question": "Yeni iş yerlərinin yaradılmasının əsas məqsədi nədir?",
+    "options": [
+      "Dövlət gəlirlərini azaltmaq",
+      "İdxalın qarşısını almaq",
+      "Əhalinin məşğulluğunu və rifahını artırmaq",
+      "Əmək bazarını məhdudlaşdırmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "222.",
+    "question": "Müəssisə nə deməkdir?",
+    "options": [
+      "İstehsal və xidmət fəaliyyəti göstərən təsərrüfat subyekti",
+      "Dövlət idarəetmə orqanı",
+      "Təhsil müəssisəsi",
+      "Maliyyə nəzarət təşkilatı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "223.",
+    "question": "Yeni müəssisələrin yaradılması nəyi təmin edir?",
+    "options": [
+      "İqtisadi inkişafı və istehsalın genişlənməsini",
+      "İşsizlik səviyyəsinin artmasını",
+      "Əhalinin gəlirlərinin azalmasını",
+      "Sahibkarlığın zəifləməsini"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "224.",
+    "question": "Yeni iş yerlərinin açılması dövlətin _______ siyasətinin əsas istiqamətlərindəndir.",
+    "options": [
+      "xarici",
+      "hərbi",
+      "maliyyə",
+      "sosial-iqtisadi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "225.",
+    "question": "Re gionlarda yeni müəssisələrin yaradılması nə üçün vacibdir?",
+    "options": [
+      "Neft hasilatını azaltmaq üçün",
+      "Dövlət xərclərini artırmaq üçün",
+      "Əmək bazarını daraltmaq üçün",
+      "İqtisadi inkişafın tarazlı şəkildə təmin olunması üçün"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "226.",
+    "question": "“Azərbaycan Respublikasının regionlarının sosial- iqtisadi inkişafı Dövlət Proqramı” nəyi hədəfləyir?",
+    "options": [
+      "Xarici borcun azaldılmasını",
+      "Dövlət müəssisələrinin özəlləşdirilməsini",
+      "Neft ixracını məhdudlaşdırmağı",
+      "Regionların iqtisadi potensialından səmərəli istifadəni"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "227.",
+    "question": "Aşağıdakıları uyğunlaşdırın: 1.Yeni müəssisə 2.İş yeri 3.Sahibkarlıq 4.Region",
+    "options": [
+      "1–İdxal fəaliyyəti; 2–Dövlət orqanı; 3–Vergi sistemi; 4– Enerji sahəsi",
+      "1–İqtisadi fəaliyyət subyekti; 2–Məşğulluq məkanı; 3– Biznes təşəbbüsü; 4–Ərazi vahidi",
+      "1–Maliyyə bazarı; 2–Təhsil müəssisəsi; 3–İdarəetmə; 4– Turizm sahəsi",
+      "1–Texnologiya; 2–İxrac; 3– Dövlət idarəsi; 4–Qanunvericilik"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "228.",
+    "question": "Yeni iş yerlərinin açılması hansı sahədə daha çox sosial sabitlik yaradır?",
+    "options": [
+      "Xarici ticarətdə",
+      "Əmək bazarında",
+      "Enerji sektorunda",
+      "Turizm fəaliyyətində"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "229.",
+    "question": "Dövlətin məşğulluq siyasətinin əsas məqsədi nədir?",
+    "options": [
+      "İşsizliyin artmasına şərait yaratmaq",
+      "Əhalinin işlə təmin olunmasını təmin etmək",
+      "Sahibkarların fəaliyyətini məhdudlaşdırmaq",
+      "Xarici bazarları bağlamaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "230.",
+    "question": "M üəssisələrin yaradılması iqtisadiyyata necə təsir göstərir?",
+    "options": [
+      "İstehsal gücünü və iqtisadi artımı artırır",
+      "Neft gəlirlərini azaldır",
+      "Əmək bazarını daraldır",
+      "Dövlət borcunu artırır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "231.",
+    "question": "“Məşğulluq Strategiyası”nın əsas məqsədi nədir?",
+    "options": [
+      "İşsizliklə mübarizə aparmaq və yeni iş yerləri açmaq",
+      "Neft ixracını artırmaq",
+      "Vergiləri azaltmaq",
+      "Xarici ticarəti məhdudlaşdırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "232.",
+    "question": "Uyğunluğu müəyyən edin: 1.Məşğulluq 2.İşsizlik 3.Sahibkarlıq fəaliyyəti 4.İnvestisiya",
+    "options": [
+      "1–İdxal; 2–İxrac; 3–Vergi; 4– Xərclər",
+      "1–Təhsil; 2–Elm; 3–Ticarət; 4–İstehsal",
+      "1–Əmək fəaliyyəti; 2–İşsiz qalma vəziyyəti; 3–Biznes fəaliyyəti; 4–Kapital qoyuluşu",
+      "1–Maliyyə; 2–Sığorta; 3– Daxilolma; 4–Sərmayə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "233.",
+    "question": "Yeni müəssisələrin yaradılmasında dövlətin rolu nədən ibarətdir?",
+    "options": [
+      "Qiymətləri inzibati qaydada artırmaq",
+      "İdxalı qadağan etmək",
+      "Qanunvericilik bazasını təkmilləşdirmək və sahibkarlığı dəstəkləmək",
+      "İş yerlərini bağlamaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "234.",
+    "question": "Regionlarda iş yerlərinin açılması nəyə səbəb olur?",
+    "options": [
+      "Dövlət borcunun artmasına",
+      "İnflyasiyanın dərinləşməsinə",
+      "Regionların sosial-iqtisadi inkişafına",
+      "Neft gəlirlərinin azalmasına"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "235.",
+    "question": "Yeni müəssisələrin yaradılması üçün hansı amil vacibdir?",
+    "options": [
+      "İnvestisiya qoyuluşu",
+      "Əməkhaqlarının azalması",
+      "İdxalın artması",
+      "Vergi gəlirlərinin azalması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "236.",
+    "question": "Yeni müəssisələr iqtisadiyyatın _______ sektorlarında fəaliyyət göstərə bilər.",
+    "options": [
+      "müxtəlif",
+      "Dövlət",
+      "Neft",
+      "kənd"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "237.",
+    "question": "Yeni iş yerlərinin açılması və müəssisələrin yaradılması hansı strategiyanın tərkib hissəsidir?",
+    "options": [
+      "Xarici siyasət konsepsiyasının",
+      "Müdafiə strategiyasının",
+      "Enerji siyasətinin",
+      "Regionların sosial-iqtisadi inkişaf proqramının"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "238.",
+    "question": "Yeni müəssisələrin regionlarda yaradılması nəyi sübut edir?",
+    "options": [
+      "Dövlətin iqtisadiyyatdan uzaqlaşdığını",
+      "Sahibkarlığın zəiflədiyini",
+      "İşsizliyin artdığını",
+      "Regional inkişafın prioritet olduğunu"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "239.",
+    "question": "Uyğunluğu müəyyə edin: 1.Yeni müəssisə 2.Məşğulluq siyasəti 3.Dövlət Proqramı 4.Sahibkar",
+    "options": [
+      "1–İdxal fəaliyyəti; 2–İnflyasiya planı; 3–İxrac planı; 4–Sənaye müəssisəsi",
+      "1–İstehsal xətti; 2–Vergi sistemi; 3–Dövlət nəzarəti; 4– Təhsil müəssisəsi",
+      "1–Enerji şirkəti; 2– Qanunvericilik; 3–Xarici bazar; 4–İdxal fəaliyyətçisi",
+      "1–İqtisadi subyekt; 2–İşlə təminat planı; 3–Rəsmi sənəd; 4–Biznes fəaliyyəti göstərən şəxs"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "240.",
+    "question": "Yeni iş yerlərinin açılması hansı qlobal tendensiyaya uyğundur?",
+    "options": [
+      "Ticarət məhdudlaşdırma siyasətinə",
+      "Neft ixracının azaldılmasına",
+      "Dövlət borcunun artırılmasına",
+      "Davamlı sosial-iqtisadi inkişaf modelinə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "241.",
+    "question": "Bank sektorunun əsas funksiyası nədir?",
+    "options": [
+      "Kənd təsərrüfatı məhsullarının istehsalı",
+      "Xarici ticarətin azaldılması",
+      "Maliyyə resurslarının toplanması və kreditləşdirilməsi",
+      "Dövlət idarəetməsinin təşkili"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "242.",
+    "question": "Bank sistemi nə deməkdir?",
+    "options": [
+      "Mərkəzi Bank",
+      "Özəl kredit təşkilatları",
+      "Mərkəzi və kommersiya banklarının məcmusu",
+      "Maliyyə Nazirliyi ilə bağlı strukturlar"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "243.",
+    "question": "Bank sektorunun inkişafı nəyə xidmət edir?",
+    "options": [
+      "İqtisadi sabitliyin və maliyyə dayanıqlığının təmin edilməsinə",
+      "Dövlət borcunun artmasına",
+      "Xarici valyutanın azalmasına",
+      "İnflyasiyanın yüksəlməsinə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "244.",
+    "question": "Bank sektorunun sağlamlaşdırılması maliyyə sisteminin _______ üçün vacibdir.",
+    "options": [
+      "azalması",
+      "zəifləməsi",
+      "borclanması",
+      "sabitliyi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "245.",
+    "question": "Mərkəzi Bankın əsas funksiyalarından biri hansıdır?",
+    "options": [
+      "Pul-kredit siyasətini həyata keçirmək",
+      "Neft hasilatını tənzimləmək",
+      "Xarici ticarət razılaşmaları bağlamaq",
+      "Kənd təsərrüfatını idarə etmək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "246.",
+    "question": "Bank sektorunun inkişafında şəffaf idarəetmə nə üçün vacibdir?",
+    "options": [
+      "Maliyyə etibarını və inamı gücləndirmək üçün",
+      "Bankların sayını azaltmaq üçün",
+      "Xarici kreditləri bağlamaq üçün",
+      "Dövlət büdcəsini artırmaq üçün"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "247.",
+    "question": "Aşağıdakı anlayışları uyğunlaşdırın: 1.Kredit 2.Depozit 3.Mərkəzi Bank 4.Kommersiya bankı",
+    "options": [
+      "1–İdxal; 2–İxrac; 3–Ticarət orqanı; 4–Vergi idarəsi",
+      "1–Əmtəə; 2–Sənaye; 3–Neft; 4–Ərzaq",
+      "1–Borcalana verilən maliyyə; 2–Əmanətçinin bankda saxladığı vəsait; 3–Pul siyasətini tənzimləyən orqan; 4–Maliyyə xidmətləri göstərən təşkilat",
+      "1–İdxal; 2–İstehsal; 3–İxrac; 4– Təhsil"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "248.",
+    "question": "Kredit sisteminin əsas məqsədi nədir?",
+    "options": [
+      "Dövlət sektorunun genişləndirilməsi",
+      "Xarici ticarətin məhdudlaşdırılması",
+      "İqtisadiyyata maliyyə resurslarının yönəldilməsi",
+      "Maliyyə hesabatlarının bağlanması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "249.",
+    "question": "Bank sektorunun inkişafı nəticəsində nə əldə olunur?",
+    "options": [
+      "Dövlət gəlirlərinin azalması",
+      "Valyuta ehtiyatlarının tükənməsi",
+      "İqtisadi artım və sabit maliyyə mühiti",
+      "Kredit faizlərinin qalxması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "250.",
+    "question": "Bank sektorunun dayanıqlığını təmin edən amil hansıdır?",
+    "options": [
+      "Kreditlərin artırılması",
+      "Dövlət borcunun çoxaldılması",
+      "Xarici valyutanın azaldılması",
+      "Risklərin düzgün idarə olunması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "251.",
+    "question": "Dedollarizasiya nə deməkdir?",
+    "options": [
+      "Xarici kreditlərin bağlanması",
+      "Dövlət xərclərinin azaldılması",
+      "Neft gəlirlərinin artırılması",
+      "Yerli valyutanın dövriyyədə payının artırılması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "252.",
+    "question": "Bank sisteminin inkişafı iqtisadiyyatın _______ sektoruna da müsbət təsir edir.",
+    "options": [
+      "qeyri-neft",
+      "hərbi",
+      "aqrar",
+      "dövlət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "253.",
+    "question": "Bank sektorunda rəqəmsallaşma hansı məqsədi daşıyır?",
+    "options": [
+      "İşçi sayını azaltmaq",
+      "Xidmətlərin sürətini və əlçatanlığını artırmaq",
+      "Xarici borcu artırmaq",
+      "İdxalı məhdudlaşdırmaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "254.",
+    "question": "Uyğunluğu müəyyən edin: 1.Kredit bürosu 2.Rəqəmsal identifikasiya 3.Ani Ödənişlər Sistemi 4.İpoteka Fondu",
+    "options": [
+      "1–Kredit prosesi; 2–Əmanət sistemi; 3–Neft ixracı; 4–Vergi siyasəti",
+      "1–Kredit tarixçələrinin toplanması; 2–Müştəri identifikasiyası; 3–Operativ ödəniş mexanizmi; 4–Güzəştli ipoteka kreditləri sistemi",
+      "1–Kənd təsərrüfatı; 2–İxrac idarəsi; 3–Ticarət əməliyyatı; 4–Sığorta şirkəti",
+      "1–Təhsil fondu; 2–Əmək bazarı; 3–İdxal sistemi; 4–Sənaye idarəsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "255.",
+    "question": "Bank sektorunda infrastrukturun inkişafı nə üçün vacibdir?",
+    "options": [
+      "Xarici borcu azaltmaq üçün",
+      "Elektron xidmətlərin və ödəniş sistemlərinin səmərəliliyini artırmaq üçün",
+      "Valyuta bazarını bağlamaq üçün",
+      "Neft hasilatını artırmaq üçün"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "256.",
+    "question": "Bank sektorunun sağlamlaşdırılması hansı nəticəni verir?",
+    "options": [
+      "Kredit faizlərinin azalması və inamın artması",
+      "İşsizlik səviyyəsinin yüksəlməsi",
+      "Dövlət gəlirlərinin azalması",
+      "Xarici investisiyaların azalması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "257.",
+    "question": "Bank sektorunun dayanıqlılığı üçün ən vacib institusional islahatlardan biri hansıdır?",
+    "options": [
+      "Kredit faizlərinin süni artırılması",
+      "Xarici valyutanın dövriyyədən çıxarılması",
+      "Dövlət banklarının bağlanması",
+      "Risk idarəetmə mexanizmlərinin tətbiqi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "258.",
+    "question": "M ərkəzi Bankın prudensial siyasətinin əsas məqsədi nədir?",
+    "options": [
+      "Kredit faizlərini artırmaq",
+      "Dövlət xərclərini azaltmaq",
+      "Əmanətçiləri azaldmaq",
+      "Bankların maliyyə sabitliyini qorumaq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "259.",
+    "question": "Uyğunluğu müəyyən edin: 1.Kredit portfeli 2.Dedollarizasiya",
+    "options": [
+      "1–İdxal malları; 2–Ticarət balansı; 3–Dövlət gəlirləri; 4– Vergi siyasəti",
+      "1–Əmanət; 2–İxrac; 3–İdxal; 4–Sənaye istehsalı",
+      "1–Bankın verdiyi bütün kreditlərin məcmusu; 2–Milli valyutanın payının artması; 3–",
+      "1–İstehsal; 2–Kənd təsərrüfatı; 3– Maliyyə aktivlərinin ÜDM-ə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "260.",
+    "question": "Azərbaycan bank sektorunun rəqəmsallaşması hansı beynəlxalq tendensiyaya uyğundur?",
+    "options": [
+      "Neft hasilatının azaldılması siyasətinə",
+      "Ticarət məhdudlaşdırma tədbirlərinə",
+      "Rəqəmsal transformasiya və innovativ maliyyə texnologiyaları dövrünə",
+      "Regional proteksionizm modelinə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "261.",
+    "question": "Azərbaycanda sahibkarlığın inkişaf mərhələləri neçə əsas dövrə bölünür?",
+    "options": [
+      "3",
+      "5",
+      "4",
+      "2"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "262.",
+    "question": "1993-cü ilə qədər olan dövr sahibkarlığın hansı mərhələsinə aiddir?",
+    "options": [
+      "İlkin mərhələ",
+      "Sabitlik mərhələsi",
+      "İnteqrasiya mərhələsi",
+      "İnkişaf mərhələsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "263.",
+    "question": "1993-1996-cı illərdə Azərbaycanda əsas diqqət hansı məsələyə yönəldilmişdi?",
+    "options": [
+      "Neft hasilatının artırılmasına",
+      "Xarici ticarətin genişlənməsinə",
+      "Bank sisteminin liberallaşmasına",
+      "Makroiqtisadi sabitliyin əldə olunmasına"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "264.",
+    "question": "Sahibkarlığın hüquqi bazası hansı sənədlərlə müəyyən olunur?",
+    "options": [
+      "Konstitusiya və qanunlar",
+      "Bələdiyyə qərarları",
+      "Yerli icra orqanlarının sərəncamları",
+      "Siyasi partiyaların proqramları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "265.",
+    "question": "1996-2002-ci illərdə sahibkarlığın inkişafında əsas istiqamət nə idi?",
+    "options": [
+      "Özəlləşdirmə və struktur islahatları",
+      "İnflyasiyanın artırılması",
+      "Dövlət mülkiyyətinin genişləndirilməsi",
+      "İdxalın məhdudlaşdırılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "266.",
+    "question": "“ASAN xidmət” vasitəsilə sahibkarlara lisenziyaların verilməsi hansı ildən başlanıb?",
+    "options": [
+      "2012",
+      "2017",
+      "2010",
+      "2015"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "267.",
+    "question": "“ABAD” layihəsinin əsas məqsədi nədir?",
+    "options": [
+      "Vergi yığımını artırmaq",
+      "Neft ixracını artırmaq",
+      "Dövlət orqanlarını birləşdirmək",
+      "Ailə bizneslərinə dəstək vermək"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "268.",
+    "question": "“Strateji yol xəritələri” hansı ildə təsdiq edilmişdir?",
+    "options": [
+      "2010",
+      "2014",
+      "2018",
+      "2016"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "269.",
+    "question": "2002-2015-ci illərdə sahibkarlığın inkişafına hansı dövlət proqramı təkan vermişdir?",
+    "options": [
+      "Kiçik və orta sahibkarlığın inkişafı Dövlət Proqramı",
+      "Turizm inkişaf proqramı",
+      "Neft strategiyası",
+      "Rəqabət Məcəlləsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "270.",
+    "question": "2007-2015-ci illərdə gənclərin xaricdə təhsili hansı məqsədlə həyata keçirilmişdi?",
+    "options": [
+      "İdxalın azaldılması üçün",
+      "İnsan kapitalının inkişafı üçün",
+      "Bank sistemini gücləndirmək üçün",
+      "İxracı artırmaq üçün"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "271.",
+    "question": "Sahibkarlara verilən lisenziyalar indi hansı formada təqdim olunur?",
+    "options": [
+      "1 illik",
+      "Müddətsiz",
+      "3 illik",
+      "5 illik"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "272.",
+    "question": "2017-ci ildə pambıqçılığın inkişafına dair dövlət proqramı hansı məqsədlə hazırlanmışdı?",
+    "options": [
+      "Vergiləri azaltmaq",
+      "Əhalinin məşğulluğunu artırmaq",
+      "Gömrük sistemini dəyişmək",
+      "Neft ixracını artırmaq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "273.",
+    "question": "“Azərbaycan Respublikasında ____ və icazələr haqqında” Qanun 2016-cı ildə qəbul edilmişdir.",
+    "options": [
+      "Lisenziyalar",
+      "Vergilər",
+      "İnvestisiyalar",
+      "Sahibkarlıq fəaliyyəti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "274.",
+    "question": "“ASAN Viza” sistemi hansı məqsədlə yaradılmışdır?",
+    "options": [
+      "Turistlər üçün viza prosesini sadələşdirmək",
+      "Bank əməliyyatlarını sürətləndirmək",
+      "Gömrük rüsumlarını azaltmaq",
+      "Yerli istehsalı artırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "275.",
+    "question": "“Azərbaycan Respublikasının Kiçik və Orta Biznesin İnkişafı Agentliyi” nə vaxt yaradılmışdır?",
+    "options": [
+      "2015",
+      "2013",
+      "2017",
+      "2019"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "276.",
+    "question": "“Tik-idarə et-təhvil ver” modeli nəyi nəzərdə tutur?",
+    "options": [
+      "Dövlət müəssisələrinin özəlləşdirilməsini",
+      "Sığorta sisteminin dəyişdirilməsini",
+      "İnvestisiya layihələrinin xüsusi maliyyələşmə əsasında həyata keçirilməsini",
+      "Enerji sektorunun tənzimlənməsini"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "277.",
+    "question": "“Kredit büroları haqqında” Qanun hansı məqsədlə qəbul olunmuşdur?",
+    "options": [
+      "Dövlət borcunu artırmaq",
+      "Valyuta məzənnəsini sabit saxlamaq",
+      "Maliyyə xidmətlərinə çıxışı yaxşılaşdırmaq",
+      "Xarici ticarəti tənzimləmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "278.",
+    "question": "2017-ci ildə yaradılan “Azərbaycan İpoteka və Kredit Zəmanət Fondu”nun əsas funksiyası nədir?",
+    "options": [
+      "Dövlət müəssisələrini maliyyələşdirmək",
+      "Vergiləri toplamaq",
+      "Sahibkarlara kreditlərə təminat vermək",
+      "Bank nəzarətini həyata keçirmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "279.",
+    "question": "“ABAD” layihəsi ilk dəfə Azərbaycanın ___, ___ və ___ rayonlarında yaradılmışdır.",
+    "options": [
+      "Masallı, Balakən, Quba",
+      "Lənkəran, Şəki, Gəncə",
+      "Naxçıvan, Mingəçevir, Qazax",
+      "Şamaxı, Zaqatala, Goranboy"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "280.",
+    "question": "Aşağıdakı qurumları yaradıldığı illərlə uyğunlaşdırın: Qida Təhlükəsizliyi Agentliyi",
+    "options": [
+      "2016 – 2015 – 2018",
+      "2017 – 2017 – 2018",
+      "2018 – 2016 – 2017",
+      "2017 – 2017 – 2017"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "281.",
+    "question": "Azərbaycanın xarici iqtisadi əlaqələri müstəqillikdən sonra hansı ildən formalaşmağa başlamışdır?",
+    "options": [
+      "1990",
+      "1991",
+      "1993",
+      "1992"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "282.",
+    "question": "Sovet dövründə Azərbaycanın xarici iqtisadi əlaqələri kim tərəfindən idarə olunurdu?",
+    "options": [
+      "Yerli icra hakimiyyəti tərəfindən",
+      "Özəl şirkətlər tərəfindən",
+      "Beynəlxalq təşkilatlar tərəfindən",
+      "Mərkəzi hakimiyyət tərəfindən"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "283.",
+    "question": "Müstəqillikdən əvvəl Azərbaycanın əsas ixrac məhsulları nələr idi?",
+    "options": [
+      "Xam neft, pambıq, yun",
+      "Taxıl və ət",
+      "Qida məhsulları",
+      "Qızıl və almaz"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "284.",
+    "question": "1995-ci ildə Azərbaycanda xarici iqtisadi əlaqələrin liberallaşdırılması hansı əsasda aparılmışdır?",
+    "options": [
+      "Dövlət inhisarı əsasında",
+      "Bazar prinsipləri əsasında",
+      "Siyasi qərarlarla",
+      "Mərkəzi planlaşdırma ilə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "285.",
+    "question": "2005-ci ildə Azərbaycan neçə ölkə ilə iqtisadi münasibətlər qurmuşdu?",
+    "options": [
+      "90",
+      "130-dan çox",
+      "70",
+      "50"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "286.",
+    "question": "Xarici iqtisadi əlaqələr nəyi ifadə edir?",
+    "options": [
+      "Dövlətin daxili bazar siyasətini",
+      "Milli iqtisadi subyektlərin xarici ölkələrlə qarşılıqlı əlaqələrini",
+      "Yerli istehsalın tənzimlənməsini",
+      "Maliyyə büdcəsinin bölünməsini"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "287.",
+    "question": "Tədiyə balansı nəyi əks etdirir?",
+    "options": [
+      "Ölkənin xarici iqtisadi əməliyyatlarını",
+      "Dövlət büdcəsini",
+      "Əmək haqqı fondunu",
+      "Ərzaq istehsalını"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "288.",
+    "question": "İxracın iqtisadiyyatda rolunu göstərən göstərici necə adlanır?",
+    "options": [
+      "İxrac kvotası",
+      "İdxal kvotası",
+      "Rentabellik əmsalı",
+      "Kapital dövriyyəsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "289.",
+    "question": "1999-cu ildən sonra Azərbaycanın xarici ticarət balansında hansı dəyişiklik müşahidə olunmuşdu?",
+    "options": [
+      "Ticarət kəsiri artmışdı",
+      "Balans sabit qalmışdı",
+      "Müsbət saldo yaranmışdı",
+      "İxrac dayanmışdı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "290.",
+    "question": "1997-ci ildən sonra Azərbaycan iqtisadiyyatında hansı proses baş vermişdi?",
+    "options": [
+      "Dərin böhran",
+      "İnflyasiyanın artması",
+      "Dirçəliş və sabitləşmə",
+      "İdxalın dayanması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "291.",
+    "question": "Azərbaycanın əsas idxal tərəfdaşları sırasında ilk yeri hansı ölkə tuturdu?",
+    "options": [
+      "Türkiyə",
+      "Almaniya",
+      "İran",
+      "Rusiya"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "292.",
+    "question": "1995-2005-ci illərdə xidmət balansında _____ ixracı üstələmişdi.",
+    "options": [
+      "İxrac",
+      "Dövlət gəlirləri",
+      "Valyuta ehtiyatı",
+      "İdxal"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "293.",
+    "question": "1994-2005-ci illərdə Azərbaycana qoyulan xarici investisiyaların əsas hissəsi hansı sahəyə yönəlmişdi?",
+    "options": [
+      "Turizm",
+      "Kənd təsərrüfatı",
+      "İT sektoru",
+      "Neft sənayesi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "294.",
+    "question": "Xarici investisiyaların 84,2%-i hansı formada olmuşdu?",
+    "options": [
+      "Birbaşa investisiyalar",
+      "Maliyyə kreditləri",
+      "Portfel investisiyaları",
+      "Dövlət investisiyaları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "295.",
+    "question": "1996-cı ildə imzalanmış “Tərəfdaşlıq və Əməkdaşlıq Sazişi” (TƏS) Azərbaycanla hansı təşkilat arasında bağlanmışdır?",
+    "options": [
+      "Avropa İttifaqı",
+      "BMT",
+      "İƏT",
+      "GUAM"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "296.",
+    "question": "Azərbaycanın Avropa İttifaqının “Yeni Qonşuluq Siyasəti”nə qoşulması nə vaxt baş vermişdir?",
+    "options": [
+      "2002-ci il",
+      "2004-cü il",
+      "1999-cu il",
+      "2006-cı il"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "297.",
+    "question": "Xarici iqtisadi əlaqələrdə Azərbaycanın tranzit potensialının gücləndirilməsi hansı amil ilə birbaşa əlaqədardır?",
+    "options": [
+      "Xarici ticarət əməliyyatlarının qonşu ölkələrlə məhdudlaşdırılması",
+      "Beynəlxalq nəqliyyat dəhlizlərinin səmərəli fəaliyyətinin təmin olunması",
+      "Daxili istehsalın azaldılması və idxalın artırılması",
+      "Gömrük tariflərinin kəskin şəkildə yüksəldilməsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "298.",
+    "question": "Azərbaycan Respublikası beynəlxalq təşkilatlardan ən sıx əlaqəni ______ və ______ ilə qurmuşdur.",
+    "options": [
+      "BMT və UNESCO",
+      "BVF və Dünya Bankı",
+      "NATO və Avropa Şurası",
+      "İƏT və GUAM"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "299.",
+    "question": "Aşağıdakı təşkilatları Azərbaycanın üzvlüyü ilə uyğunlaşdırın: İƏT, QDİƏT, GUAM",
+    "options": [
+      "Təhsil sahəsində qurumlar",
+      "Siyasi partiyalar",
+      "Ekoloji təşkilatlar",
+      "Regional iqtisadi əməkdaşlıq təşkilatları"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "300.",
+    "question": "Xarici iqtisadi əlaqələrin inkişafında Ümumdünya Ticarət Təşkilatına (ÜTT) üzvlüyün Azərbaycanın iqtisadiyyatı üçün əsas üstünlüyü nədən ibarətdir?",
+    "options": [
+      "Xarici ticarət əməliyyatlarının məhdudlaşdırılması",
+      "Dövlətin idxal rüsumlarını artırmaq imkanı",
+      "Yerli bazarda rəqabətin azaldılması",
+      "Qlobal ticarət bazarlarına çıxışın genişlənməsi və ixracın rəqabət qabiliyyətinin yüksəlməsi"
+    ],
+    "answer": "D"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+// Start quiz
+showQuestion();
+</script>
+<script>
+nextBtn.onclick = async function() {
+    originalNextHandler();
+};
+</script>
+</body>
+</html>
