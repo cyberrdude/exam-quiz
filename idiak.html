@@ -1,0 +1,3339 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azərbaycan Tarixi Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+    {
+    "number": "1.",
+    "question": "How many children in total does Sue Povery have",
+    "options": [
+      "Thirteen",
+      "Nine",
+      "Ten",
+      "Fifteen"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "2.",
+    "question": "Sue Povery and her family live in Swindon which is\nsituated in the........",
+    "options": [
+      "North",
+      "West",
+      "East",
+      "South"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "3.",
+    "question": "What does Sue's husband usually do immediately after\nbreakfast?",
+    "options": [
+      "He goes shopping with the\nchildren",
+      "He helps Sue with the\nwashing",
+      "He prepares lunch for the\nfamily",
+      "He goes to work"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "4.",
+    "question": "How often does Sue do the washing during the day?",
+    "options": [
+      "Five times",
+      "Three times",
+      "Six times",
+      "Eight times"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "5.",
+    "question": "After lunch,Sue spends about three hours.",
+    "options": [
+      "Preparing lunch",
+      "Going shopping",
+      "Cooking breakfast",
+      "Ironing clothes"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "6.",
+    "question": "The passage states that the average British family has.......",
+    "options": [
+      "2,5 children",
+      "1,8 children",
+      "2,0 children",
+      "1,5 children"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "7.",
+    "question": "She ......... breakfast for fifteen people every day.",
+    "options": [
+      "Make",
+      "Makes",
+      "Made",
+      "Making"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "8.",
+    "question": "Su e....... a minibus because she has many children.",
+    "options": [
+      "Need",
+      "Needs",
+      "Is need",
+      "Needed"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "9.",
+    "question": "At what time does Sue usually get up, according to the\npassage?",
+    "options": [
+      "At half past six in the evening",
+      "At six o'clock in the\nmorning",
+      "At five o'clock in the\nmorning",
+      "At seven o'clock in the\nmorning"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "10.",
+    "question": "Fi nd correct answer My father___ coffee, he prefers tea",
+    "options": [
+      "Don’t like",
+      "Doesn’t like",
+      "Didn’t like",
+      "Isn’t liking"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "11.",
+    "question": "Fi nd the correct answer What time ___ the lesson start?",
+    "options": [
+      "Does",
+      "Is",
+      "Did",
+      "Do"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "12.",
+    "question": "Fi nd the correct answer The Sun ___ in the East",
+    "options": [
+      "Rises",
+      "Is rising",
+      "Rise",
+      "Rising"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "13.",
+    "question": "In the evening she........ to the supermarket with two of her\nsons.",
+    "options": [
+      "Goes",
+      "Gone",
+      "Going",
+      "Go"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "14.",
+    "question": "If Sue ........ fewer children, she wouldn't need a minibus.",
+    "options": [
+      "Had",
+      "Having",
+      "Have",
+      "Has"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "Su e said that she.........milk every week",
+    "options": [
+      "Bought",
+      "Buying",
+      "Is buy",
+      "Buys"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "16.",
+    "question": "How much milk does Sue buy on a weekly basis?",
+    "options": [
+      "10 liters",
+      "15 liters",
+      "50 liters",
+      "25 liters"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "17.",
+    "question": "Th irteen of Sue's children live at home, which means.....",
+    "options": [
+      "All fifteen live with her",
+      "Only nine of them go the\nschool",
+      "Two of them live\nelsewhere",
+      "None of them has left home\nyet"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "18.",
+    "question": "The children were tired because they .......to school early.",
+    "options": [
+      "Go",
+      "Goes",
+      "Had gone",
+      "Going"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "19.",
+    "question": "Fi nd the correct answer She___to school every morning",
+    "options": [
+      "Go",
+      "Is going",
+      "Goes",
+      "Went"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "20.",
+    "question": "Find the correct answer They usually ___ breakfast at 8\no’clock",
+    "options": [
+      "Having",
+      "Has",
+      "Have",
+      "Had"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "21.",
+    "question": "....... building is very old. ......... history dates back to the\n11th century.",
+    "options": [
+      "This,His",
+      "This,Its",
+      "These,Its",
+      "That,Its"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "22.",
+    "question": "Which scarf is ....... this one or ....... one?",
+    "options": [
+      "yours,these",
+      "yours,that",
+      "your,that",
+      "our,this"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "23.",
+    "question": "M y brother will go to the USA ......... summer",
+    "options": [
+      "those",
+      "this",
+      "these",
+      "that"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "24.",
+    "question": ".... ........ vegetables are sold only in ………… store.",
+    "options": [
+      "this,these",
+      "these,this",
+      "that,this",
+      "those,these"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "25.",
+    "question": "A place from which to keep watch or view landscape",
+    "options": [
+      "Look after",
+      "Look out",
+      "hang around",
+      "look like"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "26.",
+    "question": "Which verb means to do something for someone?",
+    "options": [
+      "spend",
+      "collect",
+      "wear",
+      "help"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "27.",
+    "question": "Hi Mike Do you want to go to ......... theatre with........?",
+    "options": [
+      "this,they",
+      "these,us",
+      "those,him",
+      "that,me"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "28.",
+    "question": "What happens if students don't have time to wash or eat\nbreakfast?",
+    "options": [
+      "They get extra rest",
+      "They get homework",
+      "The lesson is cancelled",
+      "Teachers hit them with the\nsticks"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "29.",
+    "question": "What do they eat for breakfast?",
+    "options": [
+      "Tea and cake",
+      "Bread milk",
+      "Fruit and eggs",
+      "Rice and soup"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "30.",
+    "question": "What do students learn during the training?",
+    "options": [
+      "Giving grades",
+      "Only running",
+      "Cooking meals",
+      "Jumping high and kicking"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "31.",
+    "question": "Why does David like the afternoon training?",
+    "options": [
+      "Because they train with sticks\nand swords",
+      "Because the food is better",
+      "Because they can sleep",
+      "Because there are no lessons"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "32.",
+    "question": "What time does David get up in the morning?",
+    "options": [
+      "5:00",
+      "6:30",
+      "5:30",
+      "6:00"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "What does David say about danger?",
+    "options": [
+      "No because they don't\nfight,they learn to defend\nthemselves",
+      "Yes,it's very dangerous",
+      "Yes,a little dangerous",
+      "No,but the food is dangerous"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "34.",
+    "question": "What time does training finish in the evening?",
+    "options": [
+      "6:00",
+      "5:00",
+      "6:30",
+      "5:30"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "35.",
+    "question": "What does David want to do when he goes back to\nBritain?",
+    "options": [
+      "Open a school and teach Kung\nFu",
+      "Open a restaurant",
+      "Become a footballer",
+      "Work as a teacher in a school"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "36.",
+    "question": "At what time does training start again after breakfast?",
+    "options": [
+      "6:30",
+      "9:00",
+      "5:30",
+      "6:00"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "37.",
+    "question": "W hen do they have lunch?",
+    "options": [
+      "5:30",
+      "12:30",
+      "1:00",
+      "2:00"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "38.",
+    "question": "Find the correct verb\nTo go for a long walk in the country",
+    "options": [
+      "Run",
+      "Hike",
+      "Sprint",
+      "Stride"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "39.",
+    "question": "Find word from the definition\nA period of relaxing, sleeping or doing nothing",
+    "options": [
+      "Hard",
+      "Rest",
+      "Train",
+      "Fight"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "40.",
+    "question": "Find the correct answer\nA sport that involves physical exercise, such as jumping,\nbalancing, and tumbling, to develop strength and\ncoordination",
+    "options": [
+      "Jogging",
+      "Gymnastics",
+      "Basketball",
+      "Tennis"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "41.",
+    "question": "Find the correct answer\nA sport where two of four players hit a ball over a net\nusing rackets, trying to score points",
+    "options": [
+      "Basketball",
+      "Football",
+      "Tennis",
+      "Baseball"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "42.",
+    "question": "Find the correct answer\nA strategic board game played by two players who move\ndifferent pieces to capture opponent's king",
+    "options": [
+      "Table tennis",
+      "Billiards",
+      "Chess",
+      "Computer games"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "43.",
+    "question": "Fi nd the correct answer\nA sport played between two teams who try to score goals\nby kicking a ball into the other team's net",
+    "options": [
+      "Baseball",
+      "Basketball",
+      "Football",
+      "Hockey"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "44.",
+    "question": "Which is the best definition? \"Jump\"",
+    "options": [
+      "To relax after hard work",
+      "To quietly sit and think",
+      "To suddenly propel\nyourself upward or forward\ninto the air",
+      "To slowly cross a road"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "45.",
+    "question": "Which is the best definition? \"Hard\"",
+    "options": [
+      "Easy and quick to do",
+      "Not soft touch",
+      "Needing a lot of\neffort;physically or\nmentally demanding",
+      "Pleasant and comfortable"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "46.",
+    "question": "Find the correct verb\nTo move or something with great speed, often too fast",
+    "options": [
+      "Stride",
+      "Sprint",
+      "March",
+      "Rush"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "47.",
+    "question": "Find the correct verb\nTo run a short distance very fast",
+    "options": [
+      "Rush",
+      "Hike",
+      "Jog",
+      "Sprint"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "48.",
+    "question": "Which is the best definition? \"Break\"",
+    "options": [
+      "A chance to buy something",
+      "A serious accident",
+      "To continue without\nstopping",
+      "A brief interruption in work\nor routine for rest"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "49.",
+    "question": "Which is the best definition? \"Train\"",
+    "options": [
+      "To watch something\nrepeatedly",
+      "To travel by railway",
+      "To collect something\nrepeatedly",
+      "To teach or practise regularly\nto improve skills or strength"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "50.",
+    "question": "Which is the best definition? \"Dangerous\"",
+    "options": [
+      "Full of fun",
+      "Free from risk",
+      "Always under control",
+      "Involving the possibility of\nharm or injury"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "51.",
+    "question": "Which is the best definition? \"Kick\"",
+    "options": [
+      "To throw with the hand",
+      "To strike with the foot",
+      "To push with the shoulder",
+      "To bend your knees"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "52.",
+    "question": "Which is the best definition? \"Routine\"",
+    "options": [
+      "A sudden, unexpected even",
+      "A regular pattern of action\nor activities",
+      "A large celebration",
+      "Allan for emergency"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "53.",
+    "question": "Find the correct answer She ___goes to the gym, maybe\nonce a month",
+    "options": [
+      "Always",
+      "Rarely",
+      "Usually",
+      "Often"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "54.",
+    "question": "Find the correct answer. I __ drink coffee in the morning.\nIt is part of my routine",
+    "options": [
+      "Never",
+      "Always",
+      "Sometimes",
+      "Seldom"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "55.",
+    "question": "Find the correct answer They are late for class because\nthey__ wake up early",
+    "options": [
+      "Usually",
+      "Never",
+      "Often",
+      "Always"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "56.",
+    "question": "Find the correct answer My parents ___ go out at night;\nthey prefer to stay home",
+    "options": [
+      "Seldom",
+      "Often",
+      "Always",
+      "Usually"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "57.",
+    "question": "Find the correct answer He’s very punctual; he___ arrives\nlate",
+    "options": [
+      "Never",
+      "Often",
+      "Sometimes",
+      "Usually"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "58.",
+    "question": "Find the correct answer They ___ play football after\nschool, but not every day",
+    "options": [
+      "Sometimes",
+      "Always",
+      "Never",
+      "Usually"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "59.",
+    "question": "Find the correct answer My brother___ forgets his\nhomework; he’s very responsible",
+    "options": [
+      "Never",
+      "Always",
+      "Seldom",
+      "Hardly ever"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "60.",
+    "question": "Find the correct answer We ___ eat out because it’s\nexpensive",
+    "options": [
+      "Rarely",
+      "Often",
+      "Usually",
+      "Always"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "61.",
+    "question": "Choose the correct prepositions.\nKate is waiting ... you ... the museum.",
+    "options": [
+      "for, into",
+      "for, at",
+      "at, in",
+      "to, in"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "62.",
+    "question": "Choose the correct prepositions.\nWe are planning to leave ... Baku ... Sunday night.",
+    "options": [
+      "for, on",
+      "for, at",
+      "-, at",
+      "-, in"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "63.",
+    "question": "Choose the correct prepositions.\nThe innumerable stars ... the sky are too far ... us.",
+    "options": [
+      "on, for",
+      "in, from",
+      "in, -",
+      "at, from"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "64.",
+    "question": "Find the correct answer: Do you ___ watch TV after\ndinner?",
+    "options": [
+      "Never",
+      "Ever",
+      "Rarely",
+      "Once a day"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "65.",
+    "question": "Find the correct answer We ___ visit our grandparents on\nweekends.Because we are usually busy",
+    "options": [
+      "Never",
+      "Always",
+      "Sometimes",
+      "Rarely"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "66.",
+    "question": "What is the main reason why some children in Australia\nattend the School of the air?",
+    "options": [
+      "They want to learn more\nforeign languages",
+      "Their families live far from\nregular school",
+      "They prefer online\neducation instead of\nclassrooms",
+      "Their parents are teaching at\nthe school of air"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "67.",
+    "question": "According to the text,how do students communicate with\ntheir teachers about lessons?",
+    "options": [
+      "By sending handwritten letters\nonly",
+      "By radio or the internet\nonce a week",
+      "By phone calls during the\nweekend",
+      "By meeting in the School\nbuilding daily"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "68.",
+    "question": "Which statement is true about the teaching materials at the\nschool of the air?",
+    "options": [
+      "They are delivered exclusively\nby email",
+      "Teachers prepare and send\nlessons by post or email",
+      "Students collect them from\nthe nearest library",
+      "Students buy their own\nbooks from local shops"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "69.",
+    "question": "Why is the annual sports Carnival important for the\nstudents?",
+    "options": [
+      "It is the only time they take\nacademic exam",
+      "It gives them a chance to\nmeet and do activities\ntogether",
+      "It is where they collect their\ncertificates",
+      "It replaces regular physical\neducation lessons"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "70.",
+    "question": "I _ _ speak English very well",
+    "options": [
+      "Was",
+      "Can",
+      "Am",
+      "Will"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "71.",
+    "question": "She ___ drive a car. She ‘s only 14",
+    "options": [
+      "Can’t",
+      "Can",
+      "Does",
+      "Don’t"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "72.",
+    "question": "we ___ swim in the lake. It’s too cold",
+    "options": [
+      "Can’t",
+      "Can",
+      "Are",
+      "Will"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "73.",
+    "question": "M y brother ___ play the guitar",
+    "options": [
+      "Can",
+      "Was",
+      "Is",
+      "Has"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "74.",
+    "question": "What does the student quoted in the text imply about their\nexperience at the school of Air?",
+    "options": [
+      "They are not lonely because of\nfrequent communication",
+      "They feel completely\nisolated and unhappy",
+      "They miss traditional\nclassroom and friends",
+      "They think the Sports\nCarnival is unnecessary"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "75.",
+    "question": "__ you help me , please?",
+    "options": [
+      "Can",
+      "Are",
+      "Do",
+      "Have"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "76.",
+    "question": "Bi rds ___ fly",
+    "options": [
+      "Are",
+      "Can’t",
+      "Can",
+      "Must"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "77.",
+    "question": "I _ _ find my keys. They are lost",
+    "options": [
+      "Can",
+      "Am",
+      "Can’t",
+      "Will don’t"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "78.",
+    "question": "She___ cook very well",
+    "options": [
+      "Is",
+      "Can’t",
+      "Can",
+      "Has"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "79.",
+    "question": "He ___ come to the party; he’s ill",
+    "options": [
+      "Will",
+      "Can",
+      "Can’t",
+      "May"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "80.",
+    "question": "we___ play football after school if it doesn’t rain",
+    "options": [
+      "Must",
+      "Can’t",
+      "Can",
+      "Are"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "81.",
+    "question": "Choose the correct prepositions.\nI often visited ... my uncle when I was ... holiday...\nLondon.",
+    "options": [
+      "to, on, in",
+      "-, on, in",
+      "-, on, at",
+      "at, for, to"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "82.",
+    "question": "Choose the correct prepositions.\nWhat time do you usually get... home ... the evening?",
+    "options": [
+      "to, in",
+      "-, in",
+      "-, at",
+      "at, in"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "83.",
+    "question": "Choose the correct prepositions.\nwe visited ... our grandparents ... Sunday evening... last\nweek.",
+    "options": [
+      "to, on, -",
+      "-, on, -",
+      "to, in, -",
+      "-, at, -"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "84.",
+    "question": "Choose the correct prepositions.\nDo you have to take an exam ... French... next week?",
+    "options": [
+      "at, in",
+      "in, -",
+      "on, in",
+      "in, on"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "85.",
+    "question": "What is Meg Burton’s job?",
+    "options": [
+      "She’s a music producer",
+      "She’s a travel agent",
+      "She’s a wedding\nphotographer",
+      "She ‘s a party planner"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "86.",
+    "question": "W here do some people want to get married?",
+    "options": [
+      "In a cinema",
+      "On a beach in Spain",
+      "In a restaurant",
+      "In a Scottish castle"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "87.",
+    "question": "What is Meg doing at the moment?",
+    "options": [
+      "She is planning a fashion show",
+      "She is organizing a\nwedding in Scotland",
+      "She is planning a concert in\nLondon",
+      "She is organizing a party on\na Caribbean island"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "88.",
+    "question": "How does Meg feel about her job?",
+    "options": [
+      "She thinks it’s too easy",
+      "She doesn’t like it because\nit’s boring",
+      "She wants to change her\njob soon",
+      "She likes it even though it’s\nhard work"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "89.",
+    "question": "Why do people ask Meg to organize parties ?",
+    "options": [
+      "Because they want to surprise\nMeg",
+      "Because they don’t like\nparties",
+      "Because parties are cheap",
+      "Because they don’t have\nmuch time"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "90.",
+    "question": "What kinds of parties does Meg organize?",
+    "options": [
+      "Only weddings",
+      "Only birthday parties",
+      "All sorts of parties",
+      "Only family dinners"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "91.",
+    "question": "What do some people who love nature prefer?",
+    "options": [
+      "To stay at home",
+      "To go to the cinema",
+      "To celebrate outdoors",
+      "To travel abroad"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "92.",
+    "question": "What unusual places does Meg mention ?",
+    "options": [
+      "Hotels and cinemas",
+      "Shops and cafes",
+      "Forests and mountains",
+      "Streets and markets"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "93.",
+    "question": "What kind of unusual places does Meg sometimes\norganize parties in?",
+    "options": [
+      "On a train",
+      "In a shopping mall",
+      "On a mountain or in a\nforest",
+      "In a museum"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "94.",
+    "question": "What does Meg organize for the guests ?",
+    "options": [
+      "Just the music",
+      "Only the decorations",
+      "Invitations, food and music",
+      "Only transportation"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "95.",
+    "question": "What is Meg planning at the moment?",
+    "options": [
+      "A business dinner",
+      "A school event",
+      "A small family meeting",
+      "A party for a famous person"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "96.",
+    "question": "What does Meg say about her job?",
+    "options": [
+      "It’s stressful and she wants to\nquit",
+      "It’s easy and boring",
+      "It’s very difficult and she\nhates it",
+      "It’s hard work but never\nboring"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "97.",
+    "question": "Find the correct answer A place containing organized\nco llections of books and resources available for study or\nborrowing",
+    "options": [
+      "Studyroom",
+      "Archive",
+      "Bookshop",
+      "Library"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "98.",
+    "question": "Find the correct answer Describing an event that occurs\nevery twelve months",
+    "options": [
+      "Seasonal",
+      "Repeated daily",
+      "Daily",
+      "Annual"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "99.",
+    "question": "Find the correct answer Located a considerable distance\nfrom towns, facilities, or people",
+    "options": [
+      "Lonely",
+      "Deserted",
+      "Distant",
+      "Isolated"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "100.",
+    "question": "Find the correct answer To use something temporarily\nwith the intention of returning it later",
+    "options": [
+      "Take",
+      "Lend",
+      "Donate",
+      "Borrow"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "101.",
+    "question": "Find the correct answer The main areas of study that form\npart of a school curriculum",
+    "options": [
+      "Topics",
+      "Departments",
+      "Subjects",
+      "Classes"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "102.",
+    "question": "Find the correct answer To take place or occur, often\nreferring event or situation",
+    "options": [
+      "Take part",
+      "Project",
+      "Take place",
+      "Begin"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "103.",
+    "question": "To make the necessary arrangements or mental readiness\nfor something",
+    "options": [
+      "Adjust",
+      "Decide",
+      "Prepare",
+      "Get used"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "104.",
+    "question": "Find the correct answer The total count of inhabitants\nwithin a particular region or country",
+    "options": [
+      "Community",
+      "Society",
+      "Population",
+      "Nation"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "105.",
+    "question": "Find the correct answer Children in England start\nsecondary school at the age of…",
+    "options": [
+      "12",
+      "10",
+      "11",
+      "13"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "106.",
+    "question": "What percentage of students go to state secondary school?",
+    "options": [
+      "90%",
+      "10%",
+      "25%",
+      "50%"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "107.",
+    "question": "Which of the following subjects is not mentioned in the\ntext Secondary education in England?",
+    "options": [
+      "Biology",
+      "Geography",
+      "History",
+      "Art and design"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "108.",
+    "question": "St ate schools in England are...",
+    "options": [
+      "Free",
+      "Very expensive",
+      "Only for boys",
+      "Private"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "109.",
+    "question": "Which word means in a different country , not in your own\ncountry?",
+    "options": [
+      "Abroad",
+      "Local",
+      "Native",
+      "Outside"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "110.",
+    "question": "What do we call the people invited to a party or\ncelebration?",
+    "options": [
+      "Guests",
+      "Visitors",
+      "Neighbours",
+      "Fans"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "111.",
+    "question": "Find the correct answer To converse informally and\ncasually with another person",
+    "options": [
+      "Gossip",
+      "Communicate",
+      "Chat",
+      "Argue"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "112.",
+    "question": "Find the correct answer: How many subjects do students\nstudy in the first two years of secondary school?",
+    "options": [
+      "10",
+      "8",
+      "12",
+      "14"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "113.",
+    "question": "To plan or arrange an event means to...",
+    "options": [
+      "Prepare",
+      "Decide",
+      "Organise",
+      "Invite"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "114.",
+    "question": "A very tall natural elevation of the earth’s surface with a\ncold summit refers to…",
+    "options": [
+      "Peak",
+      "Hill",
+      "Mountain",
+      "Volcano"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "115.",
+    "question": "Something to special that it remains in your memory for a\nlong time is",
+    "options": [
+      "Remarkable",
+      "Unforgettable",
+      "Memorable",
+      "Impressive"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "116.",
+    "question": "To retain knowledge or an experience mentally means to\n…",
+    "options": [
+      "Recollect",
+      "Remind",
+      "Recall",
+      "Remember"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "117.",
+    "question": "A place completely surrounded by water is known as an",
+    "options": [
+      "Reef",
+      "Coast",
+      "Peninsula",
+      "Island"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "118.",
+    "question": "To make detailed preparations for an event or activity\nmeans to …",
+    "options": [
+      "Plan",
+      "Agree",
+      "Coordinate",
+      "Organize"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "119.",
+    "question": "Something lavishly expensive or more elaborate than\nnecessary can be described as…",
+    "options": [
+      "Valuable",
+      "Elegant",
+      "Costly",
+      "Extravagant"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "120.",
+    "question": "The term meaning to arrange in advance to secure a\nservice or seat is",
+    "options": [
+      "Call",
+      "Register",
+      "Hire",
+      "Book"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "121.",
+    "question": "To observe a joyful event or express happiness publicly is\nto …",
+    "options": [
+      "Honour",
+      "Celebrate",
+      "Congratulate",
+      "Commemorate"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "122.",
+    "question": "A temporary shelter made of cloth used while camping is\ncalled a …",
+    "options": [
+      "Hut",
+      "Tent",
+      "Cabin",
+      "Camp"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "123.",
+    "question": "What do hippos usually look like in cartoons ?",
+    "options": [
+      "Scary and dangerous",
+      "Slow, happy and funny",
+      "Fast and strong",
+      "Sad and weak"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "124.",
+    "question": "Why are real hippos dangerous to people ?",
+    "options": [
+      "Because they are hungry",
+      "Because they don’t like\npeople",
+      "Because they are small",
+      "Because they eat meat"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "125.",
+    "question": "How fast can hippos run compared to humans?",
+    "options": [
+      "Slower than humans",
+      "Faster than an Olympic\nsprinter",
+      "As fast as a car",
+      "Only in water"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "126.",
+    "question": "What time do hippos leave the water to eat ?",
+    "options": [
+      "At noon",
+      "At dusk",
+      "At dawn",
+      "At night"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "127.",
+    "question": "What do hippos eat ?",
+    "options": [
+      "Meat",
+      "Fish",
+      "Grass",
+      "Fruits"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "128.",
+    "question": "What sea animal kills more people than sharks?",
+    "options": [
+      "Octopus",
+      "Dolphin",
+      "Box jellyfish",
+      "Whale"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "129.",
+    "question": "W hen do jellyfish swim around Australia?",
+    "options": [
+      "All year round",
+      "From April to October",
+      "From October to April",
+      "Only in winter"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "130.",
+    "question": "What do mosquitoes take from humans ?",
+    "options": [
+      "Water",
+      "Sweat",
+      "Blood",
+      "Air"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "131.",
+    "question": "What can one sting from a box jellyfish do ?",
+    "options": [
+      "Cause fever",
+      "Make you sleepy",
+      "Make you hungry",
+      "Cause pain and kill a person"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "132.",
+    "question": "What is the most dangerous animal on land according to\nthe text?",
+    "options": [
+      "Elephant",
+      "Tiger",
+      "Lion",
+      "Hippo"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "133.",
+    "question": "Ve ry soft and wet earth",
+    "options": [
+      "Sand",
+      "Clay",
+      "Soil",
+      "Mud"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "134.",
+    "question": "A painful swelling on the skin caused by an insect or\nanimal",
+    "options": [
+      "Sting",
+      "Rash",
+      "Cut",
+      "Bite"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "135.",
+    "question": "A sudden sharp pain caused by an insect , plant or animal",
+    "options": [
+      "Cut",
+      "Wound",
+      "Injury",
+      "Sting"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "136.",
+    "question": "How many of these malaria patients die every year?",
+    "options": [
+      "40 percent",
+      "1 million",
+      "3 million",
+      "30 million"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "137.",
+    "question": "How long can mosquitoes fly without stopping?",
+    "options": [
+      "2 hours",
+      "1 hours",
+      "4 hours",
+      "3 hours"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "138.",
+    "question": "What type of animal is a mosquito?",
+    "options": [
+      "Insect",
+      "Bird",
+      "Reptile",
+      "Fish"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "139.",
+    "question": "Which animal is described as both the smallest and the\nstrongest?",
+    "options": [
+      "Mosquito",
+      "Hippo",
+      "Box jellyfish",
+      "Snake"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "140.",
+    "question": "The time of the day when the light begins to fade but it\nisn’t night yet",
+    "options": [
+      "Dusk",
+      "Dawn",
+      "Noon",
+      "Twilight"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "141.",
+    "question": "The red liquid that flows through a person’s body",
+    "options": [
+      "Blood",
+      "Water",
+      "Plasma",
+      "Cell"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "142.",
+    "question": "The end the life of a person or animal",
+    "options": [
+      "Kill",
+      "Harm",
+      "Destroy",
+      "Wound"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "143.",
+    "question": "Af rican elephants are___ than Asian elephants",
+    "options": [
+      "More large",
+      "Large",
+      "The large",
+      "Larger"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "144.",
+    "question": "Af rican elephants have ears___ than Asian elephants",
+    "options": [
+      "More big",
+      "Big",
+      "The biggest",
+      "Bigger"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "145.",
+    "question": "According to the text, Asian elephants are___ and better\nat following instructions",
+    "options": [
+      "Most intelligent",
+      "The most intelligent",
+      "Intelligent",
+      "More intelligent"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "146.",
+    "question": "The word “heavier” in the text refers to ___",
+    "options": [
+      "More clever",
+      "More tall",
+      "Less weight",
+      "More weight"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "147.",
+    "question": "The text says Antarctica has the ___ weather",
+    "options": [
+      "Worst",
+      "Badder",
+      "Baddest",
+      "Worst"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "148.",
+    "question": "An tarctica is both the___ and the___place on Earth",
+    "options": [
+      "Driest /wettest",
+      "Wettest /driest",
+      "Colder /hotter",
+      "Lowest/highest"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "149.",
+    "question": "Why is Antarctica called “the wettest place” in the text?",
+    "options": [
+      "It rains heavily all the time",
+      "It has 70% of the world’s\nfresh water",
+      "It’s close to the equator",
+      "It’s warmer than other\ncontinents"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "150.",
+    "question": "The Dry Valleys are described as ___",
+    "options": [
+      "The wettest area in Antarctica",
+      "The most difficult place for\nplants to live",
+      "A very warm part of the\ncontinent",
+      "A place full of lakes"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "151.",
+    "question": "What inspired Michael Holmes to start skydiving\nfrequently?",
+    "options": [
+      "His father’s hobby",
+      "His love for extreme\nexperiences",
+      "His dream to be a pilot",
+      "His friends’ influence"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "152.",
+    "question": "Which of the following was not part of Holmes’s\nequipment?",
+    "options": [
+      "Goggles",
+      "Oxygen mask",
+      "Helmet",
+      "Boots"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "153.",
+    "question": "What did Holmes check right before jumping?",
+    "options": [
+      "The weather forecast",
+      "The fuel level of the plane",
+      "The camera battery",
+      "His altimeter"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "154.",
+    "question": "Why did Holmes have two parachutes?",
+    "options": [
+      "To reduce air resistance",
+      "One for filming, one for\njumping",
+      "One for himself and one for\nhis partner",
+      "One main and one safety"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "155.",
+    "question": "What altitude did the plane reach before the jump?",
+    "options": [
+      "5000",
+      "1000 feet",
+      "4,000",
+      "4500 feet"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "156.",
+    "question": "Why did Holmes have a small camera on his helmet?",
+    "options": [
+      "To record the altitude",
+      "To communicate with the\ninstructor",
+      "To check the parachute\ncards",
+      "To film the jump"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "157.",
+    "question": "What problem occurred with Holmes’s main parachute?",
+    "options": [
+      "It opened too early",
+      "It tore apart in the air",
+      "The parachute was missing",
+      "The cords were stuck\ntogether"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "158.",
+    "question": "Why couldn’t Holmes open his safety parachute?",
+    "options": [
+      "The release handle was broken",
+      "The cords from the main\nparachute blocked it",
+      "He forgot to attach it",
+      "It had no air pressure"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "159.",
+    "question": "By the time Holmes was 19, how many jumps he\ncompleted?",
+    "options": [
+      "About 100",
+      "1000",
+      "Around 500",
+      "900"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "160.",
+    "question": "When Holmes was only 1000 metres from the ground,\nwhat did he try to do?",
+    "options": [
+      "Call for help",
+      "Use a penknife to cut the\ncords",
+      "Deploy his main parachute\nagain",
+      "Throw away his camera"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "161.",
+    "question": "What happened when Holmes realized he couldn’t open\neither parachute?",
+    "options": [
+      "He fainted in the air",
+      "He talked to the camera and\nsaid goodbye",
+      "He panicked and screamed",
+      "He tried to contact his\ninstructor"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "162.",
+    "question": "W here did Holmes finally land?",
+    "options": [
+      "In some bushes",
+      "On a road",
+      "In a river",
+      "On a rocky hill"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "163.",
+    "question": "How long did Holmes stay in the hospital after the\naccident?",
+    "options": [
+      "Two weeks",
+      "A few days",
+      "One month",
+      "Three weeks"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "164.",
+    "question": "What helped Holmes survive the fall?",
+    "options": [
+      "The bushes cushioned his\nlanding",
+      "His parachute partly\nopened",
+      "The wind slowed him\ndown",
+      "His safety helmet absorbed\nthe shock"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "165.",
+    "question": "I _ _ my homework yesterday",
+    "options": [
+      "Did",
+      "Do",
+      "Done",
+      "Does"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "166.",
+    "question": "we___to the park last weekend",
+    "options": [
+      "Went",
+      "Go",
+      "Goes",
+      "Going"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "167.",
+    "question": "She ___ a new dress for the party yesterday",
+    "options": [
+      "Buying",
+      "Buy",
+      "Bought",
+      "Buys"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "168.",
+    "question": "Which of his body parts were injured during the fall?",
+    "options": [
+      "His right arm and shoulder",
+      "Both legs and his head",
+      "His left ankle and a lung",
+      "His spine and ribs"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "169.",
+    "question": "They ___TV when their friends arrived",
+    "options": [
+      "Watch",
+      "Watched",
+      "Were watching",
+      "Have watched"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "170.",
+    "question": "He ___ his leg while he was playing football",
+    "options": [
+      "Breaking",
+      "Break",
+      "Broke",
+      "Breaks"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "171.",
+    "question": "We ___ dinner at 7 o’clock yesterday",
+    "options": [
+      "Has",
+      "Have",
+      "Had",
+      "Having"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "172.",
+    "question": "I _ _ my phone at home this morning",
+    "options": [
+      "Leaving",
+      "Leave",
+      "Left",
+      "Leaves"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "173.",
+    "question": "She ___ me a beautiful gift for my birthday yesterday",
+    "options": [
+      "Gave",
+      "Gives",
+      "Give",
+      "Giving"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "174.",
+    "question": "We ___ to the cinema, but the film was boring",
+    "options": [
+      "Went",
+      "Go",
+      "Going",
+      "Have gone"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "175.",
+    "question": "The teacher ___ very angry yesterday",
+    "options": [
+      "Was",
+      "Is",
+      "Are",
+      "Were"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "176.",
+    "question": "She ___ her keys and couldn’t open the door",
+    "options": [
+      "Lost",
+      "Lose",
+      "Losing",
+      "Loses"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "177.",
+    "question": "They ___ very tired after the long time",
+    "options": [
+      "Were",
+      "Are",
+      "Is",
+      "Was"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "178.",
+    "question": "W here is the Lake Districts National Park located?",
+    "options": [
+      "In the west of Scotland",
+      "In the south of England",
+      "In the north of England",
+      "In the middle of Wales"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "179.",
+    "question": "How many National Parks are there in Britain?",
+    "options": [
+      "13",
+      "10",
+      "15",
+      "12"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "180.",
+    "question": "How far is the Lake District from east to west?",
+    "options": [
+      "45 kilometres",
+      "35 kilometres",
+      "55 kilometres",
+      "65 kilometres"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "181.",
+    "question": "What natural features can you find in the Lake District?",
+    "options": [
+      "Only lakes",
+      "Mountains, lakes, woods,\nand towns",
+      "Only mountains",
+      "Only towns and villages"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "182.",
+    "question": "Which animal can be seen in the Lake District?",
+    "options": [
+      "Polar bear",
+      "Red squirrel",
+      "Tiger",
+      "Wolf"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "183.",
+    "question": "What activities can visitors do in the Lake District?",
+    "options": [
+      "Only swimming",
+      "Walking, climbing,\nswimming, and sailing",
+      "Only sailing",
+      "Only walking"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "184.",
+    "question": "Which famous English writer is not connected with the\nLake District?",
+    "options": [
+      "William Wordsworth",
+      "Charles Dickens",
+      "Beatrix Potter",
+      "Both A and B"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "185.",
+    "question": "Why is the Lake District popular with visitors?",
+    "options": [
+      "Because it has beaches only",
+      "Because there is something\nfor everyone",
+      "Because it is near London",
+      "Because it is small and quiet"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "186.",
+    "question": "How many large lakes are there in the area?",
+    "options": [
+      "16",
+      "10",
+      "12",
+      "14"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "187.",
+    "question": "About how many people live and work in the Lake\nDistrict?",
+    "options": [
+      "45000",
+      "30000",
+      "35000",
+      "50000"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "188.",
+    "question": "She___ to music right now",
+    "options": [
+      "Is listening",
+      "Listen",
+      "Listens",
+      "Listening"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "189.",
+    "question": "we___ dinner at the moment",
+    "options": [
+      "Are having",
+      "Have",
+      "Had",
+      "Having"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "190.",
+    "question": "They ___ football in the park now",
+    "options": [
+      "Are playing",
+      "Plays",
+      "Played",
+      "Play"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "191.",
+    "question": "I _ _ TV at the moment",
+    "options": [
+      "Watch",
+      "Am watching",
+      "Watched",
+      "Watches"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "192.",
+    "question": "The children ___ their homework right now",
+    "options": [
+      "Do",
+      "Are doing",
+      "Did",
+      "Doing"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "193.",
+    "question": "Look! It ___ outside",
+    "options": [
+      "Rains",
+      "Is raining",
+      "Rain",
+      "Raining"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "194.",
+    "question": "She ___ on the phone at the moment",
+    "options": [
+      "Talk",
+      "Is talking",
+      "Talks",
+      "Talking"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "195.",
+    "question": "we ___ for the bus now",
+    "options": [
+      "Waited",
+      "Wait",
+      "Are waiting",
+      "Waiting"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "196.",
+    "question": "M y father ___ to work today ; it’s Sunday",
+    "options": [
+      "Go",
+      "Goes",
+      "Isn’t going",
+      "Don’t go"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "197.",
+    "question": "A place where scientists do research and experiments is\ncalled a:",
+    "options": [
+      "Classroom",
+      "Library",
+      "Laboratory",
+      "Office"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "198.",
+    "question": "A person who is extremely intelligent or talented is a:",
+    "options": [
+      "Teacher",
+      "Scientist",
+      "Genius",
+      "Inventor"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "199.",
+    "question": "The body of a dead person is called:",
+    "options": [
+      "Ghost",
+      "Monument",
+      "Remains",
+      "Tomb"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "200.",
+    "question": "A person who teaches at a university is called a:",
+    "options": [
+      "Mentor",
+      "Lecturer",
+      "Scientist",
+      "Professor"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "201.",
+    "question": "No t sleeping means being:",
+    "options": [
+      "Conscious",
+      "Tired",
+      "Aware",
+      "Awake"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "202.",
+    "question": "Ha ving a lot of money describes a person who is:",
+    "options": [
+      "Successful",
+      "Greedy",
+      "Powerful",
+      "Wealthy"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "203.",
+    "question": "Pl aces where they put important dead people are called :",
+    "options": [
+      "Monuments",
+      "Graves",
+      "Cemeteries",
+      "Tombs"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "204.",
+    "question": "The group of people who control a country is the:",
+    "options": [
+      "Society",
+      "Parliament",
+      "Population",
+      "Government"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "205.",
+    "question": "To find or learn something new that people didn’t know\nbefore means:",
+    "options": [
+      "Discover",
+      "Explore",
+      "Invent",
+      "Search"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "206.",
+    "question": "Make up a sentence.\n1. there 2. a lot of 3. are 4.large 5. in 6. parks 7.\nLondon",
+    "options": [
+      "1, 3, 2, 4, 6, 5, 7",
+      "2, 4, 6, 1, 3, 5, 7",
+      "1, 2, 4, 6, 3, 5, 7",
+      "5, 1, 2, 3, 7, 6, 4"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "207.",
+    "question": "Choose the variant.\n... River Amazon flows into ... Atlantic Ocean.",
+    "options": [
+      "The, the",
+      "The, -",
+      "The, an",
+      "-, the"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "208.",
+    "question": "Choose the variant.\n... Panama Canal connects ... Caribbean Sea to ... Pacific\nOcean.",
+    "options": [
+      "The, the, the",
+      "The, -, the",
+      "-, the, the",
+      "-, the, -"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "209.",
+    "question": "Choose the variant.\n... River Nile flows from ... Lake Victoria to ...\nMediterranean Sea.",
+    "options": [
+      "The,-, the",
+      "The, -, -",
+      "The,the,-",
+      "-,-,the"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "210.",
+    "question": "Choose the variant.\nSome people think that... Amazon is longer than ... Nile.",
+    "options": [
+      "-, the",
+      "the, -",
+      "-,-",
+      "the, the"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "211.",
+    "question": "Choose the variant.\n... Amazon is ... beautiful river in ... South America.",
+    "options": [
+      "-, the, the",
+      "The, -, -",
+      "The, a, the",
+      "The, a, -"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "212.",
+    "question": "Choose the variant.\n... London stands on ... Bank of... River Thames.",
+    "options": [
+      "-,-,-",
+      "The, the, the",
+      "-, the,-",
+      "-, the, the"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "213.",
+    "question": "Choose the variant.\n... River Nile flows into ... Mediterranean Sea.",
+    "options": [
+      "-,-",
+      "-, the",
+      "The,-",
+      "The, the"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "214.",
+    "question": "Choose the variant.\n... River Thames flows through ... London.",
+    "options": [
+      "-, the",
+      "The, the",
+      "-,-",
+      "The,-"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "215.",
+    "question": "Choose the variant.\nDo you know what connects ... Lake Michigan to ...\nMississippi River?",
+    "options": [
+      "the, -",
+      "-,-",
+      "the,the",
+      "-,the"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "216.",
+    "question": "Choose the variant.\n... Nile is ... longest river in ... world.",
+    "options": [
+      "—, the, the",
+      "The, the, -",
+      "The, the, the",
+      "—, —, —"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "217.",
+    "question": "Choose the variant.\n... Amazon starts in ... Andes Mountains and empties\ninto ... Atlantic Ocean.",
+    "options": [
+      "-, the, the",
+      "The, -, the",
+      "The, the, the",
+      "-,-,the"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "218.",
+    "question": "Choose the variant.\nToday, people easily cross ... Atlantic Ocean by ... plane.",
+    "options": [
+      "-, -",
+      "the, the",
+      "the, -",
+      "-, a"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "219.",
+    "question": "Choose the variant.\nMr. Mason decided to cross ... Atlantic Ocean on ... ship.",
+    "options": [
+      "the, -",
+      "-, the",
+      "the, a",
+      "-, -"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "220.",
+    "question": "Choose the variant.\nwe visited ... deepest lake on the planet, ... Lake Baikal\nin Siberia.",
+    "options": [
+      "-, the",
+      "the, the",
+      "the, -",
+      "the, a"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "221.",
+    "question": "Choose the variant.\n... river, which flows through ... London, is called...\nThames.",
+    "options": [
+      "A, -, -",
+      "-, -, -",
+      "The, -, the",
+      "The, -, -"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "222.",
+    "question": "Choose the variant.\n... Australia is situated between ... Indian Ocean and ...\nPacific Ocean.",
+    "options": [
+      "The, -, -",
+      "-, the, -",
+      "-, the, the",
+      "The, -, the"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "223.",
+    "question": "What is special about Sonya Thomas?",
+    "options": [
+      "She eats healthy food every\nday",
+      "She is a professional cook",
+      "She can eat a huge amount\nof food very fast",
+      "She never eats meat or rise"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "224.",
+    "question": "\\Choose the variant.\nIf you go from ... England to ... America by ... ship, you\nwill sail across ... Atlantic Ocean.",
+    "options": [
+      "the, the, -, -",
+      "-, -, a, the",
+      "-, -, - the",
+      "the, the, -, the"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "225.",
+    "question": "Why is Sonya called “The Balack Widow”?",
+    "options": [
+      "Because she likes black clothes",
+      "Because she eats a lot of\nspiders",
+      "Because she is small but\ndangerous in competitions",
+      "Because she trains with\nblack belts"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "226.",
+    "question": "How does Sonya usually prepare before a competition?",
+    "options": [
+      "she practices with other\ncompetitors",
+      "She eats a lot to train her\nstomach",
+      "She drinks protein shakes",
+      "She fasts to have a good\nappetite"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "227.",
+    "question": "What helps Sonya stay thin even though she eats a lot\nduring competitions?",
+    "options": [
+      "She doesn’t eat for weeks",
+      "She runs every day",
+      "She has a fast metabolism\nonly",
+      "She eats healthy food most\nof the time"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "228.",
+    "question": "What is the reason she eats a very big meal sometimes?",
+    "options": [
+      "To eat everything she likes",
+      "To celebrate her success",
+      "To show off to her friends",
+      "To train her stomach for\ncompetitions"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "229.",
+    "question": "What are eating competitions?",
+    "options": [
+      "Diet programs",
+      "Cooking contests",
+      "Food tasting events",
+      "Sports where people eat\nquickly"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "230.",
+    "question": "What does Sonya usually do the night before a\ncompetition?",
+    "options": [
+      "Goes to the gym",
+      "Eats a lot of food",
+      "Drinks only water",
+      "Fastes to have a good\nappetite"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "231.",
+    "question": "What does Sonya think about eating competitions?",
+    "options": [
+      "They are natural sport that\nneeds a strong body and mind",
+      "They are unhealthy and\nboring",
+      "They are a kind of fun but\nnot a real sport",
+      "They should be banned"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "232.",
+    "question": "Which of the following can we learn about Sonya from\nthe text?",
+    "options": [
+      "She trains her stomach and\nexercises regularly",
+      "She doesn’t care about\nhealth",
+      "She eats fast food every\nday",
+      "She never watches TV"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "233.",
+    "question": "Why does Sonya usually eat healthy food?",
+    "options": [
+      "Because she wants to stay\nstrong for competitions",
+      "Because she doesn’t like\nsweets",
+      "Because she doesn’t enjoy\nmeat",
+      "Because she is allergic to\njunk food"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "234.",
+    "question": "How often does she exercise?",
+    "options": [
+      "Five days a week",
+      "Once a week",
+      "Twice a week",
+      "Every day"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "235.",
+    "question": "Choose the correct variant.\n- W as there ... flour in the sack?\n-No, only... .",
+    "options": [
+      "much, a little",
+      "a lot of, many",
+      "many, a lot",
+      "much, a few"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "236.",
+    "question": "Choose the correct variant.\nTom has already earned ... money to buy a car.",
+    "options": [
+      "many",
+      "few",
+      "enough",
+      "a lot"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "237.",
+    "question": "Choose the correct variant.\nOnly ... basketball matches were held last month.",
+    "options": [
+      "a lot",
+      "few",
+      "a few",
+      "a little"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "238.",
+    "question": "Choose the correct variant.\nWe spent only ... days at the seaside.",
+    "options": [
+      "a lot",
+      "a little",
+      "a few",
+      "few"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "239.",
+    "question": "Choose the correct variant.\n- İ s there any honey in the jar?\n- Yes, there is ...",
+    "options": [
+      "few",
+      "only little",
+      "a little",
+      "a few"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "240.",
+    "question": "Choose the correct variant.\nThere are... interesting things to enjoy.",
+    "options": [
+      "much",
+      "such an",
+      "many",
+      "a little"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "241.",
+    "question": "Choose the correct variant.\nThere was .... time to think about the problem.",
+    "options": [
+      "many",
+      "much",
+      "few",
+      "a few"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "242.",
+    "question": "Choose the correct variant.\nThese houses have... balconies",
+    "options": [
+      "much",
+      "no",
+      "not",
+      "not much"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "243.",
+    "question": "Choose the correct variant.\n- I s there ... juice in the bottle?\n- No, only ... .",
+    "options": [
+      "a lot of, a few",
+      "much, a little",
+      "much, a lot of",
+      "many, little"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "244.",
+    "question": "Choose the correct variant.\nIt`s a secret. Very … people know about it.",
+    "options": [
+      "a little",
+      "few",
+      "a lot of",
+      "much"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "245.",
+    "question": "What made Hilary Lister decide to start sailing?",
+    "options": [
+      "Her doctor addressed her to try\nit",
+      "A friend took her sailing\nfor the first time",
+      "She watched a TV program\nabout sailing",
+      "She read a book about sailing\nadventures"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "246.",
+    "question": "Why couldn’t Hilary move her body?",
+    "options": [
+      "She got sick with an unusual\ndisease",
+      "She had an accident while\nplaying sports",
+      "She was born with a\ngenetic condition",
+      "She became paralyzed after\nan operation"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "247.",
+    "question": "How does Hilary control her boat?",
+    "options": [
+      "By sucking and blowing into\ntubes",
+      "By using her hands",
+      "By giving voice commands",
+      "By using a remote control"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "248.",
+    "question": "What happened when Hilary was 11 years old?",
+    "options": [
+      "Her legs started to hurt",
+      "She stopped going to\nschool",
+      "She started sailing lessons",
+      "Her arms became weak"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "249.",
+    "question": "What was Hilary’s dream?",
+    "options": [
+      "To sail alone across the\nEnglish channel",
+      "To compete in a sailing\nrace",
+      "To become a professional\nsailor",
+      "To teach other disabled\npeople"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "250.",
+    "question": "What did Hilary do after her first sailing experience?",
+    "options": [
+      "She started taking sailing\nlessons",
+      "She decided never to sail\nagain",
+      "She bought a bigger boat",
+      "She joined a sports club"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "251.",
+    "question": "What was the weather like when she crossed the\nchannel?",
+    "options": [
+      "Sunny but quite windy",
+      "Rainy and cold",
+      "Foggy and calm",
+      "Stormy and dangerous"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "252.",
+    "question": "What does Hilary plan to do next?",
+    "options": [
+      "Sail around Britain",
+      "Travel to another country",
+      "Compete in the\nParalympics",
+      "Build a new type of boat"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "253.",
+    "question": "What does the article suggest about Hilary’s character?",
+    "options": [
+      "She is brave and determined",
+      "She gives up easily",
+      "She is shy and quiet",
+      "She prefers to stay at home"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "254.",
+    "question": "The word “exhausted” in the text is closest in meaning\nto:",
+    "options": [
+      "Surprised",
+      "Excited",
+      "Very tired",
+      "Nervous"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "255.",
+    "question": "Choose the correct tense form.\nI went to the police station because somebody ... my\npurse.",
+    "options": [
+      "will steal",
+      "has stolen",
+      "had stolen",
+      "is stealing"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "256.",
+    "question": "Choose the correct tense form.\nThe doctor.... He is waiting for you in the next room.",
+    "options": [
+      "will come",
+      "was coming",
+      "has come",
+      "had come"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "257.",
+    "question": "Choose the correct tense form.\nThey... already... the Empire State Building.",
+    "options": [
+      "will... visit",
+      "are ... visiting",
+      "have... visited",
+      "had... visited"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "258.",
+    "question": "Choose the correct tense form.\nW hen Jill arrived at the airport, she realized that she...\nher wallet at home.",
+    "options": [
+      "will leave",
+      "leaves",
+      "had left",
+      "has left"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "259.",
+    "question": "A chair with big wheels that a person who can’t walk\nuses",
+    "options": [
+      "Wheelchair",
+      "Armchair",
+      "Stroller",
+      "Recliner"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "260.",
+    "question": "Something that you see or experience in your mind while\nsleeping",
+    "options": [
+      "Dream",
+      "Thought",
+      "Vision",
+      "Idea"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "261.",
+    "question": "A condition that makes you ill or unhealthy",
+    "options": [
+      "Accident",
+      "Disease",
+      "Injury",
+      "Pain"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "262.",
+    "question": "Choose the correct tense form.\nW hen we arrived home last night, we discovered that\nsomebody... the window.",
+    "options": [
+      "breaks",
+      "had broken",
+      "has broken",
+      "will break"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "263.",
+    "question": "To push air of your mouth strongly",
+    "options": [
+      "Suck",
+      "Blow",
+      "Shout",
+      "Cough"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "264.",
+    "question": "What is a “gap year”?",
+    "options": [
+      "A time between two holidays",
+      "A break between school\nand university or work",
+      "A year spent working full-\ntime",
+      "Holiday after retirement"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "265.",
+    "question": "What is Jacqui planning to do during her gap year?",
+    "options": [
+      "Travel around Europe with\nfriends",
+      "Work at an animal rescue\ncentre in Thailand",
+      "Study at a university in\nThailand",
+      "Take care of street children"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "266.",
+    "question": "What will Jacqui’s responsibilities include?",
+    "options": [
+      "Feeding birds in the centre",
+      "Cleaning cages only",
+      "Training animals for sport",
+      "Looking after animals and\nshowing visitors’ around"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "267.",
+    "question": "W here is Oliver going to spend his gap year?",
+    "options": [
+      "In France",
+      "In India",
+      "In Thailand",
+      "In Ghana, Africa"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "268.",
+    "question": "What will Oliver’s job be in Ghana?",
+    "options": [
+      "Managing a school",
+      "Working in an office",
+      "Teaching English only",
+      "Coaching sports and helping\nwith lessons"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "269.",
+    "question": "What is Darren going to do before starting his job at the\nbank?",
+    "options": [
+      "Study business in London",
+      "Travel to Thailand to teach\nEnglish",
+      "Work with animals in\nAfrica",
+      "Work outdoors on restoring\nan old castle in France"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "270.",
+    "question": "What kind of organization is Darren going to work with?",
+    "options": [
+      "A construction firm",
+      "A travel company",
+      "A sports academy",
+      "A charity"
+    ],
+    "answer": "D"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+// Start quiz
+showQuestion();
+</script>
+</body>
+</html>
