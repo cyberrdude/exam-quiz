@@ -1,0 +1,3694 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IQT Giris Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+ .back-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+}
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="/exam-quiz" class="back-btn">⟵ Geri Qayıt</a>
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+  {
+    "number": "1.",
+    "question": "İqtisadiyyatın təməl prinsipləri hansılardır?",
+    "options": [
+      "İstehsal, bölgü, mübadilə, istehlak",
+      "istehsal, tələb, təklif, qiymət",
+      "istehlak, dəyər,qiymət, mübadilə",
+      "tələb, təklif, əmək, qiymət"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "2.",
+    "question": "Platon və Aristotelin iqtisadi fikirləri əsasən nəyə yönəlmişdi?",
+    "options": [
+      "Cəmiyyətin sosial strukturunun və ədalətli bölgünün izahına",
+      "Sənaye iqtisadiyyatının inkişafına",
+      "Ticarətin liberallaşdırılmasına",
+      "İqtisadi modellərin riyazi əsaslandırılmasına"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "3.",
+    "question": "Qədim yunan iqtisadi düşüncəsində hansı amil ön planda idi?",
+    "options": [
+      "Ədalət və sosial harmoniya",
+      "Monetar siyasət",
+      "Xarici sərmayə",
+      "Kapital dövriyyəsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "4.",
+    "question": "Belə iqtisadi məktəb yoxdur.",
+    "options": [
+      "Materialistlər",
+      "Merkantalistler",
+      "Marjinalistler",
+      "Keynsçilik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "Fizyokratlar hansı sahəni iqtisadiyyatın əsas mənbəyi hesab edirdilər?",
+    "options": [
+      "Sənaye istehsalı",
+      "Kənd təsərrüfatı",
+      "Ticarət",
+      "Maliyyə bazarları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "Müasir Neoklassik iqtisadiyyat nəyi əsas götürür?",
+    "options": [
+      "Dövlət planlaşdırması",
+      "Rəqabət və rasional seçim",
+      "Sınıf mübarizəsi",
+      "Tarixi materializm"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "7.",
+    "question": "Keynesçilərə görə iqtisadi tənəzzül zamanı nə edilməlidir?",
+    "options": [
+      "Pul təklifi azaldılmalıdır",
+      "Dövlət xərcləri artırılmalıdır",
+      "Vergilər artırılmalıdır",
+      "İxrac məhdudlaşdırılmalıdır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "8.",
+    "question": "David Rikardoya görə dəyər necə müəyyən olunur?",
+    "options": [
+      "Mərkəzi bankın qərarı ilə",
+      "İstehlakçı tələbi ilə",
+      "Əməyin miqdarı ilə",
+      "İxrac imkanları ilə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "9.",
+    "question": "Neoklassik iqtisadiyyat hansı əsas fərziyyəyə əsaslanır?",
+    "options": [
+      "Sərvət bərabər paylanmalıdır",
+      "Dövlət iqtisadiyyatı idarə etməlidir",
+      "İstehlakçılar rasional qərarlar verir",
+      "Kapital gəlirləri vergi ilə tənzimlənməlidir"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "10.",
+    "question": "İqtisadi artımın və dayanıqlılığın təmin edilməsi üç ün müasir iqtisadiyyatda hansı siyasət mühüm sayılır?",
+    "options": [
+      "Texnoliji irəliləyiş",
+      "Ticarət siyasəti",
+      "Təhsil və insan kapitalına investisiyalar",
+      "Maliyyə siyasəti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "Klassik iqtisadi məktəbin banisi hesab olunan alim kimdir?",
+    "options": [
+      "Karl Marks",
+      "Con Meynard Keyns",
+      "A.Smit",
+      "Alfred Marşal"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "12.",
+    "question": "Klassik iqtisadi məktəbə görə, iqtisadi rifahın əsası nədir?",
+    "options": [
+      "Təbii sərvətlərin milliləşdirilməsi",
+      "Dövlətin sosial proqramları",
+      "Xarici ticarətin məhdudlaşdırılması",
+      "Azad rəqabət və sərbəst bazar iqtisadiyyatı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "13.",
+    "question": "Ekonomiksin obyekti nədir?",
+    "options": [
+      "Dövlət büdcəsinin formalaşdırılması",
+      "Maliyyə hesabatlarının hazırlanması",
+      "Bank sektorunun fəaliyyəti",
+      "Məhdud resurslarla ehtiyacların ödənməsi prosesi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "14.",
+    "question": "Aşağıdakılardan hansı ekonomiksin subyekti sayılır?",
+    "options": [
+      "Qiymət",
+      "Məhsul",
+      "Pul",
+      "İstehlakçı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "“İstehlakçı”, “istehsalçı” və “dövlət” anlayışları ekonomiksdə nə rol oynayır?",
+    "options": [
+      "Subyekt rolunda çıxış edirlər",
+      "Qiymətləri müəyyən edirlər",
+      "Resursların təbii növləridir",
+      "İqtisadi obyektlərdir"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "16.",
+    "question": "Marjinalistlərə görə istehlakçı qərarlarını hansı amil müəyyən edir?",
+    "options": [
+      "Son hədd faydalılığı",
+      "İstehsalın ümumi həcmi",
+      "Dövlət müdaxiləsi",
+      "Pul təklifi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "17.",
+    "question": "Merkantilist məktəbin əsas məqsədi nə idi?",
+    "options": [
+      "Qızıl və gümüş ehtiyatlarını artırmaq",
+      "Əmək məhsuldarlığını yüksəltmək",
+      "Rəqabətli bazar yaratmaq",
+      "Dövlət borcunu azaltmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "18.",
+    "question": "Merkantilistlərə görə dövlət nə etməlidir?",
+    "options": [
+      "İxracı stimullaşdırmalı, idxalı məhdudlaşdırmalıdır",
+      "Pul təklifini azaltmalıdır",
+      "Rəqabəti ləğv etməlidir",
+      "Sosial proqramlar yaratmalıdır"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "19.",
+    "question": "İqtisadi münasibətlər nədir?",
+    "options": [
+      "insanların bir- biri ilə razılaşması",
+      "Firmalar arasındakı müqavilələr",
+      "insanların şüurlu və məqsədyönlü fəaliyyəti",
+      "iqtisadi hadisələrin baş verməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "Klassik iqtisadi məktəbin əsas ideyası nədir?",
+    "options": [
+      "Planlı iqtisadiyyatın üstünlüyü",
+      "Dövlətin iqtisadiyyata tam müdaxiləsi",
+      "Bazarın öz-özünü tənzimləmə qabiliyyəti",
+      "İstehlakçıların psixoloji davranışları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Merkantilizm hansı dövrdə üstünlük təşkil etmişdir?",
+    "options": [
+      "XX əsrin əvvəllərində",
+      "XIX əsrin sonlarında",
+      "XVI–XVIII əsrlərdə",
+      "Orta əsrlərdən əvvəl"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "22.",
+    "question": "Metodlar haqqında elm necə adlanır?",
+    "options": [
+      "Leksikologiya",
+      "Arxiologiya",
+      "Metodologiya",
+      "Morfologiya"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "23.",
+    "question": "Dialektik metodun mahiyyəti nədir",
+    "options": [
+      "Poeziya analizi",
+      "Elmi abstraksiya",
+      "Rəsm texnikası",
+      "Mədəni irs tədqiqatı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "24.",
+    "question": "İqtisadi kateqoriya nəyi ifadə edir?",
+    "options": [
+      "Təsadüfi hadisələrin qiymətləndirilməsi",
+      "Hadisə və proseslərin qarşılıqlı əlaqədə, dəyişmə və inkişafda öyrənilməsi",
+      "Rəssamlıq nümunələrinin təsviri",
+      "Tək hadisələrin araşdırılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "25.",
+    "question": "Təhlil və sintez metodları hansı məqsədlə istifadə olunur?",
+    "options": [
+      "Dil qaydalarını öyrənmək üçün",
+      "İqtisadi hadisələri öyrənmək və ümumiləşdirmək üçün",
+      "Riyazi düsturları tapmaq üçün",
+      "Təbii fəlakətləri araşdırmaq üçün"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "26.",
+    "question": "Hansı metod hasiletmə mənasını verir?",
+    "options": [
+      "induksiya metodu",
+      "Tarixi məntiqi ardıcıllıq metodu",
+      "Kəmiyyət metodu",
+      "Deduksiya metodu"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "27.",
+    "question": "Elmi abstraksiya “ metodu nədir?",
+    "options": [
+      "Cəmiyyət üzvlərinin mürəkkəb həyat tərzidir",
+      "İqtisadi hadisələrin yekunudur",
+      "Həyat hadisələrinin ümumiləşdirilmiş formasıdır",
+      "Reallıqda olmayanın təfəkkürdə ümumiləşdirilmiş formasıdır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "28.",
+    "question": "Bütün ictimai iqtisadi formasiyalarda fəaliyyət göstərənlər qanunlar necə adlanır?",
+    "options": [
+      "Təbiət qanunları",
+      "Xüsusi iqtisadi qanunlar",
+      "Rasional iqtisadi qanunlar",
+      "Ümumi iqtisadi qanunlar"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "29.",
+    "question": "İqtisad elmi hansı iki hissəyə bölünür?",
+    "options": [
+      "Ədəbiyyat və fəlsəfə",
+      "Hüquq və dövlət",
+      "Təbiət və cəmiyyət",
+      "Mikroiqtisadiyyat və makroiqtisadiyyat"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "30.",
+    "question": "İqtisadi proseslərin öyrənilməsi üçün istifadə edilən əsas üsul hansıdır?",
+    "options": [
+      "Elmi metod",
+      "Təsadüfi təxmin",
+      "Ədəbi təhlil",
+      "Estetik yanaşma"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "31.",
+    "question": "İqtisadi qanunlar hansı xarakterə malikdir?",
+    "options": [
+      "Obyektiv və təkrarlanan",
+      "Subyektiv və dəyişkən",
+      "Emosional və təsadüfi",
+      "Estetik və formal"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "32.",
+    "question": "İqtisadi nəzəriyyənin predmeti nədir?",
+    "options": [
+      "Məhdud resurslarla insanların sonsuz tələbatlarının ödənilməsi zamanı yaranan münasibətlərin öyrənilməsi",
+      "Dövlətin qəbul etdiyi iqtisadi qərarların hüquqi əsaslandırılması",
+      "Texniki avadanlıqların istehsal prosesinə təsiri",
+      "Sosial-iqtisadi proqramların həyata keçirilməsi mexanizmləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "İqtisadi qanun nədir?",
+    "options": [
+      "İqtisadi hadisə və proseslər arasında mövcud olan sabit, təkrarlanan əlaqələrdir",
+      "Dövlət tərəfindən qəbul edilən hüquqi sənəddir",
+      "Mədəniyyətlə bağlı qərarlardır",
+      "Siyasi partiyaların iqtisadi fəaliyyətidir"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "34.",
+    "question": "Klassik iqtisadi məktəbin nümayəndələri (A.Smit, D.Rikardo) iqtisadiyyatın əsas predmetini necə müəyyən edirdilər?",
+    "options": [
+      "Dövlətin bazara müdaxiləsinin gücləndirilməsi",
+      "Cəmiyyətin sərvətinin yaranması, bölüşdürülməsi və artırılması məsələləri",
+      "Pul dövriyyəsinin inflyasiyaya təsiri",
+      "Sosial rifahın dövlət proqramları ilə təmin olunması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "35.",
+    "question": "Mikroiqtisadiyyat nəyi öyrənir?",
+    "options": [
+      "Dövlətin fiskal siyasətini",
+      "İqtisadiyatı müəssisə və firma səviyyəsində öyrənir",
+      "Ümumi istehsal və məşğulluğu",
+      "İnflyasiya və valyuta kurslarını"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "36.",
+    "question": "Mezoiqtisadiyyat nəyi örgənir?",
+    "options": [
+      "Məhsul satışı kompleksidir",
+      "Bir-biri ilə üzvi bağlı sahələrin kompleksidir",
+      "Regionun iqtisadiyyatını öyrəni",
+      "Istehsal və istehlakı əlaqələndirir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "İqtisadi kateqoriyalar hansılardır?",
+    "options": [
+      "Əmək, kapital, torpaq, fizika, biologiya",
+      "Əmək, kapital, torpaq, qiymət, dəyər",
+      "Fizika, kimya, biologiya",
+      "Hüquq, sosiologiya, politologiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "İqtisadi nəzəriyyənin tədqiqat dairəsi nədir?",
+    "options": [
+      "Təsərrüfat fəaliyyıtinin həyata keçirildiyi iqtisadi həyat vı ya mühit",
+      "iqtisadi hadisələr",
+      "Bir qrup insan, dövlət",
+      "Firmalar"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "39.",
+    "question": "Hər bir iqtisadi prosesə xas olan, bir-birini inkar ed ən əksliklərin obyektiv zəruri, dinamik münasibəti necə adlanır?",
+    "options": [
+      "İqtisadi ziddiyyətlər",
+      "İqtisadi maraq",
+      "İqtisadi qanun",
+      "İqtisadi kateqoriya"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "40.",
+    "question": "İqtisadi qanunlar haqqında fikirlərdən biri yanlışdır.",
+    "options": [
+      "İqtisadi qanunlar sistem şəklində fəaliyyət göstərir.",
+      "İnsanın və dövlətin məqsədyönlü fəaliyyəti çəraitində yaranan və reallaşan qanunlardır.",
+      "İqtisadi qanunlar əbədidir",
+      "Tarixi cəhətdən dəyişkən, obyektiv və təkrar olunan iqtisadi əlaqələri əks etdirir"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "41.",
+    "question": "Ekonomiks nəyi öyrədir?",
+    "options": [
+      "Elmin naliyyətlərini",
+      "İnsaların əmin- amanlığının təminatını",
+      "Məhdud resurslardan səmərəli istifadəni",
+      "İnsan amilinin üstünlüyünü"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "Qıtlıq nədir?",
+    "options": [
+      "Quraqlığın olması",
+      "Ərzaq çatışmazlığı",
+      "Cəmiyyətin sahib olduğu nemətlərin məhdudluğu",
+      "Maddi ehtiyac"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "43.",
+    "question": "İnsanlar qərar verərkən nə ilə üzləşirlər?",
+    "options": [
+      "İmtina edirlər",
+      "Güzəştə gedirlər",
+      "Seçimlərlə üzləşirlər",
+      "Prinspial olurlar"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "44.",
+    "question": "Səmərəlilik nədir?",
+    "options": [
+      "Yeni iş yerləri axtarmaq",
+      "İnsanların qərar qəbul etməsi",
+      "Fərqli qabiliyyətə sahib olmaq",
+      "Cəmiyyətin qıt olan qaynaqlarından səməri istifadə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "Alternativ dəyərə nə zaman müraciət olunur?",
+    "options": [
+      "Tələsdikdə",
+      "Çətinliyə düşdükdə",
+      "Güzəştə getdikdə",
+      "Bir şeyi əldə etmək üçün imtina olunanların dəyərini müqayisə etdikdə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "46.",
+    "question": "İqtisadçılara görə marjinal fayda dedikdə",
+    "options": [
+      "Məsrəflərin azaldılması",
+      "Gəliri artırmaq",
+      "Qısa müddətə zənginləşmək",
+      "Mövcud fəaliyyət planında kiçik artımlara səbəb olan əlavələr"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "47.",
+    "question": "Rasional insan kimdir?",
+    "options": [
+      "Daha çox qazananlar",
+      "Aydın təfəkkürlü, nə istədiyini bilən cəmiyyət üzvləri",
+      "Özünü sərbəst aparanlar",
+      "Rahatlıq üçün hər şey edənlər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "48.",
+    "question": "İnsanlar davranışını dəyişərək",
+    "options": [
+      "Yeni iş yerləri açırlar",
+      "Stimullara cavab verirlər",
+      "Dövriyyəyə pul buraxırlar",
+      "Fəaliyyəti dayandırır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "Ölkələr arasındakı ticarət nəyə səbəb olur?",
+    "options": [
+      "Satış bazarını itirir",
+      "Sağlam rəqabətli bazarlardan faydalanmağa",
+      "Alıçı məhdudluğu ilə üzləşir",
+      "Məhsulların saxtalaşması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "50.",
+    "question": "Dövlətlərin sərvətinin mahiyyəti və səbəblərinə baxış əsərinin müəllifi kimdir?",
+    "options": [
+      "A.Smit",
+      "Aristotel",
+      "U.Petti",
+      "K.Marks"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "51.",
+    "question": "Bazarın \"gözəgörünməz əl\" vasitəsi ilə idarə olunması kimin əsərində yer almışdır?",
+    "options": [
+      "A.Smit",
+      "Platon",
+      "D.Rikardo",
+      "S.Simon"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "52.",
+    "question": "Bazarın \"gözəgörünməz əl\"nin yaxşı işləməsi kimin ehtiyacı var?",
+    "options": [
+      "Dövlətin",
+      "Silahlı qüvvələrin",
+      "Bələdiyyələrin",
+      "İnsanların"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "53.",
+    "question": "Ölkələr arasında həyat səviyyəsi niyə fərqlidir?",
+    "options": [
+      "Həmin ölkənin əmtəə və xidmətlər istehsal etmək qabilyyətinə görə",
+      "Hərbi sənayenin inkişafına görə",
+      "Yerləşdiyi coğrafi əraziyə görə",
+      "İş qüvvəsinə görə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "54.",
+    "question": "Əmək məhsuldarlığı nədir?",
+    "options": [
+      "Vaxt vahidi ərzində yaradılan məhsulun dəyəri",
+      "İşçilərin əmək haqqı",
+      "İşçilərin sağlamlığı",
+      "Milli məhsulun həcmi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "55.",
+    "question": "Dövlət həddindən artıq pul çap etdikdə nə baş verir?",
+    "options": [
+      "Qiymətlər tənzimlənir",
+      "Deflyasiya",
+      "İnflyasiya",
+      "Həyat səviyyəsi yüksəlir"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "56.",
+    "question": "İqtisadçılar gözlənilən hadisələri necə dəyərləndirir?",
+    "options": [
+      "Müqayisə etməklə",
+      "Yaşayaraq",
+      "Fərziyyələrin rolu ilə",
+      "Gözləmə mövqeyi tutaraq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "57.",
+    "question": "Dövri axın modeli nədir?",
+    "options": [
+      "Yeni iş yerləri açır",
+      "Kapitalın dövranını tənzimləyir",
+      "Bazar vasitəsi ilə ailələr və müəssisələr pulun hərəkətini tənzimləyir",
+      "Yeni kəşflər etməklə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "58.",
+    "question": "İnflyasiya və işsizlik nəyə səbəb olur?",
+    "options": [
+      "Məhsuldarlığın artmasına",
+      "İstehsalın sürətlənməsinə",
+      "Həyat səviyyəsinin aşağı düşməsinə",
+      "Rəqabətin formalaşmasına"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "59.",
+    "question": "Ticarətin yaranmasının səbəbi",
+    "options": [
+      "Sərhədlərin açılması",
+      "Pulun yaranması",
+      "Ehtiyacın artması",
+      "Əməyin ixtisaslaşması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "60.",
+    "question": "İqtisadiyyat hansı alt sahələrə bölünür",
+    "options": [
+      "Makroiqtisadiyyat, meqoiqtisadiyyat",
+      "Meqoiqtisadiyyat",
+      "Mizoiqtisadiyyat, təsərrüfat",
+      "Makroiqtisaiyyat, mikroiqtisadiyyat"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "61.",
+    "question": "Qarşılıqlı asılılıq nəyi ifadə edir?",
+    "options": [
+      "Bütün ölkələrin eyni məhsulları istehsal etməsi",
+      "Ölkələrin iqtisadi cəhətdən tam müstəqil olması",
+      "Ticarətin yalnız daxili bazarda baş verməsi",
+      "Ölkələrin bir-birinə mal və xidmət baxımından ehtiyac duyması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "62.",
+    "question": "Mübadilə nisbəti nəyi ifadə edir?",
+    "options": [
+      "Məhsulun daxili bazarda qiymətini",
+      "Ticarətdə bir malın digərinə nisbətən dəyişmə dəyərini",
+      "Valyuta məzənnəsini",
+      "Əmək məhsuldarlığını"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "63.",
+    "question": "Ticarətin artması hansı sosial göstəriciyə təsir edir?",
+    "options": [
+      "Əhalinin azalmasına",
+      "Əmək bazarında məşğulluğun artmasına",
+      "Təhsilin zəifləməsinə",
+      "Sağlamlıq xidmətlərinin dayanmasına"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "64.",
+    "question": "Müasir iqtisadiyyatda qarşılıqlı asılılıq hansı səbəblə artır?",
+    "options": [
+      "Milli sərhədlərin bağlanması ilə",
+      "Qloballaşma nəticəsində",
+      "Ticarətin azalması ilə",
+      "Əhalinin azalması ilə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "65.",
+    "question": "Qarşılıqlı asılılıq və ticarət birgə nəyi təşviq edir?",
+    "options": [
+      "Qapalı iqtisadi modelin üstünlüyünü",
+      "Siyasi ayrı-seçkiliyi",
+      "Beynəlxalq əməkdaşlığı",
+      "Təcrid və özünütəcrid siyasətini"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "66.",
+    "question": "Aşağıdakılardan hansı idxal olunan məhsula misaldır?",
+    "options": [
+      "Regional kənd təsərrüfatı məhsulu",
+      "Yerli pambıq",
+      "Xaricdən gətirilən avtomobil",
+      "Daxili istehsal olunmuş çörək"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "67.",
+    "question": "Hansı hallarda ölkə ixracatda üstün mövqe qazana bilər?",
+    "options": [
+      "Məhsulu daha ucuz və keyfiyyətli istehsal etdikdə",
+      "Bütün məhsulları öz daxili bazarında satdıqda",
+      "İdxala tam bağlandıqda",
+      "Ticarət məhdudiyyətləri artırıldıqda"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "68.",
+    "question": "İdxal və ixrac arasında tarazlığın olması nəyi təmin edir?",
+    "options": [
+      "Sabit ticarət balansını",
+      "Xarici borcun artmasını",
+      "Milli valyutanın dəyərdən düşməsini",
+      "Bazarların sayının azalamsını"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "69.",
+    "question": "İdxal mallarının çoxluğu nəyi göstərə bilər?",
+    "options": [
+      "Yerli istehsalın rəqabət gücünün aşağı olduğunu",
+      "Ölkənin iqtisadi müstəqilliyini",
+      "Yerli bazarın bağlandığını",
+      "Milli valyutanın gücləndiyini"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "70.",
+    "question": "Qarşılıqlı asılılıq artdıqca beynəlxalq m ünasibətlərdə hansı vəziyyət daha çox müşahidə olunur?",
+    "options": [
+      "Əməkdaşlıq və qarşılıqlı fayda",
+      "Ticarətin zəifləməsi",
+      "Ticarət müharibələrinin artması",
+      "Müstəqil istehsal modelinə keçid"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "71.",
+    "question": "Bir malı əldə etmək ucun əldən verdiyimiz fayda necə adlanir?",
+    "options": [
+      "Mütləq üstünlük",
+      "Nisbi üstünlük",
+      "Alternativ dəyər",
+      "Nisbi asılılıq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "72.",
+    "question": "Əgər istehsalçı hər hansı malı daha az xərclərlə istehsal edirsə bu nəyi ifadə edir?",
+    "options": [
+      "Alternativ dəyər",
+      "Nisbi asıllıq",
+      "Mütləq üstünlük",
+      "Nisbi üstünlük"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "73.",
+    "question": "Ticarətin faydasinın mənbəyi nədir?",
+    "options": [
+      "Alternativ dəyərin olmamasi",
+      "Mütləq üstünlüyün olması",
+      "Alternativ dəyərin fərqli olması və nisbi üstünlük",
+      "Nisbi asılılığın olması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "74.",
+    "question": "Xaricdə istehsal edilib yerli bazarda satılan mallar necə adlanır?",
+    "options": [
+      "ticarət kəsiri",
+      "İxrac",
+      "Daxili istehsal",
+      "İdxal"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "75.",
+    "question": "Ölkə daxilində istehsal edilib xarici bazarlarda satılan mallar necə adlanır?",
+    "options": [
+      "Bazar tarazlığı",
+      "İdxal",
+      "Ticarət kəsiri",
+      "İxrac"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "76.",
+    "question": "İqtisadiyyatın istehsal edə biləcəyi malların müxtəlif kombinasiyasıni ifadə edən göstərici necə adlanır?",
+    "options": [
+      "",
+      "iki malın istehsalı arasmdakı seçim",
+      "ticarətin faydası",
+      "istehsal imkanları həddi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "77.",
+    "question": "..... bütün ölkələrə eyni vaxtda daha yüksək rifaha nail olmağa imkan verir.",
+    "options": [
+      "ixrac",
+      "Natural təsərrüfatın üstünlüyünü",
+      "Ticarət kəsiri",
+      "Ticarət"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "78.",
+    "question": "Ticarətin faydasını dərk etməyə imkan verir....",
+    "options": [
+      "istehsal imkanları həddi",
+      "iki malın istehsalı arasmdakı seçim",
+      "Qarşılıqlı asılılq",
+      "Ticarət kəsiri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "79.",
+    "question": "......nisbi alternativ dəyəri əks etdirir",
+    "options": [
+      "Məhdud istehsal",
+      "Alternativ dəyərin olmamasi",
+      "Nisbi üstünlük",
+      "Ticarət kəsiri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "80.",
+    "question": "Alternativ dəyərin fərqli olması və nisbi üstünlük nəyin mənbəyidir?",
+    "options": [
+      "Məhdud istehsalın",
+      "istehsal imkanları həddinin",
+      "Ticarətin faydasinın",
+      "Qarşılıqlı asılılqın"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "81.",
+    "question": "Bazar iqtisadiyyatı nəyi ifadə edir?",
+    "options": [
+      "İstehsal vasitələrinin dövlət mülkiyyətində olmasını",
+      "Natural təsərrüfatın üstünlüyünü",
+      "Rəqabət və sərbəst bazar münasibətlərini",
+      "Dövlətin bütün istehsalı idarə etməsini"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "82.",
+    "question": "Bazar təsərrüfatının əsas xüsusiyyəti nədir?",
+    "options": [
+      "Dövlətin tam nəzarəti",
+      "Azad sahibkarlıq və rəqabət",
+      "Məhdud istehsal",
+      "Məcburi əmək bölgüsü"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "83.",
+    "question": "Əmtəənin əsas xüsusiyyətlərindən biri hansıdır?",
+    "options": [
+      "Ancaq şəxsi istehlak üçün istifadə olunması",
+      "Pul ilə mübadilə olunması",
+      "Dövlət tərəfindən istehsal olunması",
+      "Məhdud miqdarda olması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "84.",
+    "question": "Əmtəənin ikili xassəsi hansılardır?",
+    "options": [
+      "Sosial və siyasi dəyər",
+      "İstehlak və mübadilə dəyəri",
+      "Təbii və iqtisadi dəyər",
+      "Mədəni və mənəvi dəyər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "85.",
+    "question": "Pulun yaranmasına səbəb nə olmuşdur?",
+    "options": [
+      "Dövlətin qərarı",
+      "Mübadilənin inkişafı və əmtəə münasibətləri",
+      "Pulun təbiətdə hazır mövcud olması",
+      "Kredit sisteminin yaranması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "86.",
+    "question": "Pulun əsas funksiyalarından biri hansıdır?",
+    "options": [
+      "Təhsil vasitəsi",
+      "Siyasi qərarların qəbulunda iştirak",
+      "Dövlətin idarəetmə aləti olması",
+      "Mübadilə vasitəsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "87.",
+    "question": "Pul ölçü vahidi funksiyası nə deməkdir?",
+    "options": [
+      "Pulu yalnız qızıl və gümüşlə təmin etmək",
+      "Pulu yalnız kağız formada işlətmək",
+      "Dövlətin pul çap etməsi",
+      "Qiymətlərin pulda ifadəsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "88.",
+    "question": "Pulun hansı funksiyası alqı-satqıda vasitəçi rolunu ifadə edir?",
+    "options": [
+      "Ödəniş vasitəsi",
+      "Yığım vasitəsi",
+      "Ölçü vahidi",
+      "Tədavül"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "89.",
+    "question": "Pul dövriyyəsi qanunu nəyə əsaslanır?",
+    "options": [
+      "Kreditlərin miqdarına",
+      "Əhalinin ehtiyaclarına",
+      "Dövlətin pul çapı ilə bağlı qərarına",
+      "Dövriyyədə olan əmtəələrin miqdarına və qiymətinə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "90.",
+    "question": "Bazar iqtisadiyyatında qiymətlərin əsasını nə təşkil edir?",
+    "options": [
+      "Rəqabət və tələb-təklif",
+      "Dövlətin sərəncamı",
+      "Planlaşdırma",
+      "Əhalinin istəyi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "91.",
+    "question": "Əmtəənin istifadə dəyəri nəyi ifadə edir?",
+    "options": [
+      "Əmtəənin insan tələbatını ödəmək qabiliyyətini",
+      "Onun bazar qiymətini",
+      "Dövlət tərəfindən qiymətləndirilməsini",
+      "İstehsal prosesində yaranan dəyəri"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "92.",
+    "question": "Əmtəənin mübadilə dəyəri nədir?",
+    "options": [
+      "Əmtəənin digər əmtəə ilə dəyişdirilməsi",
+      "Onun istehlak üçün faydası",
+      "Dövlətin müəyyən etdiyi qiymət",
+      "Onun təbii faydası"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "93.",
+    "question": "Pulun yığım vasitəsi funksiyası nəyi göstərir?",
+    "options": [
+      "Pulun gələcəkdə istifadə üçün saxlanılması",
+      "Pulun yalnız mübadilə vasitəsi olması",
+      "Pulun yalnız xaricdə istifadə olunması",
+      "Pulun yalnız dövlətin nəzarətində olması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "94.",
+    "question": "Bazar iqtisadiyyatı hansı münasibətlər üzərində qurulur?",
+    "options": [
+      "Sahibkarlıq və rəqabət münasibətləri",
+      "Əmr və inzibati göstərişlər",
+      "Dövlət planlaşdırması",
+      "Təbiət və resurs idarəçiliyi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "95.",
+    "question": "Pulun beynəlxalq funksiyası nədir?",
+    "options": [
+      "Dövlətin borc alətinə çevrilməsi",
+      "Ancaq daxili bazarda istifadə olunması",
+      "Xarici ticarət əməliyyatlarında vasitə olması",
+      "Mədəniyyətin təbliği"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "96.",
+    "question": "Pul tədavülü qanununa görə artıq pul buraxılması hansı nəticəyə gətirir?",
+    "options": [
+      "İstehsalın azalmasına",
+      "Qiymətlərin sabit qalmasına",
+      "İnflyasiyaya",
+      "Əhalinin gəlirlərinin artmasına"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "97.",
+    "question": "Əmtəə istehsalı hansı şərtlərdə mövcud olur?",
+    "options": [
+      "Məhdud resurslar olmadıqda",
+      "Dövlət tam nəzarət etdikdə",
+      "Əmək bölgüsü və istehsalçıların müstəqilliyi olduqda",
+      "Natural təsərrüfatda"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "98.",
+    "question": "Pulun ödəniş vasitəsi funksiyası nəyə xidmət edir?",
+    "options": [
+      "Pulun yığıma çevrilməsinə",
+      "Qiymətlərin müəyyən olunmasına",
+      "Əmtəələrin mübadiləsinə",
+      "Borcların, kreditlərin ödənilməsinə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "99.",
+    "question": "Bazar iqtisadiyyatında əsas hərəkətverici qüvvə nədir?",
+    "options": [
+      "Sosial siyasət",
+      "Dövlətin iqtisadi proqramları",
+      "İnzibati göstərişlər",
+      "Tələb və təklif"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "100.",
+    "question": "Əmtəənin hansı xüsusiyyəti onun bazarda satıla bilməsini təmin edir?",
+    "options": [
+      "Ənənəvi xarakter daşıması",
+      "Təbii resurs olması",
+      "Dövlət tərəfindən istehsalı",
+      "Faydalılığı və mübadilə dəyərinə malik olması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "101.",
+    "question": "Bazar mexanizminin əsas elementləri",
+    "options": [
+      "Mənfəət, dəyər",
+      "İstehsal, istehlak ,qiymət",
+      "Alıcı, satıcı, istehsal",
+      "Tələb, təklif, qiymət, rəqabət"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "102.",
+    "question": "Tələb və təklifin həcmlərinin bərabər olduğu qiymət adlanır:",
+    "options": [
+      "normal qiymət",
+      "tarazlı qiymət",
+      "istehsal qiyməti",
+      "alıcı qiyməti"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "103.",
+    "question": "Tələbin qiymət üzrə elastikliyini göstərir:",
+    "options": [
+      "qiymətin azalması zamanı tələbin həcminin aşağı düşməsi",
+      "qiymətin 1% dəyişməsi zamanı tələbin həcminin nisbi dəyişməsi",
+      "qiymətin artması zamanı tələbin həcminin artması",
+      "tələbin həcminin resursların qiymətindən asılılığı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "104.",
+    "question": "Tələb artarsa, təklif isə dəyişməz qalarsa onda:",
+    "options": [
+      "əmtəənin tarazlı həcmi artar",
+      "Tarazlıq qiyməti yüksələcəkdir",
+      "tarazlı qiymət dəyişməz",
+      "tarazlı qiymət azalar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "105.",
+    "question": "Bazar mexanizmi elementinə aid deyil:",
+    "options": [
+      "Tələb",
+      "İstehsal",
+      "Təklif",
+      "Qiymət"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "106.",
+    "question": "Tələb qanununa müvafiq olaraq, əmtəənin qiyməti artarsa:",
+    "options": [
+      "tələbin kəmiyyəti azalır",
+      "tələb də artır",
+      "tələbin kəmiyyəti artır",
+      "tələb azalır"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "107.",
+    "question": "Təklif qanunu əks etdirir:",
+    "options": [
+      "satılan məhsulun miqdarı ilə qiyməti arasındakı birbaşa əlaqəni",
+      "tələb və təklif arasındakı əlaqəni",
+      "elastik və qeyrielastik əmtəələr arasındakı əlaqəni",
+      "satılan məhsulun miqdarı ilə qiyməti arasındakı əks əlaqəni"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "108.",
+    "question": "Bazar konyukturası nədir?",
+    "options": [
+      "Bazarda tələb və təklifin bir birinə uyğun gəlməsi",
+      "Bazarda tələb və təklifin bir birindən fərqlənməsi",
+      "Bazarda məhsul çatışmazlığı",
+      "Bazarda əmtəə bolluğu"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "109.",
+    "question": "Rəqabətin funksiyalarına aid deyil:",
+    "options": [
+      "cəmiyyətdə sosial ədaləti təmin etməsi",
+      "əmtəələrin keyfiyyətinin yüksəldilməsini stimullaşdırma",
+      "resursların iqtisadi səmərəli bölgüsü",
+      "istehsalın səmərəliliyini stimullaşdırması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "110.",
+    "question": "Vergilər ödənilən zaman pul bu funksiyanı yerinə yetirir:",
+    "options": [
+      "tədiyyə vasitəsi",
+      "tədavül vasitəsi",
+      "yığım vasitəsi",
+      "dəyər ölçüsü"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "111.",
+    "question": "Əmtəənin dəyərinin müəyyən edilməsinə iki əsas yanaşma:",
+    "options": [
+      "əmək dəyər nəzəriyyəsi və mülkiyyət hüquqları nəzəriyyəsi",
+      "son faydalılıq nəzəriyyəsi və ictimai seçim nəzəriyyəsi",
+      "əmək dəyər nəzəriyyəsi və son hədd faydalılığı",
+      "son faydalılıq nəzəriyyəsi və istehsal amilləri nəzəriyyəsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "112.",
+    "question": "Tələbat nə zaman ödənilmir?",
+    "options": [
+      "Əhalinin sayı azalanda",
+      "Əmtəə artıqlığı yarandıqda",
+      "Əmtəənin qiyməti artanda",
+      "Pul dəyərini itirəndə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "113.",
+    "question": "Son hədd faydalılığını iqtisadiyyata kim gətirmişdir?",
+    "options": [
+      "Menger, Aristotel",
+      "A.Simit, D.Rikardo",
+      "Bem Baverk, Menger, Vizer",
+      "Marşal"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "114.",
+    "question": "Bazar qanununun fəaliyyəti üçün əsas şərt",
+    "options": [
+      "Dövlətin bazara müdaxiləsi,",
+      "Bazarın azad rəqabətli olması",
+      "diopoliya",
+      "inhisarçı bazar"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "115.",
+    "question": "Qiymət ilə tələb arasında münasibət",
+    "options": [
+      "Düz",
+      "Tərs",
+      "Bərabər",
+      "Tarazlı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "116.",
+    "question": "Qiymət ilə təklif arasında münasibət",
+    "options": [
+      "Tərs",
+      "Düz",
+      "Rosional",
+      "Bərabər"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "117.",
+    "question": "Münasib qiymətə və müəyyən zaman ərzində alına biləcək əmtəədir",
+    "options": [
+      "Təklif",
+      "Tələb",
+      "Tələbat",
+      "İstehsal"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "118.",
+    "question": "Konkret yerdə və konkret vaxtda bazara çıxarılan əmtəədir",
+    "options": [
+      "Tələb",
+      "Təklif",
+      "Nemət",
+      "Xammal"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "119.",
+    "question": "Bazar qiymətinin nisbi dəyişməsinə müvafiq olaraq, təklifin dəyişməsidir",
+    "options": [
+      "Rəqabət",
+      "Qiymətin artması",
+      "Qiymətin azalması",
+      "Təklifin elastikliyi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "120.",
+    "question": "Bazarda istehsal tərəfdən çıxış edir",
+    "options": [
+      "Cəmiyyət",
+      "Tələb",
+      "Qiymət",
+      "Təklif"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "121.",
+    "question": "Əmtəənin dəyərinin pulla ifadəsi",
+    "options": [
+      "pul",
+      "mənfəət",
+      "dəyər",
+      "qiymət"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "122.",
+    "question": "Qiymət nəzəriyyəsini iqtisadiyyata kim gətirmişdir",
+    "options": [
+      "A.Marşall",
+      "A.Smit",
+      "K.Marks",
+      "Aristotel"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "123.",
+    "question": "Tələb və təklifin bir birinə uyğun gəlməsi",
+    "options": [
+      "bazar tarazlığı",
+      "qiymətləndirmə",
+      "tələb qiyməti",
+      "təklif qiyməti"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "124.",
+    "question": "Vergilər əmtəənin qiymətinə necə təsir edir",
+    "options": [
+      "artırır",
+      "tənzimləyir",
+      "azaldır",
+      "bərabərləşdirir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "125.",
+    "question": "Vergilər istehlakın həcmini",
+    "options": [
+      "azaldır",
+      "artırır",
+      "dəyişdirir",
+      "ağırlaşdırır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "126.",
+    "question": "Vergi ağırlığı kimlər arasında bölüşdürülür",
+    "options": [
+      "dövlət ilə alıcı",
+      "istehsalçı ilə alıcı",
+      "istehsalçı ilə dövlət",
+      "alıcı ilə dövlət"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "127.",
+    "question": "Dolayı vergilər nəyə səbəb olur",
+    "options": [
+      "istehsal həcminin artmasına, qiymətin artmasına",
+      "qiymətin artmasına, istehsal həcminin azalmasına",
+      "qiymətin dövlət tərəfindən tənzimlənməsinə",
+      "qiymətin alıcı istəyinə uyğunlaşmasına"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "128.",
+    "question": "Qiymət maksimumu və qiymət minimumu kim tərəfindən tənzimlənir",
+    "options": [
+      "satıcı tərəfindən",
+      "dövlət tərəfindən",
+      "alıcı tərəfindən",
+      "istehsalçı tərəfindən"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "129.",
+    "question": "Qiymət nə vaxt aşağı düşə bilməz",
+    "options": [
+      "qiymətin maksimum həddi qoyulduqda",
+      "qiymətin minimum həddi qoyulduqda",
+      "qiyməti bazar tənzimlədikdə",
+      "qiymət bazarda yarandıqda"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "130.",
+    "question": "Qiymət maksimumu hansı məqsəd ilə qoyulur",
+    "options": [
+      "satıcılara kömək etmək məqsədi ilə",
+      "istehsalı artırmaq məqsədi ilə",
+      "istehsalı azaltmaq məqsədi ilə",
+      "alıcılara kömək etmək məqsədi ilə"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "131.",
+    "question": "Vergi nədir",
+    "options": [
+      "könüllü ödəmə",
+      "gəlirlər",
+      "mənfəət",
+      "məcburi ödəmə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "132.",
+    "question": "Əmtəənin nəzərdə tutulmuş qiymətdən baha satılması",
+    "options": [
+      "bazar qiymətinin dəyişdirilməsi",
+      "istehlakçının izafi faydası",
+      "bazar qiymətinin tarazlığı",
+      "istehsalçının izafi faydası"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "133.",
+    "question": "Əmtəənin nəzərdə tutulmuş qiymətdən ucuz satılması",
+    "options": [
+      "bazarın tarazlı qiyməti",
+      "istehsalçının izafi faydası",
+      "tənzimlənən bazar",
+      "istehlakçının izafi faydası"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "134.",
+    "question": "Vergi nə üçün tətbiq olunur",
+    "options": [
+      "rifah halını yaxşılaşdırmaq üçün",
+      "satış həcmini artırmaq üçün",
+      "Dövlət gəlirlərini artırmaq üçün",
+      "dövlət gəlirlərini azaltmaq üçün"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "135.",
+    "question": "Vergilər alıcının ödədiyi qiyməti",
+    "options": [
+      "tənzimləyir",
+      "azaldır",
+      "artırır",
+      "bərabərləşdirir"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "136.",
+    "question": "Vergilərin təsiri",
+    "options": [
+      "istehsal və istehlakı bərabərləşdirir",
+      "əmtəənin satış həcmini artırır",
+      "əmtəənin satış həcmini azaldır",
+      "tələb və təklifi uyğunlaşdırır"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "137.",
+    "question": "Vergi nəticəsində bazar həcminin dəyişməsi nəyə səbəb olur",
+    "options": [
+      "istehlakçı faydasının artmasına",
+      "məcmu izafi faydanın artırılmasına",
+      "məcmu izafi faydanın azlmasına",
+      "istehsalçı faydasının azalmasına"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "138.",
+    "question": "Vergilərin ticarətin reallaşmasına maneəsi nəyə səbəb olur",
+    "options": [
+      "itirilmiş iqtisadi səmərəyə",
+      "satıcının mənfəətinə",
+      "alıcının qazancına",
+      "bazarın inhisarlaşmasına"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "139.",
+    "question": "Itirilmiş iqtisadi səmərə artar",
+    "options": [
+      "vergi gəlirləri artırıldıqda",
+      "vergi gəlirləri bərabərləşdirildikdə",
+      "vergi gəlirləri azaldıqda",
+      "vergi gəlirləri tənzimləndikdə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "140.",
+    "question": "Vergi gəlirlərinin azalma səbəbi",
+    "options": [
+      "yüksək vergi tətbiq etdikdə",
+      "vergilər ləğv edildikdə",
+      "tələb artdıqda",
+      "istehsal azaldıqda"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "141.",
+    "question": "Bazar səmərəliliyi hansı halda maksimum olur?",
+    "options": [
+      "Tələb və təklifin taraz olduğu zaman",
+      "İstehsalın maksimum olduğu zaman",
+      "Qiymətlərin artdığı zaman",
+      "İstehlakçıların məmnun olduğu zaman"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "142.",
+    "question": "Bazarın səmərəliliyi nə deməkdir?",
+    "options": [
+      "Qiymətlərin sabit qalması",
+      "İstehsalın maksimum artımı",
+      "Tələb və təklifin bərabər olması",
+      "Resursların optimal istifadəsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "143.",
+    "question": "İstehlakçıların bazarda mövcud olan məhsullara marağını artıran amil nədir?",
+    "options": [
+      "Rəqabət",
+      "Qiymət artımı",
+      "İstehsalçı sayı",
+      "Reklam"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "144.",
+    "question": "İstehsalçıların bazara girişini asanlaşdıran amil hansıdır?",
+    "options": [
+      "Yüksək mükafat",
+      "Yüksək tələblər",
+      "İstehsalçıların azlığı",
+      "Aşağı giriş xərcləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "145.",
+    "question": "İstehlakçıların məhsul seçimi prosesində hansı faktorlar əsas rol oynayır?",
+    "options": [
+      "Yalnız marka",
+      "Yalnız qiymət",
+      "Yalnız keyfiyyət",
+      "Qiymət və keyfiyyət"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "146.",
+    "question": "İstehsalçılar bazar tələbinin artması halında necə reaksiya verirlər?",
+    "options": [
+      "İstehsalı azaldırlar",
+      "İstehsalı artırırlar",
+      "Qiymətləri azaldırlar",
+      "Yeni məhsul buraxırlar"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "147.",
+    "question": "İstehsalçıların məhsul istehsalında hansı faktorlar rol oynayır?",
+    "options": [
+      "Yalnız əmək",
+      "Xammal, əmək, texnologiya",
+      "Yalnız texnologiya",
+      "Yalnız xammal"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "148.",
+    "question": "Əmtəə və xidmətlərdən istifadə nəticəsində məmnunluğun ölçüsüdür",
+    "options": [
+      "Zərər çəkmək",
+      "Faydalılıq",
+      "Pul itkisi",
+      "Mal itkisi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "149.",
+    "question": "Bazarda neçə növ istehlakçı var?",
+    "options": [
+      "3",
+      "2",
+      "5",
+      "6"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "150.",
+    "question": "Müəyyən əmtəə vahidləri cəminin istehlakından alınan məmnunluq",
+    "options": [
+      "Fasiləsizlik",
+      "İstehsal səmərəliliyi",
+      "Ümumi faydalılıq",
+      "Qanunauyğunluq"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "151.",
+    "question": "Bazar səmərəliliyini təmin edən əsas amil hansıdır?",
+    "options": [
+      "Dövlət müdaxiləsi",
+      "Monopoliyalar",
+      "Rəqabət",
+      "Vergilər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "152.",
+    "question": "Bazar səmərəliliyi aşağıdakı hallarda azala bilər:",
+    "options": [
+      "Rəqabətin azalması",
+      "Rəqabətin artması",
+      "Monopoliyanın yaranması",
+      "Tələb və təklifin taraz olması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "153.",
+    "question": "Büdcə məhdudluğu nədir?",
+    "options": [
+      "İstədiyi məhsulları almaq",
+      "Məhsul almamaq",
+      "İstehlakçının almaq istədiyi yox, ala biləcəyi əmtəələri seçmək",
+      "Əmtəələri xaricdən sifariş etmək"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "154.",
+    "question": "Vergi tətbiq olunduqda bazarda nə baş verir",
+    "options": [
+      "Tələb artır",
+      "Həm tələb, həm də təklif azalır",
+      "Tələb dəyişməz qalır",
+      "Təklif dəyişir"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "155.",
+    "question": "Vergi gəlirləri dövlətə nə təmin edir?",
+    "options": [
+      "çəkilən zərərin azalması",
+      "Dövlət xərclərinin maliyyələşdirilməsi",
+      "İstehsalçıların mənfəətinin artması",
+      "Bazar qiymətlərinin sabitləşməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "156.",
+    "question": "Hökumət vergiləri artırdıqda hansı effekt yaranır?",
+    "options": [
+      "Bazar tələbi artır",
+      "Bazar səmərəliliyi azalır",
+      "Bazar təklifi artır",
+      "İstehlakçıların xərcləri azalır"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "157.",
+    "question": "İstehsal nədir?",
+    "options": [
+      "Pul qazanma prosesi",
+      "Məhsul və xidmətlərin yaradılması prosesi",
+      "Səmərəlilik",
+      "Xidmət göstərmə prosesi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "158.",
+    "question": "İstehlak nədir?",
+    "options": [
+      "Pulun investisiyalara yönləndirilməsidir",
+      "Məhsul və xidmətlərin alınması və istifadəsi prosesidir.",
+      "İstehsal prosesinə verilən əməkdir",
+      "Sənaye məhsullarının ixracıdır."
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "159.",
+    "question": "Bazarın tarazlıq qiyməti nədir?",
+    "options": [
+      "Tələb və təklifin bərabər olduğu qiymət",
+      "İstehsalçıların ödədiyi minimum qiymət",
+      "İstehlakçıların ödəniş etməyə hazır olduğu maksimum qiymət",
+      "Dövlətin müəyyən etdiyi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "160.",
+    "question": "Vergi zərərləri əsasən hansı səbəbdən yaranır?",
+    "options": [
+      "Verginin tətbiqi nəticəsində istehlakçı və istehsalçının bazardan kənarda qalmasından",
+      "Dövlətin bazara müdaxiləsindən",
+      "Xarici ticarət balansının pozulmasından",
+      "Pul dəyərinin azalmasından"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "161.",
+    "question": "Kənar təsirlər nədir?",
+    "options": [
+      "Bir iqtisadi fəaliyyətin üçüncü tərəflərə gətirdiyi fayda və ya ziyan",
+      "Dövlətin iqtisadi müdaxiləsi",
+      "Bazarın sərbəst işləməsi",
+      "İstehlakçıların tələbi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "162.",
+    "question": "Kənar təsirlərin növləri hansılardır?",
+    "options": [
+      "Faydalı və faydasız",
+      "Düz və əyri",
+      "Müsbət və mənfi",
+      "Dövlət və özəl"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "163.",
+    "question": "Mənfi kənar təsirə misal hansıdır?",
+    "options": [
+      "Təhsilin geniş yayılması",
+      "Texnologiyanın inkişafı",
+      "Fabriklərin tullantıları nəticəsində çirklənmə",
+      "Bazarın sərbəst işləməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "164.",
+    "question": "Müsbət kənar təsirə misal hansıdır?",
+    "options": [
+      "Qiymətlərin düşməsi",
+      "Sənaye tullantıları",
+      "Təhsilin cəmiyyətə faydası",
+      "Çirklənmə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "165.",
+    "question": "Bazarın səmərəliliyi nə deməkdir?",
+    "options": [
+      "Dövlətin iqtisadiyyata müdaxiləsi",
+      "Kənar təsirlərin olmaması",
+      "Bazar mexanizminin ən optimal paylanma ilə işləməsi",
+      "Bütün iqtisadi qərarların düzgün olması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "166.",
+    "question": "Kənar təsirlər olduğu zaman bazarda nə baş verir?",
+    "options": [
+      "Kənar təsirlər azalır",
+      "Bazar sərbəst işləyir",
+      "Bazarın səmərəliliyi artır",
+      "Qiymət mexanizmi təhrif olunur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "167.",
+    "question": "Rifah halının təhlili nə məqsədlə aparılır?",
+    "options": [
+      "Kənar təsirləri artırmaq",
+      "Bazar qiymətlərini təhlil etmək",
+      "Bazar səmərəliliyini azaltmaq",
+      "İqtisadi qərarların cəmiyyətə təsirini ölçmək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "168.",
+    "question": "Dövlətin kənar təsirlərə müdaxilə mexanizmi nədir?",
+    "options": [
+      "Təbii resursları artırmaq",
+      "Bütün iqtisadi fəaliyyəti məhdudlaşdırmaq",
+      "Bazar qiymətlərini azaltmaq",
+      "Vergilər və subsidiyalar tətbiq etmək"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "169.",
+    "question": "Mənfi kənar təsirlər hansı vəziyyətdə yaranır?",
+    "options": [
+      "İqtisadiyyat böyüyəndə",
+      "Dövlət müdaxilə etdikdə",
+      "Cəmiyyət üçün faydalı olan fəaliyyətlər görüləndə",
+      "Fərdlər yalnız öz maraqlarını düşündükdə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "170.",
+    "question": "Dövlətin kənar təsirlərə qarşı qəbul etdiyi qanunlar hansı məqsədi güdür?",
+    "options": [
+      "Bazar səmərəliliyini azaltmaq",
+      "Çirklənmə və digər mənfi təsirləri azaltmaq",
+      "Dövlətin gəlirlərini artırmaq",
+      "İstehlakçılara təzyiq göstərmək"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "171.",
+    "question": "Subsidiyalar əsasən hansı məqsəd üçün verilir?",
+    "options": [
+      "Mənfi kənar təsirləri artırmaq",
+      "Müsbət kənar təsirləri təşviq etmək",
+      "Bazar səmərəliliyini azaltmaq",
+      "Qiymətləri artırmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "172.",
+    "question": "Rifah analizi nəyə xidmət edir?",
+    "options": [
+      "Dövlət müdaxiləsini azaltmağa",
+      "İqtisadi qərarların cəmiyyətə faydasını qiymətləndirməyə",
+      "Bazarın səmərəliliyini artırmağa",
+      "Kənar təsirləri artırmağa"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "173.",
+    "question": "Müsbət kənar təsirlərə dövlətin müdaxilə üsulu nədir?",
+    "options": [
+      "Əlavə vergi qoymaq",
+      "Subsidiyalar vermək",
+      "İstehsalçıları məhdudlaşdırmaq",
+      "Bazar qiymətlərini artırmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "174.",
+    "question": "Dövlətin mənfi kənar təsirləri azaltmaq üçün istifadə etdiyi vasitə hansıdır?",
+    "options": [
+      "Bazar sərbəstliyini məhdudlaşdırmaq",
+      "Kompensasiya mexanizmləri",
+      "Bütün iqtisadi fəaliyyəti dayandırmaq",
+      "İstehlakı artırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "175.",
+    "question": "Təhsilin cəmiyyətə təsiri hansı növ kənar təsirdir?",
+    "options": [
+      "Neytral təsir",
+      "Mənfi təsir",
+      "Neqativ təsir",
+      "Müsbət təsir"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "176.",
+    "question": "Vergilər və subsidiyalar vasitəsilə dövlət nə etməyə çalışır?",
+    "options": [
+      "İqtisadiyyatı məhdudlaşdırmağa",
+      "Mənfi kənar təsirləri artırmağa",
+      "Dövlət gəlirlərini azaltmağa",
+      "Bazar səmərəliliyini təmin etməyə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "177.",
+    "question": "D övlətin kənar təsirlərə qarşı kompensasiya verməsi nə deməkdir?",
+    "options": [
+      "Vergiləri artırmaq",
+      "Bütün iqtisadi fəaliyyəti dayandırmaq",
+      "İstehlakçıları məhdudlaşdırmaq",
+      "Mənfi təsirlərə məruz qalanlara maddi dəstək vermək"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "178.",
+    "question": "Kənar təsirləri aradan qaldırmaq üçün dövlət hansı üsuldan istifadə edə bilər?",
+    "options": [
+      "Qanunlar və qaydalar tətbiq etmək",
+      "Bazarın fəaliyyətinə müdaxilə etməmək",
+      "Bütün vergiləri ləğv etmək",
+      "Bütün subsidiyaları ləğv etmək"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "179.",
+    "question": "Kənar təsirlər olduğu zaman bazar mexanizminin işləməsinə hansı təsir yaranır?",
+    "options": [
+      "Qiymət mexanizmi təhrif olunur",
+      "Bazar tam səmərəli olur",
+      "Dövlətin müdaxiləsi azalır",
+      "Kənar təsirlər tamamilə yox olur"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "180.",
+    "question": "Müsbət kənar təsirləri təşviq etmək üçün dövlət hansı tədbiri görə bilər?",
+    "options": [
+      "İstehsalçılara subsidiyalar vermək",
+      "Vergi qoymaq",
+      "Çirklənməni artırmaq",
+      "İstehlakı azaltmaq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "181.",
+    "question": "Normal mənfəət nədir?",
+    "options": [
+      "Kapitala tətbiq sahəsində qalmağa imkan verən minimum mənfəət",
+      "Xərcin iki qatını əldə etmək",
+      "Borcları ödəmək qabiliyyəti",
+      "Yeni avadanlıq almaq üçün vəsait"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "182.",
+    "question": "İstehsal xərcləri nədir?",
+    "options": [
+      "İstehsal prosesində çəkilən xərclər",
+      "Gəlirlə xərclər arasındakı fərq",
+      "Vergi borcları",
+      "Maliyyə göstəriciləri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "183.",
+    "question": "İstehsal xərcləri hansı əlamətlərinə görə təsnifləşir?",
+    "options": [
+      "Təsərrüfat xərcləri",
+      "İstehsal və istehlak xərcləri",
+      "Təsbit olunmuş və dəyişən xərclər",
+      "İcarə haqqı"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "184.",
+    "question": "Xammal xərcləri hansı kateqoriyaya daxildir?",
+    "options": [
+      "Marketinq xərcləri",
+      "amortizasiya xercleri",
+      "İstehsal xərcləri",
+      "Vergilər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "185.",
+    "question": "Ümumi istehsal xərcləri necə əmələ gəlir",
+    "options": [
+      "Azalan xərclər və artan xərclər ilə",
+      "Orta xərclər və sabit xərclər ilə",
+      "Sabit xərclər və dəyişən xərclər ilə",
+      "Orta xərclər və azalan xərclər ilə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "186.",
+    "question": "Əmək haqqı xərcləri hansı növ xərclərə aiddir?",
+    "options": [
+      "Enerji xərcləri",
+      "Ümumi istehsal xərcləri",
+      "İstehsal xərcləri",
+      "Vergi xərcləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "187.",
+    "question": "Muzdlu işçilərin əmək haqqı hansı xərclərə aiddir?",
+    "options": [
+      "Artan xərclər",
+      "Sabit xərclər",
+      "Dəyişən xərclərə",
+      "Azalan xərclər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "188.",
+    "question": "İstehsal xərclərinin azalması şirkətə necə təsir edir?",
+    "options": [
+      "Mənfəəti artırır",
+      "Vergiləri artırır",
+      "Gəlirləri azaldır",
+      "Aktivləri azaldır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "189.",
+    "question": "Aşağıdakilərdən hansılar sabit xərclərdi?",
+    "options": [
+      "İstehsal avadanlıqları",
+      "İşçi qüvvəsi",
+      "xammal",
+      "Ümumzavod xərclər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "190.",
+    "question": "Hansı xərc istehsal xərclərinə aid deyil?",
+    "options": [
+      "Marketinq xərcləri",
+      "Enerji xərcləri",
+      "Nəqliyyat xərcləri",
+      "Əmək haqqı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "191.",
+    "question": "İstehsal həcmindən asılı olan ödəmələr necə adlanır?",
+    "options": [
+      "Dəyişən xərclər",
+      "Sabit xərclər",
+      "Məcmu xərclər",
+      "Artan xərclər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "192.",
+    "question": "Xalis mənfəət necə əldə olunur?",
+    "options": [
+      "Satış gəlirlərindən çıxıldıqdan sonra",
+      "Xammal xərclərindən çıxıldıqdan sonra",
+      "Gəlirin vergi hissəsi ilə",
+      "Əməliyyat mənfəətindən faiz və vergilər çıxıldıqdan sonra"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "193.",
+    "question": "Maddi xərclərə aşağıdakılardan hansı daxildir?",
+    "options": [
+      "Sex xərcləri",
+      "İdaretmə",
+      "Yarimfabrikatlar",
+      "Materiallar"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "194.",
+    "question": "Ümumi istehsal xərclərinə nə daxildir?",
+    "options": [
+      "Vergilər",
+      "Reklam xərcləri",
+      "Satışdan gəlir",
+      "Anbar və nəqliyyat xərcləri"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "195.",
+    "question": "Sabit xərclər nəyə deyilir?",
+    "options": [
+      "İstehsalın həcminin azalmasına səbəb olan xərclərə",
+      "Alternativ xərclərə",
+      "Daha cox səmərə verən fəaliyyət növünə",
+      "İstehsalın həcminin dəyişməsindən asılı olmayan xərclərə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "196.",
+    "question": "Mənfəətin əsas məqsədi nədir?",
+    "options": [
+      "Şirkətin maliyyə vəziyyətini pisləşdirmək",
+      "Şirkətin maliyyə vəziyyətini yaxşılaşdırmaq",
+      "Xərcləri artırmaq",
+      "İşçi sayını azaltmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "197.",
+    "question": "Dəyişən xərclərə hansılar aiddi?",
+    "options": [
+      "Tikinti ləvazimatları və ümumzavod xərcləri",
+      "Yanacaq və xammal xərcləri",
+      "İstehsaldankənar və sex xərcləri",
+      "Işçilərin əməkhaqqı və avadanlıqların saxlanması xərcləri"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "198.",
+    "question": "Vergi ödənişindən sonra qalan mənfəət hansı mənfəət növüdür?",
+    "options": [
+      "bütün mənfəət",
+      "Xalis mənfəət",
+      "Satış mənfəəti",
+      "Əməliyyat mənfəəti"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "199.",
+    "question": "Firmaların ümumi və orta xərclərinin kəmiyyətini hansı 2 əsas amil göstərir?",
+    "options": [
+      "Ümumi istehsal xərcləri və dəyişən istehsal xərclərinin ümumi məbləği",
+      "Ümumi məhsulun məbləği və istehsal edilmiş məhsulların miqdarı",
+      "İstifadə olunan texnologiya və iqtisadi ehtiyyatların qiymətləri",
+      "Sabit istehsal xərcləri və istehsal olunan məhsulun həcmi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "200.",
+    "question": "Amortizasiya xərcləri nəyə təsir edir?",
+    "options": [
+      "Gəlirin artırılmasına",
+      "Əməliyyat gəlirlərinə",
+      "Aktivlərin dəyərinin tədricən azalmasına",
+      "İstehsal həcminin azalmasına"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "201.",
+    "question": "Rəqabətli bazar nədir ?",
+    "options": [
+      "Çoxsaylı alıcı və satıcının müxtəlif əmtəələr alıb və satdığı bazardır",
+      "Müxtəlif malların alıb və satıldığı məkan",
+      "Çoxsaylı alıcı və satıcının oxşar əmtəələr alıb satdığı bir bazardır",
+      "Firmaların məhdud şəkildə bazara müdaxiləsi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "202.",
+    "question": "Marjinal gəlir rəqabətli firmalarda nəyə bərabərdir?",
+    "options": [
+      "Əmtəənin satış qiymətinə",
+      "Səciyyəvi əmtəədən gələn gəlirə",
+      "Mükəmməl rəqabətdə orta gəlirə",
+      "Məcmu xərclərin maksimalına"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "203.",
+    "question": "Son hədd gəliri nədir?",
+    "options": [
+      "Hər əlavə əmtəə vahidinin satışından əldə olunan gəlirdir",
+      "Məcmu gəlirlə məcmu satış həcminin hasili",
+      "Məcmu gəlirlə məcmu satış həcminin cəmi",
+      "Məcmu gəlirlə məcmu satış həcminin fərqi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "204.",
+    "question": "Rəqabətli firmanın məqsədi nədir?",
+    "options": [
+      "Məcmu gəlirlə məcmu xərclərin fərqinin maksimallaşdırılması",
+      "Məcmu xərc və məcmu gəlirin toplanması",
+      "Məcmu xərclə məcmu gəlirin yarısına",
+      "Məcmu gəlirlə məcmu xərcin iki qatına"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "205.",
+    "question": "Firmanın orta dəyişən xərcləri əmtəənin qiymətindən çox olduqda",
+    "options": [
+      "Fəaliyyətini dayandırmaq",
+      "İstehsalın həcmini azaltmaq",
+      "İstehsalın həcmini artırmaq",
+      "İşçi heyyətini artırmaq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "206.",
+    "question": "Marjinal firma hansı firmadır?",
+    "options": [
+      "Qiymətin düşəcəyi halda bazarı tərk edir",
+      "Qiymətin düşəcəyi halda bazarı tərk etmir",
+      "Qiymətin artacağı halda bazarı tərk edir",
+      "Qiymətin artacağı halda bazarı tərk etmir"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "207.",
+    "question": "Bazarı təmamilə tərk edən firma hansı xərclərə qənaət etmiş olur?",
+    "options": [
+      "Xərcləri artır",
+      "Yalnız dəyişən xərclərə",
+      "Yalnız dəyişməyən xərclərə",
+      "Həm dəyişən həmdə dəyişməz xərclərə"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "208.",
+    "question": "İstehsal həcmi ilə mütənasib olan gəlir hansıdır?",
+    "options": [
+      "Firma gəlir",
+      "Orta gəlir",
+      "Marjinal gəlir",
+      "Məcmu gəlir"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "209.",
+    "question": "Antiinhisar fəaliyyəti haqqında qanuna uyğun ol araq 5 müəssisə satışın neçə faizinə malik olduqda inhisar hesab olunur?",
+    "options": [
+      "50",
+      "40",
+      "33",
+      "66,6"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "210.",
+    "question": "Mənfəətin maksimumlaşdırılmasında istehsal həcmində nə baş verir?",
+    "options": [
+      "İstehsal həcmi artır",
+      "Marjinal xərclər və marjinal gəlirdən çox olur",
+      "Marjinal gəlir marjinal xərclərdən çox olur",
+      "Marjinal gəlir və marjinal xərclər bərabər olur"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "211.",
+    "question": "Əgər firma bazarı tamamilə tərk etmək qərarına gəlirsə aşağıdakılardan hansı nəzərə alınır?",
+    "options": [
+      "Heç biri",
+      "Qazanılan gəlirləri",
+      "Batmış xərcləri",
+      "Orta gəliri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "212.",
+    "question": "Firmanın orta məcmu xərcləri istehsalın həcmindən as lı olaraq davamlı şəkildə azalarsa belə firmaya nə deyilir ?",
+    "options": [
+      "Süni inhisar",
+      "Antiinhisar",
+      "Təbii inhisar",
+      "Dövlət tərəfindən yaradılan inhisar"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "213.",
+    "question": "Şermanın “Antiinhisar haqqında qanunu” neçənci ildə qəbul edilmişdir ?",
+    "options": [
+      "1900",
+      "1895",
+      "1890",
+      "1903"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "214.",
+    "question": "İnhisar fəaliyyətini tənzimləyən ilk hüquqi aktlar harada tətbiq olunub?",
+    "options": [
+      "Çin",
+      "Almaniya",
+      "Fransa",
+      "ABŞ"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "215.",
+    "question": "Bazarda dempinq siyasəti nədir?",
+    "options": [
+      "Əmtəə təklifini artırmaq",
+      "Əmtəələrin bazar qiymətinə satışı",
+      "Əmtəələrin ixrac edilməsi",
+      "Əmtəələrin istehsal xərcindən ucuz qiymətə satışı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "216.",
+    "question": "İstehsal miqyasının artırılmasının böyük həcmdə qə naətə səbəb olduğu halda aşağıdakılardan hansı mümkündür?",
+    "options": [
+      "İdarəetmə inhisarçılıq",
+      "Texnoloji inhisarçılıq",
+      "Təşkilati inhisarçılıq",
+      "Təbii inhisarçılıq"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "217.",
+    "question": "Trest aşağıdakılardan hansıdır?",
+    "options": [
+      "İstehsalda inhisarın mahiyyəti",
+      "Yekcins əmtəələr istehsal edən müəssələrin birliyi",
+      "Formal olaraq müstəqil olan müəssisələr",
+      "Sindikata nisbətən daha yüksək inhisar forması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "218.",
+    "question": "İnhisarçı firma nə zaman öz mənfəətini maksimal edir ?",
+    "options": [
+      "Marjinal gəlir marjinal xərclərinin bərabər olduğu haldakı qədər məhsul istehsal edərək",
+      "Marjinal gəliri çox olarkən",
+      "Marjinal gəliri az olarkən",
+      "Yuxarıdakılardan heç biri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "219.",
+    "question": "İnhisarçının mənfəəti nəyə bərabərdir?",
+    "options": [
+      "Mənfəətin məcmu gəliri ilə məcmu xərclərin fərqinə bərabərdir",
+      "Mənfəətin məcmu gəliri ilə məcmu xərclərin hasilinə bərabərdir",
+      "Mənfəətin məcmu gəliri ilə məcmu xərclərin nisbətinə bərabərdir",
+      "Mənfəətin məcmu gəliri ilə məcmu xərclərin cəminə bərabərdir"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "220.",
+    "question": "ABŞ-da 1914-cü ildə qəbul edilmiş Klyaton Qanunu hökümətə hansı hüququ verir ?",
+    "options": [
+      "İnhisarçı şirkətə qarşı məhkəmə iddiası qaldırmaq hüququ",
+      "İnhisarçı şirkətə qarşı vergi cərimələrini artırdı",
+      "İnhisarçı şirkətə qarşı sərbəst mühit yaratdı",
+      "İnhisarçı şirkətlərə dövlət ortaqlıq təklif etdi"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "221.",
+    "question": "Maddi istehsal sahələrində nə istehsal olunur?",
+    "options": [
+      "Yalnız maddi nemətlər",
+      "Yalnız qeyri-maddi xidmətlər",
+      "Maddi nemətlər və maddi xidmətlər",
+      "Yalnız xidmətlər"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "222.",
+    "question": "Qeyri-maddi istehsalın əsas məqsədi nədir?",
+    "options": [
+      "Maddi xidmətlərin istehsalı",
+      "Maddi nemət istehsalı",
+      "İnsan həyat şəraitinin yaxşılaşdırılması",
+      "Fiziki məhsulların istehsalı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "223.",
+    "question": "Maddi istehsal sahələrinə hansı sahə aid deyil?",
+    "options": [
+      "Ticarət",
+      "Nəqliyyat",
+      "Təhsil",
+      "Tikinti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "224.",
+    "question": "Qeyri-maddi xidmətlərdən hansı şəxsi istehlaka xidmət göstərir?",
+    "options": [
+      "Hüquq xidmətləri",
+      "Təhsil",
+      "Maliyyə-kredit",
+      "Nəqliyyat"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "225.",
+    "question": "BMT-nin iqtisadi sektorlar təsnifatına görə hasilat sektoru nə ilə əlaqədardır?",
+    "options": [
+      "İstehsal avadanlıqlarının təmiri",
+      "Təbii sərvətlərin hasilatı",
+      "Məhsulun emalı",
+      "Qeyri-maddi xidmətlər"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "226.",
+    "question": "İqtisadi artımın əsas göstəricisi nədir?",
+    "options": [
+      "Milli gəlirin azalması",
+      "ÜMM-un faizlə artımı",
+      "Yeni iş yerlərinin azaldılması",
+      "Maddi sərvətlərin ixracı"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "227.",
+    "question": "İqtisadi artımın intensiv tipi nə ilə xarakterizə olunur?",
+    "options": [
+      "Əmək resurslarının artırılması",
+      "Resurslardan səmərəli istifadə",
+      "Yeni müəssisələrin tikilməsi",
+      "Torpaq resurslarının genişləndirilməsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "228.",
+    "question": "Ekstensiv iqtisadi artımın əsas problemi nədir?",
+    "options": [
+      "Yeni texnologiyaların tətbiqi",
+      "Məhdud resurslardan asılılıq",
+      "Maddi istehsalın azalması",
+      "Əmək məhsuldarlığının artırılması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "229.",
+    "question": "Sosial-iqtisadi səmərəlilik nə ilə xarakterizə olunur?",
+    "options": [
+      "İnsan əmək məhsuldarlığının azalması",
+      "Minimal xərclə daha çox gəlir əldə etmək",
+      "Maddi istehsalın genişləndirilməsi",
+      "Ətraf mühitə zərər vermədən daha çox məhsul istehsalı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "230.",
+    "question": "İqtisadi artımın keyfiyyət göstəricisi hansıdır?",
+    "options": [
+      "Yalnız milli gəlirin artırılması",
+      "İstehsal sahələrinin genişləndirilməsi",
+      "Maddi nemətlərin ixracı",
+      "Tam məşğulluğun təmin edilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "231.",
+    "question": "Qeyri-maddi xidmətlərə aid olan sahə hansıdır?",
+    "options": [
+      "Rabitə",
+      "Tikinti",
+      "Nəqliyyat",
+      "Səhiyyə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "232.",
+    "question": "İqtisadi artımın intensiv tiplərindən biri nədir?",
+    "options": [
+      "Yalnız kapital artırımı",
+      "Maddi xidmətlərin artırılması",
+      "Yeni işçilərin işə cəlb edilməsi",
+      "Resurs qoruyucu üsul"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "233.",
+    "question": "İqtisadi artımın hərəkətverici qüvvələri hansıdır?",
+    "options": [
+      "Maddi nemətlərin ixracı",
+      "Rəqabət və ETT tətbiqi",
+      "Təhsil xidmətlərinin artması",
+      "Əmək məhsuldarlığının azalması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "234.",
+    "question": "Qeyri-istehsal sahələrinin xarakterik xüsusiyyətlərindən biri hansıdır?",
+    "options": [
+      "Maddi nemətlərin istehsalı",
+      "Əmək nəticələrinin şəxsi istehlaka yönəlməsi",
+      "İstehlak və istehsalın zaman və məkan fərqləri",
+      "Yeni məhsulların yaradılması"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "235.",
+    "question": "Maddi istehsala hansı aiddir?",
+    "options": [
+      "Təhsil",
+      "İstehsal sahəsi",
+      "Turizm",
+      "İncəsənət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "236.",
+    "question": "Qeyri-maddi xidmətlərin əsas xüsusiyyəti hansıdır?",
+    "options": [
+      "Maddi nemətlərin istehsalı",
+      "Xidmətlərin istehsalı və istehlakının zamanla uyğunlaşması",
+      "Maddi resursların artırılması",
+      "Yalnız gəlir məqsədli xidmətlər göstərilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "237.",
+    "question": "İqtisadi artımın əsas məqsədlərindən biri hansıdır?",
+    "options": [
+      "Əhalinin maddi rifahının artırılması",
+      "Maddi sərvətlərin azalması",
+      "Milli gəlirin azalması",
+      "İşsizliyin yüksəlməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "238.",
+    "question": "Ekstensiv iqtisadi artım nəyə əsaslanır?",
+    "options": [
+      "Əlavə resursların işə cəlb edilməsinə",
+      "Resurslardan səmərəli istifadəyə",
+      "Yeni texnologiyaların tətbiqinə",
+      "İnsan kapitalının artırılmasına"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "239.",
+    "question": "İqtisadi artımın intensiv tipinə aid olan əsas metod hansıdır?",
+    "options": [
+      "Mövcud resurslardan səmərəli istifadə",
+      "İşçilərin sayının artırılması",
+      "Yeni müəssisələrin tikilməsi",
+      "Yalnız hasilat sektorunun genişləndirilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "240.",
+    "question": "Maddi istehsal sahələrində əsas məhsul nədir?",
+    "options": [
+      "Maddi nemətlər və xidmətlər",
+      "İncəsənət əsərləri",
+      "Təhsil xidmətləri",
+      "Sosial təminat"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "241.",
+    "question": "Ümumi milli məhsul nədir?",
+    "options": [
+      "ölkə ərazisində istehsal edilmiş bütün son məhsulların və xidmətlərin məbləği",
+      "daxili və xarici bazarda realizə edilmiş bütün əmtəələrin məbləği",
+      "ölkədə istehsal edilmiş bütün əmtəələrin məbləği",
+      "milli şirkətlər tərəfindən istehsal edilmiş bütün son məhsulların və xidmətlərin dəyəri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "242.",
+    "question": "Ümumi daxili məhsul nədir?",
+    "options": [
+      "milli şirkətlər tərəfindən istehsal edilmiş bütün son məhsulların və xidmətlərin məbləği",
+      "daxili və xarici bazarda realizə edilmiş bütün əmtəələrin məbləği",
+      "ölkədə istehsal edilmiş bütün əmtəələrin məbləği",
+      "ölkə ərazisində istehsal edilmiş bütün son məhsulların və xidmətlərin dəyəri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "243.",
+    "question": "Milli iqtisadiyyatın real göstəricisini əks etdirir",
+    "options": [
+      "milli gəlir",
+      "ümum daxuli məhsul",
+      "ümum milli məhsul",
+      "xalis milli məhsul"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "244.",
+    "question": "İnkişaf etmiş ölkələrdə iqtisadi artımın ən əhəmiyyətli səbəbi budur?",
+    "options": [
+      "istehsalatda məşğul əhalinin sayının artırılması",
+      "iş vaxtı müddətinin artırılması",
+      "tətbiq edilən kapitalın artırılması",
+      "istehsalda texnoloji təkmilləşdirmələr"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "245.",
+    "question": "Ümumi daxili məhsulun həcmi təyin edilərkən aş ağıda sadalanan kəmiyyətlərdən hansı nəzərə alınmır?",
+    "options": [
+      "dövlət satınalmaları",
+      "korporasiyaların mənfəəti",
+      "dövlət transferləri",
+      "kreditə alınmış kapital üçün faizlər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "246.",
+    "question": "Sadalananlardan hansı ümumi milli məhsulun tərkibinə daxildir?",
+    "options": [
+      "ev sahibəsinin xidmətləri",
+      "işlənmiş avtomobil alınması",
+      "kitab mağazasındakı yeni dərsliyin dəyəri",
+      "şirkətin səhmlərinin alınması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "247.",
+    "question": "Əgər potensial və faktiki ÜDM birbilərinə bərabərdirlərsə, bu halda iqtisadiyyatda:",
+    "options": [
+      "friksion işsizlər var",
+      "işsizliyin təbii səviyyəsi mövcuddur",
+      "tsiklik işsizlik yoxdu",
+      "struktur işsizlər var"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "248.",
+    "question": "Aşağıdakılardan hansılar ÜDMin xərclərə görə hesablanmasında nəzərə alınmır?",
+    "options": [
+      "investisiya xərcləri",
+      "amortizasiya",
+      "dividendlər",
+      "dövlət xərcləri"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "249.",
+    "question": "İnvestisiya həcmi ilə ÜDMin tempinin dəyişməsi arasında nisbət:",
+    "options": [
+      "multiplikator",
+      "akselerator",
+      "qiymət indeksi",
+      "investisiya riski"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "250.",
+    "question": "Milli gəlirdən şəxsi gəlirlərə keçərkən hansılar nəzərə alınmır? (",
+    "options": [
+      "müəssisələrdən tutulmuş vergilər",
+      "fərdi vergilər",
+      "sosial sığorta ödəmələr",
+      "dolayı vergilər"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "251.",
+    "question": "ÜMMdan kapitalın istehlak olunan hissəsini çıxılmaqla hesablanır, bu:",
+    "options": [
+      "MS",
+      "ÜDM",
+      "MG",
+      "XMM"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "252.",
+    "question": "Aşağıdakılardan hansılar ÜDMda gəlirlərə görə hesablaşmasında nəzərə alınmamışdır?",
+    "options": [
+      "birbaşa vergilər",
+      "bölünməmiş mənfəət",
+      "renta ödəmələr",
+      "xalis ixrac"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "253.",
+    "question": "Əgər Azərbaycanın vətəndaşı Türkiyənin özəl m üəssisələrinin birində çalışırsa onun əldə etdiyi gəlir aid edilir:",
+    "options": [
+      "Azərbaycanın ÜMMna və ÜDMna",
+      "Azərbaycanın ÜDMna və Türkiyənin ÜMMna",
+      "Azərbaycanın və Türkiyənin ÜMMna",
+      "Azərbaycanın ÜMMna və Türkiyənin ÜDMna"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "254.",
+    "question": "ÜDM aşağıdakılardan hansılarla səciyyələnir?",
+    "options": [
+      "ÜDM kəmiyyət ifadəsində əks olunur",
+      "ÜDM dəyər ifadəsində əks olunur",
+      "ÜDM həm dəyər, həm də kəmiyyət ifadəsində əks olunur",
+      "yuxarıda göstərilənlərdən heç biri düz deyil"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "255.",
+    "question": "Mövcud bazar qiymətləri ilə hesablanan ÜMM (ümumi milli məhsul) necə adlanır:",
+    "options": [
+      "ÜMM deflyatoru",
+      "nominal ÜMM",
+      "real ÜMM",
+      "xalis milli məhsul"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "256.",
+    "question": "Ümumi daxil məhsul hansı qiymətlərlə ölçülür?",
+    "options": [
+      "müqayisəli qiymətlər ilə",
+      "bazar qiymətləri ilə",
+      "istehsalçı qiymətləri ilə",
+      "istehlakçı qiymətləri ilə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "257.",
+    "question": "Müxtəlif metodlar – istehsal, xərclər və gəlirlər va sitəsilə qiymətləndirilən əsas makroiqtisadi göstəricilər",
+    "options": [
+      "XMM",
+      "UMM və ÜDM",
+      "MG",
+      "Milli sərvət"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "258.",
+    "question": "ÜDMnin real həcmini müəyyən etmək üçün istifadə olunan qiymət indeks",
+    "options": [
+      "ÜMM deflyatoru",
+      "ÜDM deflyatoru",
+      "məcmu gəlir deflyatoru",
+      "yığım deflyatoru"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "259.",
+    "question": "İqtisadi artım nədə ifadə olunur?",
+    "options": [
+      "əmək haqqının artımında",
+      "ÜMMin dəyərində",
+      "real ÜMMin artım tempində",
+      "neft hasilatının artımında"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "260.",
+    "question": "Ümumi milli məhsul ilə ümumi daxili məhsul arasında nominal fərq adətən neçə faiz təşkil edir:",
+    "options": [
+      "4%dən artıqdır",
+      "5%dən artıqdır",
+      "1%dən artıq olmur",
+      "6%dən artıqdır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "261.",
+    "question": "Hərbi xərclərin artması iqtisadi qeyri-sabitliyə necə təsir edir?",
+    "options": [
+      "Heç bir təsir göstərmir",
+      "Azaldır",
+      "Artırır",
+      "Sabit saxlayır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "262.",
+    "question": "Qeyri-müəyyən iqtisadi şərait işsizlik səviyyəsini necə təsir edir?",
+    "options": [
+      "Sabit saxlayır",
+      "Azaldır",
+      "Artırır",
+      "Təkmilləşdirir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "263.",
+    "question": "Təbii işsizlik hansı faktorlar daxilində hesablanır?",
+    "options": [
+      "Struktur və gizli işsizlik",
+      "Dövri və gizli işsizlik",
+      "Friksion və struktur işsizlik",
+      "Friktion və gizli işsizlik"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "264.",
+    "question": "Friksion işsizliyinin səviyyəsi hansı faktorla azalır?",
+    "options": [
+      "Qiymətlərin sabitliyi",
+      "Sənaye artımı",
+      "Müharibə",
+      "Təlim proqramlarının artması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "265.",
+    "question": "Makroiqtisadi qeyri-sabitliyin əsas səbəblərindən biri hansıdır?",
+    "options": [
+      "Stabil inflyasiya səviyyəsi",
+      "Aşağı işsizlik səviyyəsi",
+      "Xarici investisiyaların artması",
+      "Pul siyasətindəki dəyişikliklər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "266.",
+    "question": "İşsizlik nəyə deyilir?",
+    "options": [
+      "Yalnız işə qəbul edilmək üçün imtahan vermək",
+      "İstirahət etmək üçün işdən ayrılmaq",
+      "Yalnız təhsil alan şəxslərin işsiz qalması",
+      "İş axtaran və işsiz olan şəxslərin vəziyyəti"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "267.",
+    "question": "Aşağıdakı faktorların hansısı iqtisadiyyatdakı qeyri- sabitliyi artırır?",
+    "options": [
+      "Stabil vergi siyasəti",
+      "Ticarət balansının müsbət olması",
+      "Davamlı iqtisadi artım",
+      "Yüksək işsizlik"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "268.",
+    "question": "İnflyasiyanın artması hansı nəticəyə səbəb ola bilər?",
+    "options": [
+      "Alıcılıq qabiliyyətinin azalması",
+      "İşsizliyin azalması",
+      "Aşağı inflyasiya dərəcəsi",
+      "Qiymətlərin sabit qalması"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "269.",
+    "question": "İşsizliyin hansı növü mövsümdən asılıdır?",
+    "options": [
+      "Mövsümi işsizlik",
+      "Könüllü işsizlik",
+      "Gizli işsizlik",
+      "Struktural işsizlik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "270.",
+    "question": "İqtisadi böhran zamanı hansı işsizlik növü artır?",
+    "options": [
+      "Dövri işsizlik",
+      "Könüllü işsizlik",
+      "Mövsümi işsizlik",
+      "Friksional işsizlik"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "271.",
+    "question": "Hansı faktor işsizliyin azalmasına səbəb ola bilər?",
+    "options": [
+      "Yeni iş yerlərinin yaradılması",
+      "İqtisadi durğunluq",
+      "Yüksək inflyasiya",
+      "Xarici ticarətin azalması"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "272.",
+    "question": "Mövsümi işsizlik hansı sahələrlə daha çox əlaqəlidir?",
+    "options": [
+      "Bankçılıq",
+      "Tikinti və kənd təsərrüfatı",
+      "Enerji sektoru",
+      "Telekommunikasiya"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "273.",
+    "question": "İstehsal xərclərinin artması hansı makroiqtisadi qeyri-sabitlik faktoruna aid edilir?",
+    "options": [
+      "Tələb inflyasiyası",
+      "Təklif inflyasiyası",
+      "Deflyasiya",
+      "İxracın azalması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "274.",
+    "question": "İşsizlik səviyyəsi nə zaman artır?",
+    "options": [
+      "İqtisadi inkişaf sürətləndikdə",
+      "İqtisadi geriləmə baş verdikdə",
+      "Dövlət xərcləri artdıqda",
+      "Vergilər azaldıqda"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "275.",
+    "question": "İqtisadi dövrlərin müxtəlif mərhələlərində yaranan işsizlik növü hansıdır?",
+    "options": [
+      "Mövsümi işsizlik",
+      "Dövri işsizlik",
+      "Friksional işsizlik",
+      "Struktural işsizlik"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "276.",
+    "question": "Əgər işsizlik könüllüdürsə, bu nə deməkdir?",
+    "options": [
+      "Şəxs mövsümi işsizliklə üzləşib",
+      "Şəxs iş tapa bilmir",
+      "İqtisadi vəziyyət səbəbindən işsizlik artır",
+      "Şəxs öz istəyilə işsiz qalır"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "277.",
+    "question": "Makroiqtisadi qeyri-sabitlikdə dövlətin əsas rolu nədir?",
+    "options": [
+      "İş yerlərini azaltmaq",
+      "Pul təklifini artırmaq",
+      "Büdcə profisitini artırmaq",
+      "Maliyyə siyasətini sabit saxlamaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "278.",
+    "question": "Hansı tədbir işsizliyi azaltmağa kömək edir?",
+    "options": [
+      "Faiz dərəcələrini artırmaq",
+      "Vergiləri artırmaq",
+      "Dövlət xərclərini azaltmaq",
+      "Dövlət investisiyalarını artırmaq"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "279.",
+    "question": "Qeyri-sabitliyin əlamətlərindən biri hansıdır?",
+    "options": [
+      "Sistemin hər zaman eyni vəziyyətdə qalması",
+      "Stabil vəziyyətin saxlanılması",
+      "Sistemin həmişə öz formasını qoruması",
+      "Dəyişikliklərə tez-tez reaksiya vermək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "280.",
+    "question": "Qeyri-sabitlik hansı sahələrdə baş verə bilər?",
+    "options": [
+      "Yalnız təbiət elmlərində",
+      "Yalnız iqtisadiyyat sahəsində",
+      "İqtisadiyyat, təbiət elmləri, texnologiya və digər sahələrdə",
+      "Yalnız texnologiya sahəsində"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "281.",
+    "question": "İnflyasiya sözünün hərfi mənası",
+    "options": [
+      "Qiymətləndirmə",
+      "Kiçildilmə",
+      "Şişirdilmə",
+      "Bölüşdürmə"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "282.",
+    "question": "İlk dəfə harada və nə zaman inflyasiya müşahidə olunmuşdur",
+    "options": [
+      "XV əsr Rusiya",
+      "XX əsr Amerika",
+      "XVII əsr Fransa",
+      "XVI əsr Almaniya"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "283.",
+    "question": "İnflyasiya nədir",
+    "options": [
+      "pulun alıcılıq qabiliyyətinin aşağı düşməsi",
+      "pulun alıcılıq qabiliyyətini artması",
+      "əmtəə istehsalının artması",
+      "pul hərəkətinə qadağa qoyulması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "284.",
+    "question": "Satışda olan əmtəənin dəyərindən dövriyyəyə artıq pul buraxıldıqda",
+    "options": [
+      "inglyasiya baş verir",
+      "deflyasiya",
+      "pul siyasəti",
+      "satışın tənzimlənməsi"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "285.",
+    "question": "Əmtəə və xidmətlərin qiymətlərinin müəyyən dövrlərdə nisbətini xarakterizə edən göstəricidir",
+    "options": [
+      "qiymət indeksi",
+      "təlabatın dəyişməsi",
+      "istehsalın həcmi",
+      "əmtəə tədavülü"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "286.",
+    "question": "Artım sürətinə görə inflyasiyanın neçə növü fərqləndirilir",
+    "options": [
+      "4",
+      "3",
+      "2",
+      "5"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "287.",
+    "question": "İl ərzində qiymətlərin artım sürəti 10%-ə qədər artarsa",
+    "options": [
+      "hiper inflyasiya",
+      "mülayim inflyasuya",
+      "sürətli inflyasiya",
+      "qaçaraq inflyasiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "288.",
+    "question": "Qiymətlərin artım sürəti il ərzində 10%-dən artiq olduqda",
+    "options": [
+      "mülayim inflyasiya",
+      "sürətli inflyasiya",
+      "ifrat inflyasiya",
+      "zəif inflyasiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "289.",
+    "question": "Hansı inflyasiya baş verdikdə pul öz funksiyasını yerinə yetirə bilmir",
+    "options": [
+      "sürətli inflyasiya",
+      "hiper inflyasiya",
+      "durğunluq inflyasiya",
+      "mülayim inflyasiya"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "290.",
+    "question": "Xarakterinə görə inflyasiya",
+    "options": [
+      "müşahidə olunan",
+      "gözlənilən, qəfl",
+      "gözlənilməyən",
+      "təsadüfən"
+    ],
+    "answer": "C"
+  },
+  {
+    "number": "291.",
+    "question": "İnflyasiya prosesinin inkişaf forması",
+    "options": [
+      "əmtəə çatışmazlığı",
+      "pul qıtlığı",
+      "açıq və gizli",
+      "gözlənilən"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "292.",
+    "question": "Nəzəri cəhətdən inflyasiyanın səbəbi kimi çıxış edir",
+    "options": [
+      "bazar təklifinin artıqlığı",
+      "bazrda əmtəə artıqlığı",
+      "məcmu tələblə məcmu təklif arasında tarazlığın pozulması",
+      "alıcı tələbinin tam ödənilməsi"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "293.",
+    "question": "Tələb inflyasiyası",
+    "options": [
+      "qiymətlərdə olan dəyişikliyə gizli inflyasiya",
+      "məcmu tələbin azalması",
+      "qiymətlərdə olan dəyişikliyə məcmu tələbin artması",
+      "gözlənilən inflyasiya"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "294.",
+    "question": "Təklif inflyasiyası",
+    "options": [
+      "məcmu tələbin pozulması",
+      "məcmu təklifin artırılması",
+      "istahsal xərclərinin azaldılması",
+      "məcmu təklifin azalması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "295.",
+    "question": "Büdcə kəsiri",
+    "options": [
+      "büdcə tənzimləndikdə",
+      "büdcə gəlirləri xərclərdən çox olduqda",
+      "büdcə idarə edildikdə",
+      "büdcə xərcləri gəlirlərdən çox olduqda"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "296.",
+    "question": "Pul tədavülünün təşkilinə cavab dehdir",
+    "options": [
+      "Kapital bankı",
+      "Milli bank",
+      "Beynalxalq bank",
+      "ölkənin mərkəzi bankı"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "297.",
+    "question": "İl ərzində 3-4% inflyasiya nəyə səbəb olur",
+    "options": [
+      "tələbin həcmini azaldır",
+      "istehsalı ləngidir",
+      "istehsalı sürətləndirir",
+      "təklifin həcmini azaldır"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "298.",
+    "question": "İnflyasiyanın əhali gəlirlərinə təsiri",
+    "options": [
+      "yeni iş yerləri açılır",
+      "gəlirlər bərabərləşir",
+      "qeyri bərabər bölgünü gücləndirir",
+      "əmək haqqı tənzimlənir"
+    ],
+    "answer": "B"
+  },
+  {
+    "number": "299.",
+    "question": "Artıq kağız pulların tədavüldən çıxarılması həcminin azaldılması",
+    "options": [
+      "deflyasiya",
+      "inflyasiya",
+      "denominasiya",
+      "büdcə kəsiri"
+    ],
+    "answer": "D"
+  },
+  {
+    "number": "300.",
+    "question": "İnflyasiya zamanı əhali əlindəki artıq pulu hara sərf etməlidir",
+    "options": [
+      "daşınmaz əmlak almalı",
+      "yığım fondu yaratmalı",
+      "qida məhsulllarına sərf etməli",
+      "səyahət etməli"
+    ],
+    "answer": "D"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+// Start quiz
+showQuestion();
+</script>
+<script>
+nextBtn.onclick = async function() {
+    originalNextHandler();
+};
+</script>
+</body>
+</html>
