@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IKT Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+
+ .back-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+}
+ 
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="/exam-quiz" class="back-btn">⟵ Geri Qayıt</a>
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+  {
+    "number": "1.",
+    "question": "IKT nə deməkdir?",
+    "options": [
+      "İnformasiya və Kommunikasiya Texnologiyaları",
+      "İnformasiya və Kəşfiyyat Texnologiyaları",
+      "İnformasiya və Kompüter Texnologiyaları",
+      "İnternet və Kompüter Tətbiqləri",
+      "İnnovasiya və Kommunikasiya Texnologiyaları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "2.",
+    "question": "İKT anlayışında \"Kommunikasiya\" nə deməkdir?",
+    "options": [
+      "məlumatların ötürülməsi və paylaşılması",
+      "məlumatları şifrələmək",
+      "məlumatların saxlanması",
+      "proqram təminatının yaradılması",
+      "yeni texnologiyaların kəşfi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "3.",
+    "question": "Texnologiyanın əsas məqsədi hansıdır?",
+    "options": [
+      "problemləri həll etmək və həyat proseslərini asanlaşdırmaq üçün elmi tətbiqlərdən istifadə",
+      "məlumatların təhlükəsizliyini artıırmaq",
+      "insanların gündəlik həyatdakı bütün hərəkətləri",
+      "yalnız kompüter proqramlarından istifadə",
+      "yalnız əyləncə və oyun üçün cihazlardan istifadə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "4.",
+    "question": "İKT-nin gələcək inkişafında əsas istiqamət hansıdır?",
+    "options": [
+      "süni intellekt və avtomatlaşdırma",
+      "elektron sistemlərin azalması",
+      "ənənəvi telefon rabitəsi",
+      "kağız əsaslı sənədlər",
+      "internetin məhdudlaşdırılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "Proqram təminatı kompüter sistemində hansı termin ilə işlədilir?",
+    "options": [
+      "software",
+      "hardware",
+      "OLE",
+      "network",
+      "brainware"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "İKT-nin \"hardware\" komponenti nə deməkdir?",
+    "options": [
+      "kompüterin aparat təminatı",
+      "şəbəkə avadanlıqları",
+      "məlumat bazası",
+      "kompüterin proqram təminatı",
+      "internet"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "7.",
+    "question": "Süni intellektin İKT-də əsas rolu nədir?",
+    "options": [
+      "məlumatları analiz etmək və avtomatlaşdırılmış qərarlar qəbul etmək",
+      "sadəcə oyunlar yaratmaq",
+      "elektron poçt göndərmək",
+      "yalnız kompüter sürətini artırmaq",
+      "məlumatların təhlükəsizliyini artıırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "8.",
+    "question": "Bulud texnologiyaları nəyi ifadə edir?",
+    "options": [
+      "məlumatların internet üzərindən saxlanması və işlənməsi",
+      "faylların yerli kompüterdə saxlanması",
+      "kompüter proqramlarının avtomatik yenilənməsi",
+      "telefon zənglərinin idarəsi",
+      "yalnız oyun oynamaq üçün serverlər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "9.",
+    "question": "İKT-nin təhsil sahəsində tətbiqi hansı məqsəd üçündür?",
+    "options": [
+      "E-öyrənmə və distant təhsil imkanları yaratmaq",
+      "dərslikləri yalnız kağız formada təqdim etmək",
+      "tədris prosesini yavaşlatmaq",
+      "tələbələrin dərslərə fiziki olaraq həmişə gəlməsini təmin etmək",
+      "təcrübələri yalnız kağız üzərində aparmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "10.",
+    "question": "Kriptoqrafiya sözünün mənası nədir?",
+    "options": [
+      "gizli yazı",
+      "qapalı yazı",
+      "imzalanmış yazı",
+      "açıq yazı",
+      "bütövləşmiş yazı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "Sezar üsulu ilə şifrələnmiş\"disk\" sözünün şifrini (k=5) müəyyən edin.(Əlifba: abcdefghijklmnopqrstuvwxyz).",
+    "options": [
+      "inxp",
+      "inyp",
+      "joyr",
+      "inxq",
+      "joyq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "12.",
+    "question": "Mətnin xarici dildən milli dilə çevrilməsi hansı prosesdir?",
+    "options": [
+      "informasiyanın emalı",
+      "informasiyanın ötürülməsi",
+      "informasiyanın qorunması",
+      "informasiyanın əldə olunması",
+      "informasiyanın saxlanılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "13.",
+    "question": "Hansı növ informasiya obyektlə fiziki təmas olmadan alına bilər?",
+    "options": [
+      "vizual,səs,qoxu",
+      "qoxu,dad,səs",
+      "dad,taktil,qoxu",
+      "görmə,səs,dad",
+      "audial,taktil,vizual"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "14.",
+    "question": "İnformasiyanın qrafiki təqdimedilmə formasına aid deyil:",
+    "options": [
+      "telefon danışığı",
+      "diaqram",
+      "fotoşəkil",
+      "yol nişanı",
+      "sxem"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "Hansı məlumatdakı informasiya obyektiv deyil?",
+    "options": [
+      "Bugün hava çox istidir.",
+      "Pişiyin dörd pəncəsi var.",
+      "1bayt-8bitdir.",
+      "Müəllimin 45 yaşı var.",
+      "Küçədə havanın temperaturu 22 C-dir."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "16.",
+    "question": "Biri obyektiv informasiyadır:",
+    "options": [
+      "Bu gün küləyin sürəti saatda 8 km/saat-dır.",
+      "Çöldə hava çox soyuqdur.",
+      "Tətil üçün ən yaxşı ölkə İtaliyadır.",
+      "Yay fəsli ilin ən gözəl fəslidir.",
+      "Ayxana görə Nazlı çox mehriban qızıdr."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "17.",
+    "question": "Müxtəlif mənbələrdən alınan informasiyalar üst-üstə düşdükdə onu necə informasiya hesab etmək olar?",
+    "options": [
+      "Etibarlı",
+      "Anlaşıqlılıq",
+      "Cari",
+      "Aktual",
+      "Adekvat"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "18.",
+    "question": "Hansı ardıcıllıq daha doğrudur?",
+    "options": [
+      "Verilən-İnformasiya-Bilik",
+      "İnformasiya-Bilik-Verilən",
+      "Bilik-Verilən-İnformasiya",
+      "İnformasiya-Verilən-Bilik",
+      "Verilən-Bilik-İnformasiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "19.",
+    "question": "Hansı informasiya daşıyıcılarına aid edilmir?",
+    "options": [
+      "Prosessor",
+      "Fləş yaddaş",
+      "DVD",
+      "Maqnit lenti",
+      "Kağız"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "Baza kompüter bilikləri dedikdə nə başa düşülür?",
+    "options": [
+      "kompüterin əsas hissələrini, proqram təminatını və sadə əməliyyatları bilmək",
+      "kompüter texnologiyalarını dərindən öyrənmək",
+      "kompüter şəbəkələrini qurmaq",
+      "virusları təhlil etmək",
+      "yalnız proqramlaşdırmanı bilmək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Rekvizit nədir?",
+    "options": [
+      "iqtisadi informasiyanın məntiqi bölünməyən elementidir",
+      "iqtisadi informasiyanın məntiqi bölünən elementidir",
+      "maliyyə hesabatının formasıdır",
+      "statistik metoddur",
+      "internet resursudur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "22.",
+    "question": "Verilənlər ne vaxt informasiyaya çevrilir?",
+    "options": [
+      "mənası olduqda",
+      "mənası olmadıqda",
+      "paylaşıldıqda",
+      "silindikdə",
+      "saxlanıldıqda"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "23.",
+    "question": "İnformasiya məhsulu nəyin emalından alınır?",
+    "options": [
+      "verilənlərin",
+      "biliyin",
+      "sənədlərin",
+      "proqramın",
+      "kompüterin"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "24.",
+    "question": "Informasiya prosesi deyil?",
+    "options": [
+      "informasiyanın tamlığı",
+      "informasiyanın saxlanması",
+      "informasiyanın toplanması",
+      "informasiyanın ötürülməsi",
+      "informasiyanın emalı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "25.",
+    "question": "Mart ayında 1500 kq buğda qəbul olunmuşdur.Əsas rekviziti göstərin:",
+    "options": [
+      "1500 kq",
+      "Buğda",
+      "Qəbul olunmuşdur",
+      "Mart ayı və buğda",
+      "Mart ayı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "26.",
+    "question": "İnformasiya üzərində yerinə yetirilən yığım, saxlama, ötürülmə və emal əməliyyatları necə adlanır?",
+    "options": [
+      "informasiya prosesi",
+      "informasiya məhsulu",
+      "informasiya miqdarı",
+      "informasiya sistemi",
+      "informasiya istehlakı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "27.",
+    "question": "İnformasiya prosesləri nəyin ayrılmaz tərkib hissəsidir?",
+    "options": [
+      "informasiya texnologiyalarının",
+      "maddi məhsul istehsalı və satışı proseslərinin",
+      "kənd təsərrüfatı məhsullarının istehsalı proseslərinin",
+      "sənaye məhsullarının istehsalı proseslərinin",
+      "qida məhsullarının istehsalı proseslərinin"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "28.",
+    "question": "Aprel ayında 532 saylı nomenklatura ilə 500 litr yağ istehsal olunub.Bunlardan hansı əsas rekvizitdir?",
+    "options": [
+      "500 litr",
+      "532 saylı nomenklatura",
+      "Aprel ayı",
+      "İstehsal olunub",
+      "Yağ"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "29.",
+    "question": "....hər hansı məlumatlardır və onların mənasının olub-olmamasının  elə bir önəmi yoxdur?",
+    "options": [
+      "Verilənlər",
+      "Bilik",
+      "Prosessor",
+      "İnformasiya",
+      "Giriş qurğuları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "30.",
+    "question": "İnformasiyanın əldə edilməsi,toplanması hansı informasiya prosesinin xüsusi halıdır?",
+    "options": [
+      "İnformasiyanın qəbulu",
+      "İnformasiyanın silinməsi",
+      "informasiyanın saxlanması",
+      "İnformasiyanın ötürülməsi",
+      "İnformasiyanın emalı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "31.",
+    "question": "Taktil informasiya hansı duyğu orqanı ilə alınır?",
+    "options": [
+      "dəri",
+      "ağız",
+      "göz",
+      "dil",
+      "qulaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "32.",
+    "question": "Müxtəlif qiymətləndirilmələrə görə hansı növ informasiya aldığımız ümumi informasiyanın 90%-ni təşkil edir?",
+    "options": [
+      "vizual",
+      "dad",
+      "səs",
+      "audial",
+      "taktil"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "Temperaturun ölçülməsi hansı prosesdir?",
+    "options": [
+      "informasiyanın axtarışı və emalı",
+      "informasiyanın qorunması",
+      "informasiyanın ötürülməsi",
+      "informasiyanın mübadiləsi",
+      "informasiyanın saxlanması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "34.",
+    "question": "Kompüterin daxili yaddaşında informasiya necə təsvir olunur:",
+    "options": [
+      "diskret",
+      "qrafiki",
+      "qismən fasiləsiz",
+      "qismən diskret",
+      "fasiləsiz"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "35.",
+    "question": "İT sahəsində Big Data nə deməkdir?",
+    "options": [
+      "böyük həcmli və mürəkkəb məlumatlar",
+      "yalnız şəkillər",
+      "kiçik fayllar",
+      "video oyunlar",
+      "kiçik həcmli məlumatlar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "36.",
+    "question": "IT abreviaturası nəyi ifadə edir?",
+    "options": [
+      "İnformation Technology",
+      "İnternal Transmission",
+      "İnformal Typing",
+      "İnternet Tools",
+      "İnformation Transmission"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "10-luq say sistemində verilmiş rəqəmləri fərqli ən kiçik üçrəqəmli ədədi ikilik say sistemində ifadə edin:",
+    "options": [
+      "1100110",
+      "100",
+      "1100001",
+      "1100010",
+      "1100111"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "Mövqesiz say sistemidir:",
+    "options": [
+      "XC",
+      "AB16",
+      "F116",
+      "8A16",
+      "C116"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "39.",
+    "question": "142(10) ədədini 16-lıq say sistemində ifadə edin.",
+    "options": [
+      "8E(16)",
+      "29B(16)",
+      "814(16)",
+      "148(16)",
+      "BE(16)"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "40.",
+    "question": "10110(2) ikilik ədədini 10-luq say sistemində ifadə edin:",
+    "options": [
+      "22(10)",
+      "20(10)",
+      "19(10)",
+      "21(10)",
+      "10(10)"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "41.",
+    "question": "Kodlaşdırmanın məqsədi nədir?",
+    "options": [
+      "informasiyanı saxlamaq,ötürmək və emal etmək",
+      "informasiyanı çap etmək",
+      "informasiyanı başa düşülməz etmək",
+      "informasiyanı çətinləşdirmək",
+      "informasiyanı silmək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "Multimedia nə deməkdir?",
+    "options": [
+      "mətn,şəkil,səs,video və animasiyanın birlikdə istifadəsi",
+      "yalnız şəkillərin təqdim olunması",
+      "yalnız səsin istifadəsi",
+      "yalnız video təqdimatı",
+      "yalnız mətnin təqdim olunması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "43.",
+    "question": "Kompüterlərdə bütün məlumatın 0 və 1-lərlə saxlanmasının səbəbi nədir?",
+    "options": [
+      "elektron sxemlərin yalnız iki vəziyyəti ayırd edə bilməsi",
+      "faylları şifrələmək üçün",
+      "informasiyanı çətinləşdirmək üçün",
+      "insan üçün rahat olması",
+      "faylları kiçiltmək üçün"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "44.",
+    "question": "İnformasiyanın ölçü vahidlərini artan sıra ilə yerləşdirin. 1.Kilobayt, 2.Bit ,3.Giqabayt ,4.Meqabayt ,5.Bayt ,6.Terabayt",
+    "options": [
+      "2.5.1.4.3.6",
+      "6.4.3.1.5.2",
+      "5.2.1.6.4.3",
+      "1.2.3.4.5.6",
+      "2.1.5.4.3.6"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "\"Binary digit\" nədir?",
+    "options": [
+      "bit",
+      "meqabit",
+      "bayt",
+      "meqabayt",
+      "kilobayt"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "46.",
+    "question": "Bir say sistemində ilk 12 ədəd 0,1,2,3,a,b,10,11,12.13,1a,1b şəklində təsvir olunmuşdursa,bu mövqeli say sisteminin əsasını müəyyən edin.",
+    "options": [
+      "6",
+      "9",
+      "8",
+      "7",
+      "11"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "47.",
+    "question": "Say sisteminin əsası nədir?",
+    "options": [
+      "say sistemində iştirak edən rəqəmlərin sayı",
+      "say sisteminin orta rəqəmi",
+      "say sisteminin rəqəmləri cəmi",
+      "say sisteminin ən böyük rəqəmi",
+      "say sisteminin ən kiçik rəqəmi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "48.",
+    "question": "\"İnformasiya prosesi\" ifadəsi ASCII əlifbasında kodlaşdırılarsa,onun informasiya həcmini müəyyən edin.(\"\" işarəsi nəzərə alınmıır)",
+    "options": [
+      "19 bayt",
+      "152 bayt",
+      "18 bayt",
+      "19 bit",
+      "17 bit"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "Səkkizlik say sistemində ən böyük ikirəqəmli ədəd hansıdır?",
+    "options": [
+      "77",
+      "10",
+      "78",
+      "7",
+      "88"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "50.",
+    "question": "Hansı ədəd 8-lik say sisteminin ədədi ola bilməz?",
+    "options": [
+      "824",
+      "764",
+      "1000",
+      "364",
+      "244"
+    ],
+    "answer": "A"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+showQuestion();
+</script>
+<script>
+nextBtn.onclick = async function() {
+    originalNextHandler();
+};
+</script>
+</body>
+</html>
