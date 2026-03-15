@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADIAK Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+ .back-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+}
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="/exam-quiz" class="back-btn">⟵ Geri Qayıt</a>
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+  {
+    "number": "1.",
+    "question": "“Azərbaycan dilində işgüzar və akademik kommunikasiya” fənni nəyi tədqiq etmir?",
+    "options": [
+      "fəlsəfi kateqoriyaları",
+      "akademik, elmi fəaliyyətdə ictimai nitq ünsiyyətinin xüsusiyyətlərini",
+      "dinləyicilərə məqsədyönlü təsir göstərməyi",
+      "peşəkar ictimai nitqin yaradılması qanunauyğunluqlarını",
+      "kommunikasiya prosesinin ümumi nəzəri əsaslarını"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "2.",
+    "question": "Akademik nitq natiqlik sənətinin bir növü olaraq  nə vaxt formalaşmışdır?",
+    "options": [
+      "Antik dövrdə, eramızdan əvvəl V əsrdə",
+      "eramızdan əvvəl VI əsrdə",
+      "eramızdan əvvəl 427-347-ci illərdə",
+      "eramızdan əvvəl III əsrdə",
+      "eramızdan əvvəl IV əsrdə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "3.",
+    "question": "Bir nöqtədən, qurğudan və şəxsdən digərinə müəyyən rabitə kanalı ilə məlumatın ötürülməsi hansı kommunikasiyanın xüsusiyyətidir?",
+    "options": [
+      "texniki",
+      "semantik",
+      "tətbiqi",
+      "təcrübi",
+      "praqmatik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "4.",
+    "question": "Kommunikativ situasiyanın komponentlərinə daxil deyil:",
+    "options": [
+      "İştirakçıların təlimatlandırılması",
+      "nitqin mövzusu (predmeti)",
+      "nitq müəllifinin obrazı",
+      "kommunikativ niyyət (intensiya)",
+      "nitq adresatının obrazı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "Kommunikativ niyyət (intensiya) nədir?",
+    "options": [
+      "Kommunikasiya prosesində nəticəyə nail olmaq səyidir..",
+      "Işgüzar kommunikasiya emosionallığıdır.",
+      "Təşkilatın fəaliyyət qaydasını müəyyən edən qaydalar məcmusudur.",
+      "Kommunikasiya nın funksional xarakter daşımasıdır.",
+      "Ünsiyyətin müəyyən komponenetlərinin və şərtlərinin məcmusudur."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "İnformasiyanın məzmununun qəbuledici tərəfindən başa düşülməsi şərtilə verilməsi və qəbul edilməsi hansı kommunikasiyanın xüsusiyyətidir?",
+    "options": [
+      "semantik",
+      "texniki",
+      "tətbiqi",
+      "praqmatik",
+      "təcrübi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "7.",
+    "question": "Verilənlərdən biri işgüzar kommunikasiyaya aid deyil:",
+    "options": [
+      "Çoxsaylı auditoriyaya müraciətlə söylənilən nitqdir.",
+      "Funksional xarakter daşıyır.",
+      "Müəyyən bir fəaliyyət növünü: istehsal, kommersiya və s. təşkil edir.",
+      "Reqlamentləşdirilir.",
+      "İyerarxik xarakter daşıyır."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "8.",
+    "question": "Akademik nitqdə etos nədir?",
+    "options": [
+      "akademik nitqin mənəvi dəyər komponenti",
+      "empirik əsas",
+      "mövzu sahəsinə maraq",
+      "tərəqqiyə inam",
+      "professional təşəbbüskarlıq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "9.",
+    "question": "“Verilən informasiyanın qəbuledicinin fəaliyyətinə təsiri və səmərəli istifadə edilməsi” Qeyd edilən xüsusiyyət aiddir:",
+    "options": [
+      "praqmatik kommunikasiya",
+      "semantik kommunikasiya",
+      "informasiya mübadiləsi",
+      "texniki kommunikasiya",
+      "informasiyanın ötürülməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "10.",
+    "question": "“Azərbaycan dilində işgüzar və akademik kommunikasiya” fənninin tədrisinə aid deyil:",
+    "options": [
+      "Mülki-hüquqi mülkiyyət münasibətlərini nizamlamaq",
+      "Tələbələrdə kommunikativ bacarıqları inkişaf etdirmək",
+      "İşgüzar və akademik kommunikasiya nəzəriyyəsi və təcrübəsi sahəsində biliklər vermək",
+      "Tələbələrdə şifahi və yazılı işgüzar və akademik kommunikasiya vərdişlərini formalaşdırmaq",
+      "İşgüzar kommunikasiyanın ən təsirli üsulları və formalarına əsaslanaraq, gələcəkdə tələbələrə peşəkar fəaliyyətlərini həyata keçirməyə imkan verəcək kommunikativ səlahiyyətləriformalaşdırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "Biri işgüzar kommunikasiyanın növlərinə aiddir:",
+    "options": [
+      "şəxslərarası kommunikasiya",
+      "bisnes kommunikasiyası",
+      "ailə kommunikasiyası",
+      "fərdi kommunikasiya",
+      "müəssisədaxili kommunikasiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "12.",
+    "question": "Şəxslərarası kommunikasiyanın funksiyasına hansı aid deyil?",
+    "options": [
+      "innovativ",
+      "informatik",
+      "interpretativ",
+      "ekspressiv",
+      "praqmatik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "13.",
+    "question": "Verilənlər hansı liderlik tipinə aiddir:\n“... üç əsas liderlik üslubunun birləşməsindən istifadə edir ”.",
+    "options": [
+      "çevik lider",
+      "rəylərin lideri",
+      "xarizmatik lider",
+      "demokratik lider",
+      "nominal lider"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "14.",
+    "question": "Verilənlərdən biri bədən dilinin tərkib hissələrinə aid deyil?",
+    "options": [
+      "rollar",
+      "mimika",
+      "bədənin duruşu",
+      "proksemika",
+      "jestlər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "Verilənlər hansı liderlik üslubuna aiddir:\n“......tabeçiliyində olanlara hörmət edir, başqalarının fikir söyləmək hüquqlarını qəbul edir, idarəetmə səlahiyyətlərini mərkəzləşdirir”.",
+    "options": [
+      "demokratik (kollegial) lider",
+      "çevik lider",
+      "bürokratik lidder",
+      "situativ lider",
+      "xarizmatik lider"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "16.",
+    "question": "Hansı mərhələ qrupun formalaşmasında kommu­ni­kasiya prosesi mərhələsi deyil:",
+    "options": [
+      "barışıq mərhələsi",
+      "etiraz mərhələsi",
+      "əməkdaşlıq mərhələsi",
+      "formalaşma mərhələsi",
+      "normallaşdırma mərhələsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "17.",
+    "question": "Kiçik qrupların əsas əlamətlərinə aid deyil:",
+    "options": [
+      "qrup üzvlərinin şəxsi maraqları",
+      "üzvlər arasında kommunikasiya",
+      "ümumi qrup hissləri və münasibətləri",
+      "ümumi fəaliyyət formaları",
+      "qrup rollarının bölüşdürülməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "18.",
+    "question": "“Əsas fəaliyyəti qrup təşkil edənlərin rifahına yönəlir”. Söhbət hansı liderlik tipindən gedir?",
+    "options": [
+      "insanyönümlü lider",
+      "çevik lider",
+      "xarizmatik lider",
+      "rəylərin lideri",
+      "avtoritar lider"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "19.",
+    "question": "Biri şəxslərarası kommunikasiya prosesinin struktur modellərində mütləq komponent kimi qeyd olunmayıb",
+    "options": [
+      "İnformasiya prosesinə nəzarət (nəzarətçi);",
+      "İnformasiya necə göndərilir (kanal);",
+      "İnformasiya kimə göndərilir (alıcı);",
+      "Nə göndərilir (informasiyanın məzmunu",
+      "İnformasiyanı kim göndərir (göndərən);"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "Şəxslərarası müqavimətin aradan qaldırılması, ümumi məsələlərin həlli qrupun formalaşmasında kommunikasiya prosesinin hansı mərhələsinə aiddir?",
+    "options": [
+      "əməkdaşlıq mərhələsinə",
+      "normallaşdırma mərhələsinə",
+      "normativ mövqelərin müəyyənləşdirilməsi mərhələsinə",
+      "formalaşma mərhələsinə",
+      "etiraz mərhələsinə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Kommunikativ vərdişlərə aşağıdakılardan biri aid deyil:",
+    "options": [
+      "kommunikativ tərəfdaşlıq",
+      "kommunikativ taktika",
+      "kommunikativ niyyət",
+      "kommunikativ məqsəd",
+      "kommunikativ strategiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "22.",
+    "question": "İşgüzarsöhbət prosesində hansı prinsipə əməl olunmalıdır?",
+    "options": [
+      "Söhbət zamanı tərəfdaşın psixi vəziyyətini anlamaq",
+      "Həmsöhbətin şəxsi zonasına müdaxilə etmək",
+      "Özü ilə həmsöhbət arasında fərqi vurğulamaq",
+      "Həmsöhbətin sözünü kəsmək",
+      "Söhbətin tempini qəsdən sürətləndirmək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "23.",
+    "question": "Hansı İşgüzar kommunikasiya formasında nəticə olaraq saziş, müqavilə, qərarların qəbul edilməsi tələb olunur?",
+    "options": [
+      "işgüzar danışıq",
+      "mətbuat konfransı",
+      "işgüzar  diskussiya",
+      "telefon söhbətləri",
+      "işgüzar söhbət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "24.",
+    "question": "Aşağıdakılardan hansı şifahi işgüzar ünsiyyətin dioloji növlərinə aid deyil?",
+    "options": [
+      "məruzə",
+      "işgüzar söhbət",
+      "müşavirələr",
+      "isgüzar iclas",
+      "işgüzar danışıqlar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "25.",
+    "question": "Telefonla işgüzar söhbətə hazırlıq zamanı siz aşağıdakıları bacarmalı və yerinə yetirməlisiniz. Səhv cavabı göstərin:",
+    "options": [
+      "Telefon danışığını  kobud, sərt tonda aparmaq",
+      "Işə aidiyyəti olan zəruri sənədləri, həmçinin təqvim və qeyd kitabçasını hazırlamaq",
+      "Sualları və onların təqdim olunmasını dəqiqliklə düşünüb müəyyənləşdirmək",
+      "Danışığın məqsədini və onun aparılma taktikasını dəqiq müəyyənləşdirmək",
+      "Danışığın planını tərtib etmək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "26.",
+    "question": "Danışıqlara hazırlığın əsas elementlərindən biri yanlışdır:",
+    "options": [
+      "Tərəfdaşın nəzər-nöqtəsinə diqqətsizlik",
+      "Problemlərin həlli üçün tərəfdaşların axtarılması",
+      "Danışıqların planının və proqramının hazırlanması",
+      "Danışıqların predmetinin müəyyənləşdirilməsi",
+      "Nümayəndə heyətinin tərkibinə mütəxəssislərin seçilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "27.",
+    "question": "İşgüzar söhbətin uğurlu olmasına yardım edən faktorlardan səhv olanı göstərin:",
+    "options": [
+      "informasiya mübadiləsi",
+      "yumor və ironiya",
+      "müəyyən ritm",
+      "gözlənilməzlik elementi",
+      "professional biliklər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "28.",
+    "question": "Verilənlərdən biri işgüzar söhbətin ümumi strukturuna aid deyil:",
+    "options": [
+      "həmsöhbətin sözünü kəsmək",
+      "söhbətin başlanğıcı: əlaqəyaratma",
+      "problemin irəli sürülməsi və informasiyanın ötürülməsi",
+      "görüşün yerini və vaxtını müəyyənləşdirmək",
+      "razılıqların əldə edilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "29.",
+    "question": "Aşağıdakılardan biri telefon danışığı kompozisiyasının əsas ünsürlərinə aid deyil",
+    "options": [
+      "telefon dialoqu zamanı məişət üslubuna aid olan  sözlərdən, həmçinin qeyri-formal xitablardan istifadə edilməsi",
+      "həmsöhbətin işin məğzi ilə tanış edilməsi",
+      "vəziyyətin müzakirəsi",
+      "yekun sözü",
+      "qarşılıqlı təqdim olunma"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "30.",
+    "question": "Verilənlərdən biri danışıqlara hazırlığın əsas elementlərinə aid deyil:",
+    "options": [
+      "danışıqların plan və proqramının olmaması",
+      "özünün və tərəfdaşların maraqlarının aydınlaşdırılması",
+      "problemlərin həlli üçün tərəfdaşların axtarılması",
+      "danışıqların predmetinin müəyyənləşdirilməsi",
+      "nümayəndə heyətinin tərkibinə mütəxəssislərin seçilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "31.",
+    "question": "“Etiket” sözü mənşəcə hansı dilə aiddir?",
+    "options": [
+      "fransız",
+      "latın",
+      "ingilis",
+      "ərəb",
+      "fars"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "32.",
+    "question": "Aşağıdakılardan biri işgüzar eiketin prinsiplərinə aid deyil:",
+    "options": [
+      "ətrafdakılara diqqətsizlik",
+      "zahiri görünüş",
+      "savadlılıq",
+      "dəqiqlik",
+      "məxfilik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "İşgüzar ünsiyyət başa çatdıqdan sonra hansı vidalaşma etiketindən istifadə edilmir?",
+    "options": [
+      "Ən səmimi arzularımı bildirirəm.",
+      "Xudahafiz.",
+      "Sağ olun.",
+      "Allah amanında.",
+      "Görüşənədək."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "34.",
+    "question": "Verilənlərdən biri nitq etiketinin formalarına aid deyil:",
+    "options": [
+      "təlqin",
+      "tanışlıq",
+      "vidalaşma",
+      "müraciət",
+      "salamlaşma"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "35.",
+    "question": "Etiketin əsasını nə təşkil edir?",
+    "options": [
+      "sadə davranış qaydaları",
+      "vulqar sözlərdən istifadə",
+      "düzgün qrammatik qaydalar",
+      "stilistik qaydalara riayət etmək",
+      "ədəbsiz ifadələr"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "36.",
+    "question": "Biri insanlara münasibətin zahiri göstəricilərinə aid deyil:",
+    "options": [
+      "dünyagörüşü",
+      "geyim",
+      "ictimai yerlərdə davranma qaydaları",
+      "manera",
+      "müraciət formaları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "“İnsanın zahiri görünüşü və məziyyətləri barədə söylənən xoş sözlərdir.” Verilən fikir komplimentin hansı növünə aiddir?",
+    "options": [
+      "kübar kompliment",
+      "adi kompliment",
+      "xüsusi kompliment",
+      "işgüzar kompliment",
+      "qeyri-rəsmi kompliment"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "Xarici görünüş etiketinə nələr daxildir?",
+    "options": [
+      "səliqəli, zövqlü geyim tərzi, saç düzümü",
+      "nümunəvi hesab edilən hərəkətlər",
+      "səlis və aydın nitq",
+      "mədəni ünsiyyət və nitq davranışını tənzimləyən etik qaydalar",
+      "nəzakətli rəftar, hərəkət və davranışlar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "39.",
+    "question": "Etiketin tərkib hissələri hansılardır?",
+    "options": [
+      "Xarici görünüş, nitq və davranış etiketi",
+      "Hörmət,nəzakət və etibarlılıq",
+      "Səmimiyyət, nizam və məxfilik",
+      "Nitq etiketi, səliqəlilik və savadliliq",
+      "Zahiri görünüş, davranış və identifikasiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "40.",
+    "question": "“. . . hər bir xalqın dilində onun milli təfəkkürünə, etnoqrafiyasına uyğun olaraq işlədilən ifadələrdir” cümləsində nöqtələrin yerinə hansı ifadə yazılmalıdır?",
+    "options": [
+      "nitq etiketləri",
+      "nitq fəaliyyəti",
+      "işgüzar ünsiyyət",
+      "ədəbi dil",
+      "danışıq mədəniyyəti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "41.",
+    "question": "Aşağıdakılardan biri çətin dinləyicilər qrupuna aid deyil:",
+    "options": [
+      "sərbəst",
+      "sözkəsən",
+      "məntiqli",
+      "yalançı",
+      "asılı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "Nitq fəaliyyətinnin növlərinə daxil deyil:",
+    "options": [
+      "hərəkət",
+      "dinləmə",
+      "yazı",
+      "oxu",
+      "danışma"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "43.",
+    "question": "\"Bu tipli dinləyicilər elə təsəvvür yaradırlar ki, guya qarşı tərəfi çox diqqətlə dinləyirlər\". Söhbət hansı çətin dinləyicidən gedir?",
+    "options": [
+      "yalançı",
+      "asılı",
+      "xəyalpərəst",
+      "sözkəsən",
+      "məntiqli"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "44.",
+    "question": "Verilənlərdən biri dilə aid deyil:",
+    "options": [
+      "Xətt üzrə təşkil olunur.",
+      "Səviyyələr üzrə təşkil olunur.",
+      "Abstraktdır.",
+      "Obyektivdir.",
+      "Daimidir."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "Verilən fikir hansı çətin dinləyiciyə aiddir: \"Öz daxili dünyası, daxili problemləri ilə yaşayır, daim bu problemləri götürqoy edir\"",
+    "options": [
+      "xəyalpərəst",
+      "asılı",
+      "sözkəsən",
+      "məntiqli",
+      "yalançı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "46.",
+    "question": "Aşağıdakılardan biri refleksiv dinləməyə aid deyil:",
+    "options": [
+      "qeyri-verbal reaksiya",
+      "hisslərin əks olunması",
+      "aydınlaşdırma",
+      "ifadəni dəyişmə",
+      "həmsöhbətlə əks əlaqə qurmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "47.",
+    "question": "Nitq kommunikasiyası nədir?",
+    "options": [
+      "Məlumatın dil vasitəsilə ötürülməsi və qavranılmasını özündə ehtiva edən bir fəaliyyətdir.",
+      "Dil vasitəsilə insanların ünsiyyət (kommunikasiya) formasıdır.",
+      "Eyni bir dil kollektivinin üzvləri ilə əlaqə üçün danışanların dildən istifadə etməsidir.",
+      "İnsanın ünsiyyət və zehni fəaliyyət vasitəsi kimi xidmət edən əlamətlər sistemidir.",
+      "Sırf qrammatik və sintaktik kateqoriyadır."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "48.",
+    "question": "“Danışıq əsnasında bu tipli dinləyicilər öz ağlına gələnləri unutmaqdan ehtiyatlanan olurlar”. Söhbət hansı çətin dinləyicidən gedir?",
+    "options": [
+      "sözkəsən",
+      "yalançı",
+      "məntiqli",
+      "xəyalpərəst",
+      "asılı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "Qeyri-refleksiv dinləmə nədir?",
+    "options": [
+      "Həmsöhbətin nitqinə replikaları və rəylərı ilə mane olmadan maksimal dərəcədə fikrin cəmlənməsidir.",
+      "Xəbərin həqiqi əhəmiyyətinin aşkar edilməsidir.",
+      "Hisslərin əks olunmasıdır.",
+      "Mesajların mənasını açmaq və həmsöhbətlə fəal şəkildə əks əlaqə qurmaq prosesidir.",
+      "Uğurlu ünsiyyətin açarıdır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "50.",
+    "question": "Kommunikasiya mədəniyyətinin əsasını təşkil edir:",
+    "options": [
+      "danışıq standartlarını bilmək və ünsiyyət məqsədəuyğunluğu prinsipinə riayət etmək",
+      "səviyyələr üzrə təşkil olunması",
+      "məlumatın dil vasitəsilə ötürülməsi və qavranılması",
+      "konkret məqamlara nitq fəaliyyəti ilə müdaxilə etmək",
+      "eyni bir dil kollektivinin üzvləri ilə əlaqə üçün danışanların dildən istifadə etməsi"
+    ],
+    "answer": "A"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+// Start quiz
+showQuestion();
+</script>
+<script>
+nextBtn.onclick = async function() {
+    originalNextHandler();
+};
+</script>
+</body>
+</html>
