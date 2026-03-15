@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maliyye Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+
+ .back-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+}
+ 
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="/exam-quiz" class="back-btn">⟵ Geri Qayıt</a>
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+  {
+    "number": "1.",
+    "question": "Maliyyə hesabatlarının hazırlanması nədən ibarətdir?",
+    "options": [
+      "Maliyyə məlumatının yazılması, təhlili və ümumiləşdirilməsi",
+      "Иalansın tərtib olunması",
+      "Vergilərin hesablanması",
+      "Kreditlərin bağlanması",
+      "İşçi maaşlarının verilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "2.",
+    "question": "Kommersiya müəssisələrinin əsas məqsədi:",
+    "options": [
+      "Mənfəət əldə etmək",
+      "Dövlət büdcəsini formalaşdırmaq",
+      "Sosial yardımlar göstərmək",
+      "Vergidən azad olmaq",
+      "Sərmayəni azaltmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "3.",
+    "question": "Aşağıdakılardan hansı aktivə misaldır?",
+    "options": [
+      "Zavod və avadanlıqlar",
+      "Bank krediti",
+      "Hesablamış əmək haqqı",
+      "Vergi borcu",
+      "Öhdəliklər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "4.",
+    "question": "Kommersiya müəssisələrinin neçə əsas növü var?",
+    "options": [
+      "3",
+      "2",
+      "4",
+      "6",
+      "5"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "Mənfəət:",
+    "options": [
+      "Gəlirlərin xərcləri aşan hissəsi",
+      "Yalnız satışdan əldə edilən gəlir",
+      "Xərclərin gəlirləri aşan hissəsi",
+      "Yalnız pul vəsaitləri",
+      "Sadəcə kapital artımı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "İdarəetmə uçotunun əsas məqsədi nədir?",
+    "options": [
+      "Rəhbərliyi zəruri məlumatla təmin etmək",
+      "Auditoru məlumatlandırmaq",
+      "Yalnız işçilərin maaşını hesablamaq",
+      "Vergi orqanlarına hesabat təqdim etmək",
+      "Cəmiyyətə şəffaflıq yaratmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "7.",
+    "question": "Fərdi ticarətçilər",
+    "options": [
+      "özləri üçün işləyən insanlardır",
+      "beş və ya daha çox insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "iki və ya daha çox insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "iki insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "öz sahiblərini (səhmdarlarını) «məhdud məsuliyyətlə» təmin etmək məqsədilə yaradılır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "8.",
+    "question": "Maliyyə hesabatlarının əsas növləri hansılardır?",
+    "options": [
+      "Maliyyə vəziyyəti haqqında hesabat və Mənfəət-zərər haqqında hesabat",
+      "Vergi hesabatı",
+      "Pul vəsaitlərinin hərəkəti haqqında hesabatı",
+      "Balans",
+      "Debitor borcları siyahısı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "9.",
+    "question": "Mühasibat uçotu nəyi əks etdirir?",
+    "options": [
+      "Müəssisənin maliyyə nəticələrini və maliyyə vəziyyətini",
+      "İşçi xərclərini",
+      "Müəssisənin gəlirlərini",
+      "Sərmayə artımını",
+      "Vergi ödənişlərini"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "10.",
+    "question": "Aşağıdakılardan hansı kapitala aid deyil?",
+    "options": [
+      "Bank krediti",
+      "İlkin investisiya",
+      "Səhmdar kapitalı",
+      "Səhmlər",
+      "Sahibkarın qoyduğu vəsait"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "Partnyorluqlar",
+    "options": [
+      "iki və ya daha çox insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "özləri üçün işləyən insanlardır",
+      "öz sahiblərini (səhmdarlarını) «məhdud məsuliyyətlə» təmin etmək məqsədilə yaradılır.",
+      "minimum beş və ya daha çox insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "minimum üç və ya daha çox insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "12.",
+    "question": "Hansı hesabat keçmiş fəaliyyət barədə məlumat verir?",
+    "options": [
+      "Maliyyə hesabatı",
+      "Büdcə hesabatı",
+      "Proqnoz hesabatı",
+      "Marketinq hesabatı",
+      "Perspektiv hesabat"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "13.",
+    "question": "Mühasibat uçotunda gəlirlərə misal nədir?",
+    "options": [
+      "Malların satışı zamanı əldə olunan məbləğ",
+      "Bank kreditlərinin qaytarılması",
+      "Vergi ödənişləri",
+      "İşçi maaşları",
+      "İstehsalat xərcləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "14.",
+    "question": "“Öhdəlik” anlayışı nəyi bildirir?",
+    "options": [
+      "Başqa şəxslərə olan borclar",
+      "Mənfəətin bölüşdürülməsi",
+      "Yalnız dövlətə ödənişlər",
+      "Aktivlərin ümumi dəyəri",
+      "Sahibkarın qoyduğu kapital"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "Məhdud məsuliyyətli cəmiyyətlər",
+    "options": [
+      "öz sahiblərini (səhmdarlarını) «məhdud məsuliyyətlə» təmin etmək məqsədilə yaradılır",
+      "iki və ya daha çox insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "beş və ya daha çox insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "iki insanın birlikdə bizneslə məşğul olmaq qərarını verdiyi anda yaranır",
+      "özləri üçün işləyən insanlardır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "16.",
+    "question": "Maliyyə vəziyyəti haqqında (Balans)hesabatında aktivlər bərabərdir:",
+    "options": [
+      "Kapital və öhdəliklərə",
+      "Gəlirlərə",
+      "Mənfəətə",
+      "Öhdəliklərə",
+      "Kapitala"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "17.",
+    "question": "Məhdud məsuliyyətli cəmiyyətin üstünlükləri:",
+    "options": [
+      "Səhmdarlar yalnız qoyduqları vəsait qədər məsuliyyət daşıyır",
+      "Qanunvericilikdən azaddır",
+      "Səhmlərin ötürülməsi mümkünsüzdür",
+      "Büdcə hesabatı təqdim etmir",
+      "Səhmdarlar şəxsi əmlakı ilə məsuliyyət daşıyır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "18.",
+    "question": "İdarəetmə uçotu ilə maliyyə uçotu arasındakı əsas fərq:",
+    "options": [
+      "İdarəetmə uçotu müəssisənin düzgün inkişaf strategiyasını hazırlamaq üçün tərtib olunur.",
+      "Heç bir fərq yoxdur",
+      "Hər ikisi yalnız vergi orqanlarına hesabat verir",
+      "İdarəetmə uçotu yalnız işçilərə təqdim olunur",
+      "Maliyyə uçotu gələcək proqnozlara əsaslanır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "19.",
+    "question": "Aşağıdakılardan hansı maliyyə hesabatı istifadəçilərinin ehtiyaclarına aid deyil?",
+    "options": [
+      "Müəllimlərin qiymətləndirmə ehtiyacı",
+      "İşçilərin müəssisənin sabitliyini öyrənməsi",
+      "İnvestorların gəlir əldə etmə imkanı",
+      "Bankların borcun qaytarılma qabiliyyətini bilməsi",
+      "Vergi orqanlarının öhdəlikləri təyin etməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "Maliyyə hesabatlarının məqsədi:",
+    "options": [
+      "iqtisadi qərarların qəbulunda istifadəçilərə faydalı məlumat təqdim etmək",
+      "auditorlar üçün məlumat toplamaq",
+      "səhmdarların şəxsi maraqlarını təmin etmək",
+      "işçilərin maaşlarını hesablamaq",
+      "dövlət büdcəsini formalaşdırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Mühasibat uçotu konvensiyaları nəyi ifadə edir?",
+    "options": [
+      "Maliyyə hesabatlarının hazırlanmasında tətbiq olunan əsas prinsipləri",
+      "Vergi qanunvericiliyini",
+      "dövlət büdcəsi ilə bağlı qaydaları",
+      "Auditorların fəaliyyətini",
+      "əmək haqqı qaydalarını"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "22.",
+    "question": "“Fəaliyyətin fasiləsizliyi” konsepsiyası nə deməkdir?",
+    "options": [
+      "Müəssisənin yaxın gələcəkdə fəaliyyətini davam etdirəcəyi fərziyyəsi",
+      "Vergi güzəştlərinin tətbiqi",
+      "Müəssisənin dərhal ləğv olunması",
+      "İstehsalın dayandırılması",
+      "Aktivlərin yalnız satış dəyərinə görə qiymətləndirilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "23.",
+    "question": "Ədalətli təqdimat nəyi nəzərdə tutur?",
+    "options": [
+      "Maliyyə vəziyyətinin və nəticələrinin düzgün və obyektiv əks etdirilməsi",
+      "Aktivlərin şişirdilməsi",
+      "xərclərin azaldılması",
+      "gəlirin artırılması",
+      "Borcların gizlədilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "24.",
+    "question": "Hesablama (akkumulyasiya)metodu nə deməkdir?",
+    "options": [
+      "gəlir və xərclərin təsərrüfat əməliyyatının baş verdiyi dövrdə tanınması",
+      "sadəcə kapitalın artımı",
+      "vergilərin ödənilməsi",
+      "satışların uçotu",
+      "pul daxilolmalarına əsaslanma"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "25.",
+    "question": "Davamlılıq prinsipinə görə maliyyə hesabatlarında nə tələb olunur?",
+    "options": [
+      "Maddələrin təqdimatı dövrlər üzrə eyni olmalıdır",
+      "Yalnız gəlirlər göstərilməlidir",
+      "Hər il tam dəyişdirilməlidir",
+      "Yalnız borclar açıqlanmalıdır",
+      "Aktivlər gizlədilməlidir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "26.",
+    "question": "Ehtiyatlılıq prinsipi hansı hallarda tətbiq olunur?",
+    "options": [
+      "Gəlirlər şişirdilməməli, xərclər isə həddindən artıq azaldılmamalıdır.",
+      "Borclar gizlədilməlidir",
+      "Mənfəət artırılmalıdır",
+      "Gəlirlər həmişə azaldılmalıdır",
+      "Aktivlər artırılmalıdır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "27.",
+    "question": "Mühasibat uçotunda “müvafiqlik” nə deməkdir?",
+    "options": [
+      "İstifadəçilərin qərar verməsi üçün məlumatın faydalı olması",
+      "Əmək haqqı göstəriciləri",
+      "Dövlətə lazım olan məlumatların təqdim edilməsi",
+      "Ancaq bank krediti ilə bağlı məlumatlar",
+      "İnventar siyahısı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "28.",
+    "question": "Tamlıq prinsipi nəyi nəzərdə tutur?",
+    "options": [
+      "Bütün mühüm məlumatların açıqlanması",
+      "Borcların silinməsi",
+      "Gəlirlərin göstərilməsi",
+      "Xərclərin göstərilməsi",
+      "Aktivlərin gizlədilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "29.",
+    "question": "“Maddi məzmunun formadan üstünlüyü” konsepsiyası nəyi bildirir?",
+    "options": [
+      "Əməliyyatların hüquqi formasına deyil, iqtisadi məzmununa əsaslanması",
+      "Gəlirlərin gizlədilməsi",
+      "Hüquqi sənədlərə istinad olunması",
+      "Aktivlərin həmişə ilkin dəyəri ilə göstərilməsi",
+      "Pul axınına əsaslanması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "30.",
+    "question": "Maliyyə hesabatlarının əsas məqsədi:",
+    "options": [
+      "İstifadəçilərə düzgün iqtisadi qərar qəbul etmək üçün faydalı maliyyə məlumatlarını təqdim etmək",
+      "Vergi borcunu gizlətmək",
+      "Yalnız rəhbərliyin maraqlarını təmin etmək",
+      "Yalnız dövlət büdcəsini artırmaq",
+      "Səhmdarların şəxsi gəlirlərini artırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "31.",
+    "question": "1 №-li BMUS-a görə hansı fundamental fərziyyələri:",
+    "options": [
+      "ədalətli təqdimat, fəaliyyətin fasiləsizliyi, hesablama metodu, davamlılıq",
+      "Ədalətli təqdimat metodu",
+      "fəaliyyətin fasiləsizliyi, hesablama metodu, davamlılıq",
+      "ədalətli təqdimat, fəaliyyətin fasiləsizliyi",
+      "ehtiyatlılıq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "32.",
+    "question": "Əhəmiyyətlilik anlayışı ...",
+    "options": [
+      "məlumatın istifadəçilərin qərarlarına təsir edə bilməsidir",
+      "xırda səhvlərin düzəldilməsidir",
+      "gəlirlərin göstərilməsidir",
+      "aktivlərin gizlədilməsidir",
+      "borcların azaldılmasıdır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "Təqdim edilən maliyyə hesabatlarının keyfiyyətinə təsir edən amillər:",
+    "options": [
+      "etibarlılıq, tamlıq, neytrallıq",
+      "əhəmiyyətlilik, neytrallılıq",
+      "neytrallıq",
+      "etıbarlılıq, əhəmiyyətlilik",
+      "tamlıq, müqayisəlik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "34.",
+    "question": "Mühasibat uçotunun mahiyyəti:",
+    "options": [
+      "Mühasibat uçotu müəssisənin təsərrüfat fəaliyyəti prosesində baş vermiş bütün təsərrüfat əməliyyatlarının ardıcıl şəkildə, xronoloji qaydada, başdan-başa, ilkin sənədlər əsasında qeydiyyata alınması, qruplaşdırılması və sistemləşdirilməsindən ibarətdir",
+      "Mühasibat uçotu müəssisənin təsərrüfat fəaliyyəti prosesində baş vermiş əməliyyatlarının qismən hissəsindən ibarətdir.",
+      "Mühasibat uçotu müəssisənin təsərrüfat fəaliyyəti prosesində baş vermiş bütün təsərrüfat əməliyyatlarının xaotik şəkildə, xronoloji qaydada, başdan-başa, ilkin sənədlər əsasında qeydiyyata alınması sistemləşdirilməsindən ibarətdir",
+      "Mühasibat uçotu müəssisənin təsərrüfat fəaliyyəti prosesində baş vermiş əsas təsərrüfat əməliyyatlarının yığcam şəkildə, xronoloji qaydada, başdan-başa, ilkin sənədlər əsasında kitablara yazılması, qruplaşdırılması, sistemləşdirilməsi və yekunlaşdırılmasından ibarətdir",
+      "Mühasibat uçotu müəssisədə baş vermiş bütün təsərrüfat əməliyyatlarının ardıcıl şəkildə, xronoloji qaydada, başdan-başa, ilkin sənədlər əsasında kitab və jurnallara yazılaraq, qruplaşdırılması, sistemləşdirilməsi və yekunlaşdırılmaqla, balansın tərtib edilməsindən ibarətdir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "35.",
+    "question": "Hansı komponent maliyyə hesabatlarının tam toplusuna daxildir?",
+    "options": [
+      "mənfəət və zərər haqqında hesabat",
+      "audit rəyi",
+      "əmək haqqı siyahısı",
+      "büdcə hesabatı",
+      "balans"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "36.",
+    "question": "Mühasibat uçotu siyasəti nədir?",
+    "options": [
+      "müəssisənin maliyyə hesabatlarını hazırlamaq üçün seçdiyi üsullar və prinsiplər toplusu",
+      "müəssisənin maliyyə hesabatlarını hazırlamaq üçün seçdiyi üsullar",
+      "satış siyasəti",
+      "vergi siyasəti",
+      "bank siyasəti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "Ədalətli təqdimata nail olmaq üçün 1 №-li BMUS nəyi tələb edir?",
+    "options": [
+      "Müvafiq uçot siyasətlərinin seçilməsi və tətbiqi, məlumatların münasib, etibarlı, müqayisəli və anlaşılan təqdimatı",
+      "Aktivlərin şişirdilməsi",
+      "Gəlirlərin artırılması",
+      "Xərclərin gizlədilməsi",
+      "Borcların azaldılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "Ehtiyatlılıq prinsipinə görə zərərin tanınması necə olmalıdır?",
+    "options": [
+      "Gözlənilən zərərlər vaxtında nəzərə alınmalıdır",
+      "Zərər baş verəndən sonra tanınmalıdır",
+      "Zərərlər gəlir kimi tanınmalıdır",
+      "Zərərlər heç vaxt göstərilməməlidir",
+      "Zərərlər rəhbərlik istədikdə göstərilməlidir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "39.",
+    "question": "Mühasibat uçotu konvensiyalarının əsas rolu nədir?",
+    "options": [
+      "maliyyə hesabatlarının keyfiyyətli və etibarlı hazırlanmasını təmin etmək",
+      "vergilərin ödənilməsini təmin etmək",
+      "dövlət orqanlarına hesabat vermək",
+      "rəhbərliyin şəxsi maraqlarına xidmət etmək",
+      "auditorların maraqlarına xidmət etmək"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "40.",
+    "question": "Konseptual Əsaslara görə maliyyə hesabatlarının keyfiyyət xüsusiyyətlərindən biri hansıdır?",
+    "options": [
+      "anlaşılanlıq",
+      "xərclərin göstərilməsi",
+      "gəlirlərin gizlədilməsi",
+      "aktivlərin gizlədilməsi",
+      "dövlətin maraqları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "41.",
+    "question": "Mühasibat uçotunda məlumat mənbəyi nəyi ifadə edir?",
+    "options": [
+      "Əməliyyat və hadisələrin baş verdiyini təsdiq edən sənədi",
+      "Satış gəlirlərini",
+      "Mühasibat bərabərliyini",
+      "Öhdəlik və aktivlərin balansını",
+      "Hesab planını"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "Aşağıdakılardan hansı daxili məlumat mənbəyinə aiddir?",
+    "options": [
+      "Müəssisənin müştərisinə təqdim etdiyi hesab-faktura",
+      "Təchizatçıdan alınan hesab-faktura",
+      "Qəbz",
+      "Kredit notası",
+      "Debet notası"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "43.",
+    "question": "Xarici məlumat mənbəyi nə zaman yaranır?",
+    "options": [
+      "Digər müəssisələr tərəfindən sənəd təqdim edildikdə",
+      "Satış əməliyyatı baş vermədikdə",
+      "Maliyyə hesabatı tərtib olunduqda",
+      "Müəssisə daxilində əməliyyat aparıldıqda",
+      "Direktorlar şurası qərar qəbul etdikdə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "44.",
+    "question": "Satınalma sifarişi kim tərəfindən tərtib olunur?",
+    "options": [
+      "Alıcı tərəfindən",
+      "Bank tərəfindən",
+      "Vergi orqanı tərəfindən",
+      "Satıcı tərəfindən",
+      "Mühasib tərəfindən"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "Kredit notası nə məqsədlə hazırlanır?",
+    "options": [
+      "Satış fakturalarında səhvləri düzəltmək və geri qaytarmaları uçota almaq üçün",
+      "Ödəniş əmrlərini qeyd etmək üçün",
+      "Vergi dərəcələrini hesablamaq üçün",
+      "Müştəri sifarişlərini tərtib etmək üçün",
+      "Əməkhaqqı ödənişlərini hesablamaq üçün"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "46.",
+    "question": "Debet notası kim tərəfindən hazırlanır?",
+    "options": [
+      "Alıcı tərəfindən",
+      "Satıcı tərəfindən",
+      "Bank tərəfindən",
+      "Auditor tərəfindən",
+      "Vergi müfəttişi tərəfindən"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "47.",
+    "question": "Əmtəələrin göndərilməsinə dair sənəddə aşağıdakılardan hansının olması zəruridir?",
+    "options": [
+      "Göndərilmə tarixi, alıcının adı, əmtəələrin növü",
+      "Endirim faizi",
+      "Təchizatçının bank rekvizitləri",
+      "Qalıq dəyər",
+      "Əməkhaqqı məbləği"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "48.",
+    "question": "Aşağıdakı situasiyada hansı sənəd tərtib olunur: satıcı müştəriyə artıq qiymət hesablayıb?",
+    "options": [
+      "Kredit notası",
+      "Satınalma sifarişi",
+      "Debet notası",
+      "Əmtəə göndəriş sənədi",
+      "Qəbz"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "Qəbz hansı əməliyyatı təsdiq edir?",
+    "options": [
+      "Nağd ödənişin həyata keçirildiyini",
+      "Kreditin bağlandığını",
+      "Fakturanın ləğvini",
+      "Aktivin amortizasiya olunduğunu",
+      "Əmtəənin göndərildiyini"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "50.",
+    "question": "İkili yazılış prinsipinə görə hər bir əməliyyat necə uçota alınır?",
+    "options": [
+      "Debet və kredit yazılışları ilə",
+      "Cəmlə",
+      "Debetlə",
+      "Kreditlə",
+      "Faizlə"
+    ],
+    "answer": "A"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+showQuestion();
+</script>
+<script>
+nextBtn.onclick = async function() {
+    originalNextHandler();
+};
+</script>
+</body>
+</html>
