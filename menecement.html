@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menecement Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  #quiz-container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+ .back-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+}
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+  }
+  #question { 
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  .options-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .option-btn { 
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #333;
+  }
+  .option-btn:hover:not(:disabled) { 
+    background: #f8f9ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  .option-btn.selected {
+    border-width: 3px;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  #next-btn { 
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  #next-btn:hover { 
+    transform: scale(1.05);
+  }
+  #next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #result-container { 
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .score-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 20px 0;
+  }
+  .score-percentage {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .mistakes-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .mistakes-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+  .mistake-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-question {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  .mistake-answers {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .your-answer {
+    color: #dc3545;
+    font-weight: 600;
+  }
+  .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .restart-btn {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  .restart-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="/exam-quiz" class="back-btn">⟵ Geri Qayıt</a>
+  <div id="quiz-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="question-header">
+      <span class="question-number" id="question-counter"></span>
+      <span class="question-number" id="score-counter">Düzgün: 0</span>
+    </div>
+    <p id="question"></p>
+    <div class="options-grid" id="options"></div>
+    <button id="next-btn" disabled>Növbəti Sual</button>
+  </div>
+  
+  <div id="result-container" style="display:none;">
+    <h2>Quiz Başa Çatdı! 🎉</h2>
+    <div class="score-display" id="score"></div>
+    <div class="score-percentage" id="percentage"></div>
+    
+    <div class="mistakes-section" id="mistakes-section" style="display:none;">
+      <h3>❌ Səhvlər və Düzgün Cavablar</h3>
+      <div id="mistakes-list"></div>
+    </div>
+    
+    <button class="restart-btn" onclick="location.reload()">Yenidən Başla</button>
+  </div>
+</div>
+
+<script>
+// Load your questions JSON here
+let questions = [
+  {
+    "number": "1.",
+    "question": "İdarəetmədə ən başlıca məqsəd:",
+    "options": [
+      "cəmiyyətin obyektiv imkanlarından istifadə olunmasını təmin etmək",
+      "müəyyən problemlərin həlli",
+      "İqtisadi, sosial, mənəvi inkişafın əlaqələndirilməsi",
+      "cəmiyyətin obyektiv imkanlarından istifadə olunmasını təmin etməmək",
+      "cəmiyyətdə baş verən bir çox sosial iqtisadi münasibətlərin qaydaya salınması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "2.",
+    "question": "Menecment fәaliyyәtindә әsas  cәhәt:",
+    "options": [
+      "işçilәrin sәyini, qabiliyyәtini, bacarığını qarşıya qoyulmuş mәqsәdlәrin icrasına yönәltmәkdir",
+      "işçilәrin motovasiyasını qarşıya qoyulmuş mәqsәdlәrin icrasına yönәltmәkdir",
+      "istehsalın tәşkili vә idarә edilmәsidir",
+      "insan resurslarının, onların iqtisadi fәal hissәsinin işlә tәmin olunmasıdır",
+      "işçilәrin avadanlıqdan istifadә sәviyyәsinin qiymәtlәndirilmәsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "3.",
+    "question": "Menecerin fәaliyyәt planına daxil deyil:",
+    "options": [
+      "әmәkdaşların motivasiyasını azaltmaq",
+      "uğurların miqyasının qiymәtlәndirilmәsi sistemini işlәmәk",
+      "fәaliyyәtin koordinasiyası",
+      "nəzarət etmək",
+      "әmәkdaşların motivasiyasını yüksәltmәk"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "4.",
+    "question": "Qәdim filosoflar cәmiyyәtin yoxsul vәziyyәtdә yaşamasını izah edirdilәr:",
+    "options": [
+      "Әdalәtli  idarәetmәnin olmaması ilә",
+      "Mәhsuldarlığın aşağı sәviyyәsi ilә",
+      "Qanunların olmaması ilə",
+      "Texnika vә texnologiyanın yaxşı inkişaf etmәmәsi ilә",
+      "Vergilәrin yüksәk olması ilә"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "“Menecment”  ifadəsi ilk dəfə istifadə edilmişdir:",
+    "options": [
+      "1886 –cı ildə",
+      "1920-ci ildə",
+      "1895-ci ildə",
+      "1911-ci ildə",
+      "1885-ci ildə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "Elmi menecment məktəbinin nümayəndəsi deyil:",
+    "options": [
+      "L. Urvik",
+      "Henri Qant",
+      "Frenk Cilbert",
+      "Lili Cilbert",
+      "F.U.Teylor"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "7.",
+    "question": "Qarşıya qoyulan məqsədə nail olmaq üçün əmək kollektivinə göstərilən məqsədəuyğun təsirlər kompleksi:",
+    "options": [
+      "Idarəetmə metodları",
+      "Idarəetmə funksiyaları",
+      "Idarəetmə prosesi",
+      "Idarəetmə qanuları",
+      "Idarəetmə prinsipləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "8.",
+    "question": "Elmi menecment məktəbi əhatə edir:",
+    "options": [
+      "1895-1920-ci illər",
+      "1920-1930-cu illər",
+      "1920-1950-ci illər",
+      "1950-dən sonra",
+      "1895-1930-cu illər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "9.",
+    "question": "İnzibati (klassik) məktəb əhatə edir:",
+    "options": [
+      "1920-1950-ci illər",
+      "1895-1920-ci illər",
+      "1920-1930-cu illər",
+      "1930-1950-ci illər",
+      "1950-dən sonra"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "10.",
+    "question": "İnsani münasibətlər məktəbi əhatə edir:",
+    "options": [
+      "1930-1950-ci illər",
+      "1895-1920-ci illər",
+      "1895-1930-cu illər",
+      "1920-1930-cu illər",
+      "1920-1950-ci illər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "İdarəetmə elmi və kəmiyyət yanaşması məktəbi əhatə edir:",
+    "options": [
+      "1950-dən sonra",
+      "1930-dan sonra",
+      "1920-dən sonra",
+      "1916-dan sonra",
+      "1850-dən sonra"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "12.",
+    "question": "“İşin yerinə yetirilməsi üçün dəqiq hazırlanmış əməliyyat və yaxşı əmək haqqı heç də həmişə əmək məhsuldarlığının yüksəldilməsini təmin etmir” fikirləri aiddir:",
+    "options": [
+      "E. Meyo",
+      "M.Follet",
+      "Taun",
+      "L.Urvik",
+      "A.Fayol"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "13.",
+    "question": "Menecment “Başqa şəxslərin köməkliyi ilə işin yerinə yetirilməsidir” fikrinin müəllifi:",
+    "options": [
+      "M.Follet",
+      "L.Urvik",
+      "A.Fayol",
+      "E. Meyo",
+      "Teylor"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "14.",
+    "question": "“İdarəetmə-qabaqcadan görmək, təşkil etmək, sərəncam vermək, razılaşdırmaq və nəzarətdir” fikrinin müəllifi:",
+    "options": [
+      "A.Fayol",
+      "L.Urvik",
+      "D.Muni",
+      "M.Follet",
+      "Druker"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "“Klassik vә ya inzibati mәktәbin”idarәetmәyә verdiyi töhfәyә aid olmayan variant :",
+    "options": [
+      "Tәşkilatın idarә olunmasına situasiyalı yanaşma",
+      "İdarәetmә funksiyalarının tәsviri.",
+      "Rəhbərlik üslubları",
+      "İdarәetmәyә proses şәklindә yanaşma.",
+      "Tәşkilatın idarә olunmasına sistemli yanaşma"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "16.",
+    "question": "İnzibati mәktәbin әsas mәqsәdi :",
+    "options": [
+      "İdarәetmәnin universal prinsipinin formalaşdırılması",
+      "Mәnfәәtin artırılması",
+      "İdarәetmәnin sosial aspektlәrinin öyrәnilmәsi",
+      "istehsalin tәkmillәşdirilmәsi",
+      "Әmәk mәhsuldarlığının yüksәldilmәsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "17.",
+    "question": "Elmi menecment mәktәbinin nümayәndәlәri işçilәrin әmәk mәhsuldarlığını aşağıdakı vasitә ilә artırmağı tәklif edirlәr:",
+    "options": [
+      "sistematik stimullaşdırma yolu ilә",
+      "maliyyә xәrclәrini artırmaq yolu ilә",
+      "istehsal xәrclәrinin azaldılması yolu ilә",
+      "yeni texnologiyalardan istifadә etmәklә",
+      "kadrlardan sәmәrәli istifadә etmәklә"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "18.",
+    "question": "“ İnsani münasibətlər məktəbinin ” əsasını qoyan amerikan sosioloqu və psixoloqu:",
+    "options": [
+      "E. Meyo",
+      "M.Follet",
+      "A.Fayol",
+      "A. Teylor",
+      "Taun"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "19.",
+    "question": "Menecment predmetinә aid deyil:",
+    "options": [
+      "Cәmiyyәtin fәaliyyәt göstәrmәsi qanunları, prinsiplәri.",
+      "Tәşkilatın idarә edilmәsi zamanı rәhbәredicı işçilәrin özlәrinin fәaliyyәti.",
+      "İdarәetmә prosesi zamanı insanlar arasında yaranan münasibәtlәr.",
+      "Tәşkilatın yaranması vә fәaliyyәt göstәrmәsi qanunları,prinsip vә metodları",
+      "Tәşkilatın idarә edilmәsi zamanı rәhbәredici işçilәrin fәaliyyәtinin әsasında dayanan qanunlar vә prinsiplәr."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "İnzibati mәktәbin әsas mәqsәdi :",
+    "options": [
+      "İdarәetmәnin universal prinsipinin formalaşdırılması",
+      "İdarәetmәnin sosial aspektlәrinin öyrәnilmәsi",
+      "istehsalın təkmilləşdirilməsi",
+      "Әmәk mәhsuldarlığının yüksәldilmәsi",
+      "Mәnfәәtin artırılması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Menecmentin iqtisadi mexanizminə aid deyil:",
+    "options": [
+      "Texnologiyanın idarəedilməsi",
+      "Işçi heyətinin idarəedilməsi",
+      "Firmadaxili idarəetmə",
+      "Kadrların yönləndirilməsi",
+      "Istehsalın idarəedilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "22.",
+    "question": "İdarәetmәnin mәrkәzlәşdirilmәsi:",
+    "options": [
+      "İdarәetmә funksiyalarının bir mәrkәzdә, bir әldә cәmlәnmәsidir",
+      "İdarәetmә mәrkәzinin yaradılmasıdır",
+      "İdarәetmә hәlqәlәri arasında üfüqi әlaqәlәrin yaradılması",
+      "Funksiya vә mәsuliyyәtin idarәetmәnin yuxarı sәviyyәsindәn aşağı sәviyyәsinә ötürülmәsidirdır",
+      "İdarәetmәdә mәrkәzlәşmә ilә qeyri-mәrkәzlәşmә arasında optimal әlaqәnin yaradılmasıdır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "23.",
+    "question": "İqtisadi metodların vəzifəsi:",
+    "options": [
+      "Maraqların maddi həvəsləndirmə mexanizmi vasitəsilə mümkün qədər tam və dolğun uyğunlaşdırılmasından ibarətdir.",
+      "Maraqların istehsalın səmərəliliyi mexanizmi vasitəsilə mümkün qədər tam və dolğun uyğunlaşdırılmasından ibarətdir",
+      "Maraqların maddi həvəsləndirmə mexanizmi vasitəsilə həyata keçirmək",
+      "Maraqların maddi həvəsləndirmə mexanizmi ilə qarışdırmamaq",
+      "Maraqların, ideyaların, davranışların toqquşmasından ibarətdir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "24.",
+    "question": "İnzibati metodlar:",
+    "options": [
+      "Heyət üzərində idarəetmə təsirlərini həyata keçirmək üsuludur və hakimiyyət, intizam və cərimələrə əsaslanı",
+      "Heyəti idarəetməyə iqtisadi qanunların və kateqoriyaların tətbiqi əsasında əsaslanır",
+      "İşçilərin daxili nizam qaydalarına riayət etməsinə nəzarətin həyata keçirilməsi",
+      "fəaliyyətin təkmilləşdirilməsi məsələləri üzrə təkliflərin verilməsidir;",
+      "heyәtin idarәetmә sisteminin formalaşması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "25.",
+    "question": "Metodların seçilməsi və tətbiqi aslıdır:",
+    "options": [
+      "idarə olunan obyekt və proseslərin, hadisələrin xarakterindən, məzmunundan",
+      "idarə olunan obyekt və proseslərin, məzmunundan",
+      "idarə olunan proseslərin, hadisələrin xarakterindən",
+      "idarәetmә funksiyalarından",
+      "idarə olunan subyekt və proseslərin, hadisələrin xarakterindən, məzmunundan"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "26.",
+    "question": "İdarəetmə metodu:",
+    "options": [
+      "idarəetmə subyektinin idarəetmə sisteminin strateji və taktiki məqsədlərinin praktik həyata keçirilməsi üzrə idarəetmə obyektinə təsir metodudur.",
+      "idarəetmə obyektinin idarəetmə sisteminin strateji və taktiki məqsədlərinin praktik həyata keçirilməsi üzrə idarəetmə subyektinə təsir metodudur.",
+      "İdarәetmә metodu dedikdә bir­ biri ilә әlaqәdә olan elementlәrin mәcmusu başa düşülür.",
+      "idarəetmə subyektinin idarəetmə sisteminin strateji və taktiki məqsədlərinin praktik həyata keçirilməsi üzrə idarəetmə obyektinə aid olması metodudur.",
+      "idarəetmə subyektinin idarəetmə sisteminin strateji məqsədlərinin praktik həyata keçirilməsi üzrə idarəetmə obyektinə təsir metodudur."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "27.",
+    "question": "İdarəetmənin əsas metodlarına aid deyil:",
+    "options": [
+      "ictimai",
+      "iqtisadi",
+      "təşkilati",
+      "sosial-psixoloji",
+      "Inzibati"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "28.",
+    "question": "İdarəetmənin obyekti deyildir:",
+    "options": [
+      "ictimai əmək bölgüsü və əmək kooperasiyası",
+      "cəmiyyətdə baş verən iqtisadi, siyasi, sosial və hüquqi proseslər",
+      "konkret  iqtisadiyyat sahəsi",
+      "iqtisadi qanunlar",
+      "bütövlükdə iqtisadiyyat  və cəmiyyət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "29.",
+    "question": "İdarәetmә metodları neçә qrupa bölünür?",
+    "options": [
+      "3",
+      "14",
+      "7",
+      "5",
+      "11"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "30.",
+    "question": "İnzibati-sәrәncam metodunun tәsir vasitәlәrinә aid deyil:",
+    "options": [
+      "sosial-iqtisadi tәsir",
+      "Yoxlama sistemi",
+      "inzibati-sәrәncamverici tәsir",
+      "sәrәncamverici tәsir",
+      "tәşkilati normalaşdırma"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "31.",
+    "question": "Təşkilatın daxili təsir amillərinə aid deyil:",
+    "options": [
+      "rəqiblər",
+      "kadrlar",
+      "məqsəd",
+      "Struktur",
+      "Vəzifə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "32.",
+    "question": "Öz təsərrüfat fəaliyyətlərini həyata keçirməkdə, buraxılan məhsula sərancam verməkdə, vergilər və digər məcburi ödəmələri ödədikdən sonra yerdə qalan mənfəət məbləğinə sərəncam verməkdə müstəqildir:",
+    "options": [
+      "Kiçik müəssisələr",
+      "İstehsal kooperativi",
+      "Səhmdar cəmiyyəti",
+      "Dövlət müəssisəsi",
+      "Fərdi müəsisələr"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "Arzu olunan nəticə və ya nəyəsə nail olmaq niyyəti:",
+    "options": [
+      "Məqsəd",
+      "Vəzifə",
+      "metod",
+      "Plan",
+      "Model"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "34.",
+    "question": "Dolayı təsir göstərən amillərə aid deyil:",
+    "options": [
+      "rəqiblər",
+      "milli və dini amillər",
+      "elmi-texniki tərəqqi",
+      "mədəni amillər",
+      "Məqsəd"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "35.",
+    "question": "Bilavasitə təsir göstərən amillərə aid deyil:",
+    "options": [
+      "sosial vəziyyət",
+      "vəzifə",
+      "kadrlar (əmək ehtiyatları)",
+      "tələbatçılar (istehlakçılar);",
+      "rəqiblər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "36.",
+    "question": "Dolayı xarici mühit amillәrinә aid deyil:",
+    "options": [
+      "әhalinin alıcılıq sәviyyәsi",
+      "iqtisadiyyatın inkişaf dinamikası",
+      "mәşğulluğun sәviyyәsi",
+      "xalqin mәnәvi-әxlaqi",
+      "ölkәnin demokratiklәşmә sәviyyәsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "Bilavasitə təsir göstərən amillərə aid deyil:",
+    "options": [
+      "elmi-texniki tərəqqi;",
+      "siyasi vəziyyət",
+      "tələbatçılar (istehlakçılar);",
+      "kadrlar (əmək ehtiyatları);",
+      "istehsalçılar (təminatçılar, mal göndərənlər);"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "Dolayı təsir amillərinə aid deyil:",
+    "options": [
+      "həmkarlar ittifaqları",
+      "elmi-texniki tərəqq",
+      "milli və dini amillər",
+      "siyasi vəziyyət;",
+      "iqtisadi vəziyyət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "39.",
+    "question": "Hər hansı bir şəxsin öz vəsaiti hesabına yaratdığı müəssisələr:",
+    "options": [
+      "fərdi müəssisələr",
+      "əlavə məsuliyyətli cəmiyyət",
+      "məhdud məsuliyyətli cəmiyyət",
+      "Dövlət müəssisəsi",
+      "istehsal kooperativi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "40.",
+    "question": "Fәrdi müәssisәlәrin üstün cәhәtini göstәrin:",
+    "options": [
+      "Motivasiyanın olması",
+      "Rәqabәt qabiliyyәtini zәif olması",
+      "İri müqyaslı tәdarükün hәyata keçirilmәsinin qeyri mәhdudluğu",
+      "İri miqyaslı istehsala nail olmağın az perspektivli olması",
+      "Biznesin ölçüsünün kapital çәrçivәsindә mәhdudluğu"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "41.",
+    "question": "Daxili mühit amillәrinə aiddir:",
+    "options": [
+      "mәqsәd, vәzifә, tәşkilati quruluş , heyәt",
+      "mәqsәd, vәzifә, inflyasiya",
+      "Tәşkilatı quruluş, heyәt, alıcılar",
+      "proqnozlaşdırma",
+      "taktika,strategiya,işsizlik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "A.Fayolun qeyd etdiyi prinsiplərə aid deyiıl:",
+    "options": [
+      "Operativ rəhbərlik",
+      "əməyin bölgüsü",
+      "Skalyar zəncir",
+      "Intizam",
+      "Vahid rəhbərlik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "43.",
+    "question": "A.Fayolun qeyd etdiyi prinsiplərin sayı:",
+    "options": [
+      "14",
+      "15",
+      "12",
+      "11",
+      "13"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "44.",
+    "question": "Dövlәt müәssisәsini digәrlәrindәn fәrqlәndirәn cəhət:",
+    "options": [
+      "Dövlәt müәssısәlәrindә tәsәrrüfatçılığın әsasını korporativlik tәşkil edir",
+      "Dövlәt müәssisәsinin xüsusi әmlak statusu onun tәsisçilәrinin mülkiyyәt hüququnu üzündә saxlamasındadır",
+      "Dövlәt müәssisәsinin orqanı tәkbaşına rәhbәrlikdir",
+      "Dövlәt müәssisәsinin xüsusi әmlak statusu onun tәsisçilәrinin  mülkiyyәt hüququnu üzündә saxlamasındadır vә yalnız mәhdud  әşya hüququ ilә әmlakın dövlәt müәssisәsinә tәhkim  edilmәsindәn ibarәtdir",
+      "Dövlәt müәssisәsinin әmlakı bölünmәzdir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "A.Fayolun idarәetmәnin ümumi prinsipinlәrindәn düzgün olmayanı:",
+    "options": [
+      "seçki heyəti",
+      "skalyar zəncir",
+      "korporativ ruh",
+      "Tәşәbbüs",
+      "əməyin bölgüsü"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "46.",
+    "question": "Ən sadә tәşkilati struktur:",
+    "options": [
+      "Xətti",
+      "Xәtti-funksional",
+      "Divizional",
+      "Matris",
+      "Məqsədli proqram"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "47.",
+    "question": "Ən mürәkkәb tәşkilati struktur:",
+    "options": [
+      "Matris",
+      "Divizional",
+      "Funksional",
+      "Xәttifunksional",
+      "Xәtti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "48.",
+    "question": "Tәşkilati quruluşun mahiyyәti:",
+    "options": [
+      "Әmәk bölgüsünü işçi tapşırıqlarına bölmәk vә onların hәlli üçün tәtbiq edilәn koordinasiya sistemidir",
+      "Birbiri ilә qarşılıqlı әlaqә vә asılılıqda olan vә fәaliyyәtlәri vahid mәqsәdә yönәlәn elementlәrin mәcmusudur",
+      "kadrların ixtisas sәviyyәsi",
+      "İnsanlara qarşı yönәlәn tәsir üsulu vә vasitәsidir",
+      "Qarşıya qoyulan mәqsәdә nail olmaq üçün fәaliyyәtlәri şüurlu şәkildә әlaqәlәndirilәn insan qrupudur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "..........  idarәedәn vә idarәolunan sistemlәr arasında qarşılıqlı әlaqәni ciddi tabeçilik әsasında tәmin edәn idarәetmә bölmәlәrinin mәcmusudur.",
+    "options": [
+      "Tәşkilati quruluşu",
+      "Plan",
+      "İdarәetmә metodu",
+      "Tәşkilat",
+      "Heyәti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "50.",
+    "question": "Menecmentdә sәlahiyyәt:",
+    "options": [
+      "İdarәetmәdә qәrar qәbul etmәk hüququdur..",
+      "Heyәtin tabe olma mexanizmidir",
+      "İdarәetmәdә sәlahiyyәtlәrin ötürülmәsidir.",
+      "Tәşkilatın fәaliyyәtinin әsas qaydalarıdır",
+      "İdarәetmәdә daşınan cavabdehlikdir"
+    ],
+    "answer": "A"
+  }
+];
+
+// Shuffle array function
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+// Prepare questions
+const originalQuestions = [...questions];
+questions = shuffleArray(questions);
+
+// Store correct answer for each question before shuffling options
+questions.forEach((q, idx) => {
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const correctOptionIndex = answerMap[q.answer];
+  const correctOption = q.options[correctOptionIndex];
+  
+  // Shuffle options
+  q.options = shuffleArray(q.options);
+  
+  // Find new index of correct answer after shuffle
+  q.correctOption = correctOption;
+  q.correctIndex = q.options.indexOf(correctOption);
+});
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = []; // Track user answers for review
+let selectedAnswer = null;
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  document.getElementById("progress").style.width = progress + "%";
+}
+
+function updateCounters() {
+  document.getElementById("question-counter").textContent = 
+    `Sual ${currentQuestionIndex + 1} / ${questions.length}`;
+  document.getElementById("score-counter").textContent = `Düzgün: ${score}`;
+}
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  selectedAnswer = null;
+  
+  document.getElementById("question").textContent = q.question;
+  
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn);
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById("next-btn").disabled = true;
+  updateProgress();
+  updateCounters();
+}
+
+function selectAnswer(selectedIndex, btnElement) {
+  const q = questions[currentQuestionIndex];
+  
+  // Disable all buttons after selection
+  const allButtons = document.querySelectorAll(".option-btn");
+  allButtons.forEach(btn => btn.disabled = true);
+  
+  selectedAnswer = selectedIndex;
+  const isCorrect = selectedIndex === q.correctIndex;
+  
+  // Store user answer
+  userAnswers.push({
+    question: q.question,
+    questionNumber: q.number,
+    userAnswer: q.options[selectedIndex],
+    correctAnswer: q.correctOption,
+    isCorrect: isCorrect
+  });
+  
+  // Highlight correct and incorrect answers
+  allButtons.forEach((btn, idx) => {
+    if (idx === q.correctIndex) {
+      btn.classList.add("correct");
+    } else if (idx === selectedIndex && !isCorrect) {
+      btn.classList.add("incorrect", "selected");
+    }
+  });
+  
+  if (isCorrect) {
+    score++;
+    updateCounters();
+  }
+  
+  document.getElementById("next-btn").disabled = false;
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+  
+  // Show mistakes
+  const mistakes = userAnswers.filter(a => !a.isCorrect);
+  
+  if (mistakes.length > 0) {
+    document.getElementById("mistakes-section").style.display = "block";
+    const mistakesList = document.getElementById("mistakes-list");
+    
+    mistakes.forEach((mistake, idx) => {
+      const mistakeDiv = document.createElement("div");
+      mistakeDiv.className = "mistake-item";
+      mistakeDiv.innerHTML = `
+        <div class="mistake-question">${idx + 1}. ${mistake.question}</div>
+        <div class="mistake-answers">
+          <div class="your-answer">❌ Sizin cavabınız: ${mistake.userAnswer}</div>
+          <div class="correct-answer">✓ Düzgün cavab: ${mistake.correctAnswer}</div>
+        </div>
+      `;
+      mistakesList.appendChild(mistakeDiv);
+    });
+  }
+}
+
+// Start quiz
+showQuestion();
+</script>
+<script>
+nextBtn.onclick = async function() {
+    originalNextHandler();
+};
+</script>
+</body>
+</html>
