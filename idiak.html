@@ -856,7 +856,7 @@ questions = shuffleArray(questions);
 
 // Store correct answer for each question before shuffling options
 questions.forEach((q, idx) => {
-  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3};
+  const answerMap = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4};
   const correctOptionIndex = answerMap[q.answer];
   const correctOption = q.options[correctOptionIndex];
   
