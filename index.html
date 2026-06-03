@@ -3,133 +3,278 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>İmtahan Testləri</title>
-<!-- Google tag (gtag.js) -->
-
+<title>Exam Quizzes</title>
 <style>
+  :root {
+    --bg: #f5f7fb;
+    --ink: #162033;
+    --muted: #647084;
+    --line: #dfe5ef;
+    --brand: #2563eb;
+    --brand-dark: #1d4ed8;
+    --good: #16a34a;
+    --amber: #f59e0b;
+    --shadow: 0 22px 70px rgba(25, 35, 55, 0.16);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  body {
+    color: var(--ink);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
-    display: flex;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.16), transparent 28%),
+      radial-gradient(circle at 84% 18%, rgba(245, 158, 11, 0.16), transparent 24%),
+      linear-gradient(180deg, #f8fbff 0%, var(--bg) 48%, #eef3f8 100%);
+  }
+
+  .page {
+    margin: 0 auto;
+    max-width: 1100px;
+    min-height: 100vh;
+    padding: clamp(22px, 5vw, 46px) 20px 28px;
+  }
+
+  .topbar {
     align-items: center;
-    justify-content: center;
-    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: clamp(34px, 7vw, 72px);
   }
-  .container {
-    max-width: 900px;
-    width: 100%;
+
+  .brand-pill,
+  .count-pill {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(26, 38, 62, 0.08);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    padding: 11px 14px;
+    text-transform: uppercase;
   }
-  .header {
-    text-align: center;
-    color: white;
-    margin-bottom: 40px;
+
+  .hero {
+    margin-bottom: 30px;
   }
-  .header h1 {
-    font-size: 48px;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+
+  .eyebrow {
+    color: var(--brand);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
-  .header p {
-    font-size: 18px;
-    opacity: 0.9;
+
+  h1 {
+    font-size: clamp(44px, 9vw, 92px);
+    letter-spacing: 0;
+    line-height: 0.9;
+    margin-top: 12px;
+    max-width: 760px;
   }
+
+  .hero p {
+    color: var(--muted);
+    font-size: clamp(16px, 2.4vw, 20px);
+    font-weight: 650;
+    line-height: 1.55;
+    margin-top: 18px;
+    max-width: 650px;
+  }
+
   .subjects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   }
+
   .subject-card {
-    background: white;
-    border-radius: 12px;
-    padding: 30px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    text-decoration: none;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 14px 34px rgba(22, 32, 51, 0.08);
     color: inherit;
-    display: block;
+    min-height: 172px;
+    overflow: hidden;
+    padding: 20px;
+    position: relative;
+    text-decoration: none;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   }
+
+  .subject-card::before {
+    background: linear-gradient(90deg, var(--brand), var(--good), var(--amber));
+    content: "";
+    height: 5px;
+    inset: 0 0 auto;
+    position: absolute;
+  }
+
   .subject-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    border-color: var(--brand);
+    box-shadow: 0 24px 54px rgba(37, 99, 235, 0.18);
+    transform: translateY(-6px) scale(1.01);
   }
+
+  .subject-card:active {
+    transform: translateY(-2px) scale(0.99);
+  }
+
   .subject-icon {
-    font-size: 64px;
-    margin-bottom: 15px;
+    align-items: center;
+    background: #eef4ff;
+    border-radius: 8px;
+    color: var(--brand-dark);
+    display: inline-flex;
+    font-size: 22px;
+    font-weight: 950;
+    height: 48px;
+    justify-content: center;
+    margin-bottom: 18px;
+    width: 48px;
   }
+
   .subject-card h2 {
-    font-size: 24px;
-    margin-bottom: 10px;
-    color: #333;
+    font-size: 26px;
+    line-height: 1;
   }
-  .subject-card p {
-    color: #666;
-    font-size: 14px;
-  }
-  .subject-card .question-count {
+
+  .question-count {
+    color: var(--muted);
     display: inline-block;
-    margin-top: 15px;
-    padding: 8px 16px;
-    background: #f0f0f0;
-    border-radius: 20px;
     font-size: 13px;
-    color: #667eea;
-    font-weight: 600;
+    font-weight: 850;
+    margin-top: 12px;
   }
+
   footer {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 750;
+    margin-top: 34px;
     text-align: center;
-    margin-top: 40px;
-    color: white;
-    opacity: 0.8;
+  }
+
+  @keyframes cardPing {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.24), 0 14px 34px rgba(22, 32, 51, 0.08); }
+    100% { box-shadow: 0 0 0 18px rgba(37, 99, 235, 0), 0 14px 34px rgba(22, 32, 51, 0.08); }
+  }
+
+  .subject-card.ping {
+    animation: cardPing 520ms ease-out both;
+  }
+
+  @media (max-width: 640px) {
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 34px;
+    }
+
+    .subject-card {
+      min-height: 146px;
+    }
   }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1>Quizlər</h1>
-    <p>Fənni seçin və başlayın</p>
+<main class="page">
+  <div class="topbar">
+    <div class="brand-pill">Exam Site</div>
+    <div class="count-pill">5 quizzes</div>
   </div>
-  
-  <div class="subjects-grid">
+
+  <section class="hero">
+    <div class="eyebrow">Pick a quiz</div>
+    <h1>Choose your exam run</h1>
+    <p>Start a subject, choose a 50-question part, and move through it with fast scroll cards, instant effects, and final review.</p>
+  </section>
+
+  <section class="subjects-grid" aria-label="Quiz subjects">
     <a href="adiak.html" class="subject-card">
-      <div class="subject-icon">📜</div>
+      <div class="subject-icon">AD</div>
       <h2>ADIAK</h2>
-      <span class="question-count">300 sual</span>
+      <span class="question-count">300 questions</span>
     </a>
 
-   <a href="idiak.html" class="subject-card">
-      <div class="subject-icon">📜</div>
+    <a href="idiak.html" class="subject-card">
+      <div class="subject-icon">ID</div>
       <h2>IDIAK</h2>
-      <span class="question-count">300 sual</span>
+      <span class="question-count">300 questions</span>
     </a>
 
     <a href="menecement.html" class="subject-card">
-      <div class="subject-icon">📜</div>
+      <div class="subject-icon">MN</div>
       <h2>Menecement</h2>
-      <span class="question-count">300 sual</span>
+      <span class="question-count">300 questions</span>
     </a>
 
     <a href="maliyye.html" class="subject-card">
-      <div class="subject-icon">📜</div>
+      <div class="subject-icon">MU</div>
       <h2>Maliyye Ucotu</h2>
-      <span class="question-count">300 sual</span>
+      <span class="question-count">300 questions</span>
     </a>
-    
-    <a href="ikt.html" class="subject-card">
-      <div class="subject-icon">📜</div>
-      <h2>IKT</h2>
-      <span class="question-count">300 sual</span>
-    </a>
-    
 
-  </div>
-  <footer>
-    <p>© 2025 MADE IN <b>N1GGALAND</b></p>
-  </footer>
-</div>
+    <a href="ikt.html" class="subject-card">
+      <div class="subject-icon">IK</div>
+      <h2>IKT</h2>
+      <span class="question-count">300 questions</span>
+    </a>
+  </section>
+
+  <footer>Static GitHub Pages quiz app</footer>
+</main>
+
+<script>
+let audioContext = null;
+
+function playCardSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const notes = [440, 587.33, 739.99];
+
+    notes.forEach((frequency, index) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + index * 0.045;
+      const end = start + 0.13;
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.13, start + 0.014);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (error) {
+    // Sound is optional.
+  }
+}
+
+document.querySelectorAll(".subject-card").forEach((card) => {
+  card.addEventListener("pointerenter", () => {
+    card.classList.remove("ping");
+    void card.offsetWidth;
+    card.classList.add("ping");
+  });
+
+  card.addEventListener("click", () => {
+    playCardSound();
+  });
+});
+</script>
 </body>
 </html>
