@@ -643,7 +643,7 @@
 </main>
 
 <script>
-// Change this config once when reusing the template for another quiz page.
+
 const QUIZ_CONFIG = {
   quizName: "ADIAK",
   pageTitle: "ADIAK Quiz",
@@ -654,7 +654,7 @@ const QUIZ_CONFIG = {
   questionCountLabel: "questions"
 };
 
-// Load your questions JSON here
+
 let questions = [
   {
     "number": "1.",
@@ -4299,6 +4299,8 @@ function applyConfig() {
   portionHeading.textContent = QUIZ_CONFIG.portionHeading;
 }
 
+mainMenuLink.addEventListener("click", playActionSound);
+
 function shuffleArray(array) {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
@@ -4340,7 +4342,10 @@ function renderPortions() {
     meta.textContent = `${portion.end - portion.start} ${QUIZ_CONFIG.questionCountLabel}`;
 
     button.append(range, meta);
-    button.addEventListener("click", () => startQuiz(portion));
+    button.addEventListener("click", () => {
+      playStartSound();
+      startQuiz(portion);
+    });
     portionGrid.appendChild(button);
   });
 }
@@ -4536,18 +4541,25 @@ function renderResult() {
   retry.className = "primary-btn";
   retry.type = "button";
   retry.textContent = "Retry";
-  retry.addEventListener("click", () => startQuiz(selectedPortion));
+  retry.addEventListener("click", () => {
+    playActionSound();
+    startQuiz(selectedPortion);
+  });
 
   const choose = document.createElement("button");
   choose.className = "ghost-btn";
   choose.type = "button";
   choose.textContent = "Select different portion";
-  choose.addEventListener("click", showPortionPicker);
+  choose.addEventListener("click", () => {
+    playActionSound();
+    showPortionPicker();
+  });
 
   const menu = document.createElement("a");
   menu.className = "ghost-btn";
   menu.href = QUIZ_CONFIG.homeUrl;
   menu.textContent = QUIZ_CONFIG.homeLabel;
+  menu.addEventListener("click", playActionSound);
 
   actions.append(retry, choose, menu);
   card.append(confetti, eyebrow, title, scoreDisplay, percentage, actions);
@@ -4641,7 +4653,66 @@ function playSound(isCorrect) {
       oscillator.stop(end + 0.02);
     });
   } catch (error) {
-    // Audio is optional; browser autoplay/audio restrictions should not block the quiz.
+
+  }
+}
+
+function playStartSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const notes = [
+      { frequency: 329.63, start: 0, duration: 0.1, volume: 0.16 },
+      { frequency: 493.88, start: 0.055, duration: 0.12, volume: 0.18 },
+      { frequency: 659.25, start: 0.12, duration: 0.16, volume: 0.2 }
+    ];
+
+    notes.forEach((note) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + note.start;
+      const end = start + note.duration;
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(note.frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(note.volume, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (error) {
+
+  }
+}
+
+function playActionSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(587.33, now);
+    oscillator.frequency.exponentialRampToValueAtTime(739.99, now + 0.09);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.15);
+  } catch (error) {
+
   }
 }
 
@@ -4666,7 +4737,7 @@ function playLockSound() {
     oscillator.start(now);
     oscillator.stop(now + 0.24);
   } catch (error) {
-    // Audio is optional.
+
   }
 }
 
@@ -4696,7 +4767,7 @@ function playFinishSound() {
       oscillator.stop(end + 0.02);
     });
   } catch (error) {
-    // Audio is optional.
+
   }
 }
 
