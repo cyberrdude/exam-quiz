@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --ink: #162033;
+    --muted: #647084;
+    --panel: #ffffff;
+    --line: #dfe5ef;
+    --brand: #2563eb;
+    --brand-dark: #1d4ed8;
+    --good: #16a34a;
+    --good-soft: #dcfce7;
+    --bad: #dc2626;
+    --bad-soft: #fee2e2;
+    --amber: #f59e0b;
+    --shadow: 0 22px 70px rgba(25, 35, 55, 0.16);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; scroll-behavior: smooth; }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.16), transparent 28%),
+      radial-gradient(circle at 84% 18%, rgba(245, 158, 11, 0.16), transparent 24%),
+      linear-gradient(180deg, #f8fbff 0%, var(--bg) 48%, #eef3f8 100%);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+  button, a { font: inherit; }
+  button { border: 0; }
+  .hidden { display: none !important; }
+
+  .app-topbar {
+    align-items: center; display: flex; gap: 14px; justify-content: space-between;
+    left: 50%; max-width: 980px; padding: 18px 20px; position: fixed; top: 0;
+    transform: translateX(-50%); width: min(100%, 980px); z-index: 10;
+  }
+  .back-btn, .ghost-btn, .primary-btn {
+    align-items: center; border-radius: 8px; cursor: pointer; display: inline-flex;
+    font-size: 14px; font-weight: 800; gap: 8px; min-height: 42px; padding: 10px 14px;
+    text-decoration: none; transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+  .back-btn, .ghost-btn {
+    background: rgba(255,255,255,0.88); border: 1px solid var(--line); color: var(--ink);
+    box-shadow: 0 10px 28px rgba(26,38,62,0.08);
+  }
+  .primary-btn { background: var(--brand); color: #fff; box-shadow: 0 14px 30px rgba(37,99,235,0.24); }
+  .back-btn:hover, .ghost-btn:hover, .primary-btn:hover { transform: translateY(-2px); }
+  .quiz-title {
+    background: rgba(255,255,255,0.88); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(26,38,62,0.08); color: var(--muted); font-size: 13px;
+    font-weight: 900; letter-spacing: 0.08em; padding: 11px 14px; text-transform: uppercase;
+  }
+  .portion-screen { align-items: center; display: flex; min-height: 100svh; padding: 96px 20px 34px; }
+  .portion-card {
+    background: rgba(255,255,255,0.92); border: 1px solid rgba(223,229,239,0.9); border-radius: 8px;
+    box-shadow: var(--shadow); margin: 0 auto; max-width: 980px; padding: clamp(22px,5vw,42px); width: 100%;
+  }
+  .eyebrow { color: var(--brand); font-size: 13px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+  h1 { font-size: clamp(34px,7vw,72px); letter-spacing: 0; line-height: 0.95; margin-top: 12px; max-width: 760px; }
+  .portion-copy { color: var(--muted); font-size: clamp(16px,2.4vw,20px); line-height: 1.55; margin-top: 16px; max-width: 680px; }
+  .portion-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 30px; }
+  .portion-btn {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 14px 34px rgba(22,32,51,0.08); color: var(--ink); cursor: pointer;
+    min-height: 98px; padding: 18px; text-align: left;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .portion-btn:hover { border-color: var(--brand); box-shadow: 0 18px 40px rgba(37,99,235,0.16); transform: translateY(-4px); }
+  .portion-range { display: block; font-size: 22px; font-weight: 900; }
+  .portion-meta { color: var(--muted); display: block; font-size: 13px; font-weight: 700; margin-top: 8px; }
+  .quiz-screen { height: 100svh; overflow: hidden; }
+  .quiz-hud {
+    left: 50%; max-width: 980px; padding: 70px 20px 0; pointer-events: none;
+    position: fixed; top: 0; transform: translateX(-50%); width: min(100%, 980px); z-index: 9;
+  }
+  .hud-row {
+    align-items: center; background: rgba(255,255,255,0.9); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: 0 12px 30px rgba(26,38,62,0.08); display: grid;
+    gap: 12px; grid-template-columns: 1fr auto; padding: 10px 12px;
+  }
+  .progress-track { background: #e6edf6; border-radius: 999px; height: 10px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--brand), var(--good)); height: 100%; transition: width 0.25s ease; width: 0; }
+  .score-pill { color: var(--ink); font-size: 13px; font-weight: 900; min-width: 92px; text-align: right; }
+  .question-feed { height: 100svh; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
+  .question-slide {
+    align-items: center; display: flex; min-height: 100svh; padding: 132px 20px 34px;
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
+  .question-card, .result-card {
+    background: rgba(255,255,255,0.96); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: var(--shadow); margin: 0 auto; max-width: 860px; overflow: hidden;
+    padding: clamp(20px,4vw,34px); position: relative; width: 100%;
+  }
+  .question-card.correct-answer { animation: cardCorrectImpact 0.72s cubic-bezier(0.2,1.4,0.32,1) both; box-shadow: 0 26px 86px rgba(22,163,74,0.34); }
+  .question-card.wrong-answer { animation: cardWrongImpact 0.62s ease both; box-shadow: 0 26px 86px rgba(220,38,38,0.3); }
+  .question-meta { align-items: center; color: var(--muted); display: flex; font-size: 13px; font-weight: 900; justify-content: space-between; margin-bottom: 18px; text-transform: uppercase; }
+  .question-text { font-size: clamp(18px,2.7vw,26px); font-weight: 800; letter-spacing: 0; line-height: 1.35; }
+  .options-grid { display: grid; gap: 12px; margin-top: 24px; }
+  .option-btn {
+    align-items: center; background: #fff; border: 2px solid var(--line); border-radius: 8px;
+    color: var(--ink); cursor: pointer; display: grid; font-size: clamp(14px,2vw,17px);
+    font-weight: 700; gap: 12px; grid-template-columns: 36px 1fr; line-height: 1.45;
+    min-height: 62px; overflow: hidden; padding: 12px 14px; position: relative;
+    text-align: left; transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--brand); transform: translateY(-2px); }
+  .option-letter {
+    align-items: center; background: #eef4ff; border-radius: 8px; color: var(--brand-dark);
+    display: inline-flex; font-weight: 900; height: 36px; justify-content: center; width: 36px;
+  }
+  .option-btn.correct { animation: correctPulse 0.72s cubic-bezier(0.2,1.4,0.32,1) both; background: var(--good-soft); border-color: var(--good); color: #14532d; box-shadow: 0 0 0 7px rgba(22,163,74,0.16), 0 16px 34px rgba(22,163,74,0.24); }
+  .option-btn.incorrect { animation: wrongShake 0.58s ease both; background: var(--bad-soft); border-color: var(--bad); color: #7f1d1d; box-shadow: 0 0 0 7px rgba(220,38,38,0.14), 0 16px 34px rgba(220,38,38,0.2); }
+  .option-btn.dimmed { opacity: 0.55; }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.locked-ahead { cursor: not-allowed; opacity: 0.4; }
+  .scroll-hint { color: var(--muted); font-size: 13px; font-weight: 800; margin-top: 12px; }
+  .confetti { inset: 0; overflow: hidden; pointer-events: none; position: absolute; }
+  .confetti i { animation: confettiDrop 1200ms ease-out forwards; background: var(--brand); border-radius: 2px; height: 18px; left: 50%; opacity: 0; position: absolute; top: 38%; width: 9px; }
+  .confetti .x-particle { animation: xBurst 900ms cubic-bezier(0.12,0.72,0.2,1) forwards; color: var(--bad); font-size: 34px; font-weight: 950; left: 50%; line-height: 1; opacity: 0; position: absolute; text-shadow: 0 8px 24px rgba(127,29,29,0.38); top: 42%; }
+  .answer-flash { inset: 0; opacity: 0; pointer-events: none; position: fixed; z-index: 40; }
+  .answer-flash.correct { animation: flashCorrect 620ms ease-out both; background: radial-gradient(circle at center, rgba(34,197,94,0.34), rgba(34,197,94,0.12) 34%, transparent 72%); }
+  .answer-flash.incorrect { animation: flashWrong 620ms ease-out both; background: radial-gradient(circle at center, rgba(239,68,68,0.34), rgba(239,68,68,0.12) 34%, transparent 72%); }
+  .answer-flash.locked { animation: flashLocked 760ms ease-out both; background: radial-gradient(circle at center, rgba(245,158,11,0.36), rgba(245,158,11,0.14) 34%, transparent 72%); }
+  .skip-toast {
+    align-items: center; background: rgba(255,251,235,0.96); border: 1px solid rgba(245,158,11,0.42);
+    border-radius: 8px; box-shadow: 0 18px 42px rgba(146,64,14,0.18); color: #92400e;
+    display: flex; font-size: 15px; font-weight: 950; gap: 10px; left: 50%; opacity: 0;
+    padding: 13px 16px; pointer-events: none; position: fixed; top: 128px;
+    transform: translate(-50%, -12px) scale(0.96); z-index: 50;
+  }
+  .skip-toast.show { animation: toastPop 1050ms ease both; }
+  .question-card.lock-bounce { animation: lockBounce 720ms ease both; box-shadow: 0 26px 86px rgba(245,158,11,0.34); }
+  .result-card { text-align: center; }
+  .result-card.finished { animation: resultPop 900ms cubic-bezier(0.2,1.35,0.34,1) both; box-shadow: 0 30px 96px rgba(37,99,235,0.28); }
+  .score-display { color: var(--brand); font-size: clamp(54px,12vw,110px); font-weight: 950; line-height: 1; margin-top: 16px; }
+  .score-percentage { color: var(--muted); font-size: 20px; font-weight: 800; margin-top: 8px; }
+  .result-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 24px; }
+  .mistakes-section { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; margin-top: 24px; max-height: 34vh; overflow-y: auto; padding: 16px; text-align: left; }
+  .mistake-item { background: #fff; border-left: 4px solid var(--bad); border-radius: 8px; margin-top: 12px; padding: 12px; }
+  .mistake-question { font-weight: 800; line-height: 1.45; }
+  .your-answer { color: var(--bad); font-weight: 800; margin-top: 8px; }
+  .correct-answer { color: var(--good); font-weight: 800; margin-top: 4px; }
+
+  @keyframes correctPulse { 0% { transform: scale(1); } 35% { transform: scale(1.055); } 70% { transform: scale(0.992); } 100% { transform: scale(1); } }
+  @keyframes wrongShake { 0%, 100% { transform: translateX(0); } 15% { transform: translateX(-11px) rotate(-0.8deg); } 30% { transform: translateX(10px) rotate(0.8deg); } 45% { transform: translateX(-8px) rotate(-0.6deg); } 60% { transform: translateX(6px) rotate(0.4deg); } 75% { transform: translateX(-3px); } }
+  @keyframes cardCorrectImpact { 0% { transform: scale(1); } 38% { transform: scale(1.018); } 100% { transform: scale(1); } }
+  @keyframes cardWrongImpact { 0%, 100% { transform: translateX(0); } 18% { transform: translateX(-8px); } 36% { transform: translateX(8px); } 54% { transform: translateX(-5px); } 72% { transform: translateX(3px); } }
+  @keyframes confettiDrop { 0% { opacity: 1; transform: translate(0,0) rotate(0deg) scale(1); } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(520deg); } }
+  @keyframes xBurst { 0% { opacity: 0; transform: translate(0,0) rotate(0deg) scale(0.5); } 16% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1.25); } }
+  @keyframes flashCorrect { 0% { opacity: 0; transform: scale(0.9); } 20% { opacity: 1; } 100% { opacity: 0; transform: scale(1.18); } }
+  @keyframes flashWrong { 0% { opacity: 0; transform: scale(0.92); } 18% { opacity: 1; } 100% { opacity: 0; transform: scale(1.12); } }
+  @keyframes flashLocked { 0% { opacity: 0; transform: scale(0.92); } 22% { opacity: 1; } 100% { opacity: 0; transform: scale(1.16); } }
+  @keyframes toastPop { 0% { opacity: 0; transform: translate(-50%,-12px) scale(0.96); } 16% { opacity: 1; transform: translate(-50%,0) scale(1.02); } 78% { opacity: 1; transform: translate(-50%,0) scale(1); } 100% { opacity: 0; transform: translate(-50%,-10px) scale(0.98); } }
+  @keyframes lockBounce { 0%, 100% { transform: translateY(0) scale(1); } 18% { transform: translateY(-12px) scale(1.012); } 38% { transform: translateY(8px) scale(0.996); } 58% { transform: translateY(-5px); } 78% { transform: translateY(2px); } }
+  @keyframes resultPop { 0% { opacity: 0; transform: translateY(34px) scale(0.92); } 54% { opacity: 1; transform: translateY(-8px) scale(1.025); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+  @media (max-width: 680px) {
+    .app-topbar { padding: 12px; }
+    .quiz-title { display: none; }
+    .quiz-hud { padding: 60px 12px 0; }
+    .question-slide { padding: 118px 12px 24px; }
+    .question-card, .result-card, .portion-card { padding: 18px; }
+    .option-btn { grid-template-columns: 32px 1fr; min-height: 58px; padding: 10px; }
+    .option-letter { height: 32px; width: 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<header class="app-topbar">
+  <a href="index.html" class="back-btn" id="main-menu-link"></a>
+  <div class="quiz-title" id="quiz-title"></div>
+</header>
+
+<main>
+  <section class="portion-screen" id="portion-screen">
+    <div class="portion-card">
+      <div class="eyebrow" id="portion-eyebrow"></div>
+      <h1 id="portion-heading"></h1>
+      <p class="portion-copy" id="portion-copy"></p>
+      <div class="portion-grid" id="portion-grid"></div>
+    </div>
+  </section>
+
+  <section class="quiz-screen hidden" id="quiz-screen">
+    <div class="quiz-hud">
+      <div class="hud-row">
+        <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+        <div class="score-pill" id="score-counter">0 / 0</div>
+      </div>
+    </div>
+    <div class="question-feed" id="question-feed" aria-live="polite"></div>
+  </section>
+</main>
+
+<script>
+const QUIZ_CONFIG = {
+  quizName: "Idareetme",
+  pageTitle: "Idareetme Quiz",
+  homeUrl: "index.html",
+  homeLabel: "Main Menu",
+  portionEyebrow: "Choose your run",
+  portionHeading: "Which part do you want to start?",
+  questionCountLabel: "questions"
+};
+
+let questions = [
+  {
+    "number": "1.",
+    "question": "Aşağıdakılardan hansı idarəetmə uçotunun tərkib hissələrinə aiddir?",
+    "options": [
+      "istehsalat uçotu",
+      "operativ uçot",
+      "vergi və inzibati uçot",
+      "texniki uçot",
+      "müəssisənin maliyyə vəziyyətinin idarə edilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "2.",
+    "question": "Alan Apçerçə görə “məlumatlar” (data) nədir?",
+    "options": [
+      "“Xammal” faktları və rəqəmləridir, yalnız gələcəkdə emal edilməklə informasiya olurlar",
+      "Yığılması, emalı və ümumiləşdirilməsindən sonra alınan, qərar qəbulu üçün hazır nəticələrdir",
+      "Müəssisənin maliyyə hesabatlarında əks etdirilən yekun göstəricilərdir",
+      "Yalnız strateji qərarlar üçün istifadə olunan proqnoz göstəriciləridir",
+      "Yalnız müəssisədənkənar mənbələrdən əldə edilən faktlardır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "3.",
+    "question": "Maliyyə uçotunun normativ tənzimlənməsi neçə pilləli sistem üzrə həyata keçirilir?",
+    "options": [
+      "4",
+      "2",
+      "3",
+      "5",
+      "6"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "4.",
+    "question": "İdarəetmə uçotu informasiyasına qoyulan tələblər hansılardır?",
+    "options": [
+      "obyektivlik, operativlik, səmərəlilik, analitiklik, relevantlıq, etibarlılıq",
+      "Müqayisəlilik və etibarlılıq",
+      "Həqiqilik və dəqiqlik",
+      "Həqiqilik",
+      "operativlik"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "İdarəetmə uçotu informasiyanı hansı zaman dövrü üzrə formalaşdırır?",
+    "options": [
+      "Həm keçmiş, həm də gələcəkdə baş verəcək əməliyyatlar və hadisələr üzrə",
+      "Yalnız keçmiş əməliyyatlar və hadisələr üzrə",
+      "Yalnız gələcəkdə baş verəcək əməliyyatlar və hadisələr üzrə",
+      "Yalnız cari ilin əməliyyatları üzrə",
+      "Yalnız hesabat dövrünün sonunda baş vermiş hadisələr üzrə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "İdarəetmə uçotu nədir?",
+    "options": [
+      "prosesin və müəssisənin idarə edilməsi arasında əlaqə yaradan həlqədir",
+      "məsrəflər və fəaliyyətin nəticələri üzrə informasiyanın təhlilidir",
+      "müəssisənin idarəetmə prosesidir",
+      "uçot prosesidir",
+      "mühasibat uçotunun tərkib hissəsidir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "7.",
+    "question": "İdarəetmə uçotunun aparılması necə tənzimlənir?",
+    "options": [
+      "təşkilatın özünün istəyi ilə",
+      "beynəlxalq standartlar vasitəsilə",
+      "vergi orqanlarının tələbi ilə",
+      "milli standartlar vasitəsilə",
+      "qanunvericiliyin tələbi ilə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "8.",
+    "question": "İdarəetmə uçotunun elementləri mühasibat uçotuna hansı normativ sənədlərlə daxil edilmişdir?",
+    "options": [
+      "MMUS-ə əsasən",
+      "AR Vergi məcəlləsi əsasən",
+      "\"Mühasibat uçotu” haqqında AR Qanunu, AR-da mühasibat uçotu və mühasibat hesabatlarının aparılma tətbiqi qaydalarına əsasən",
+      "Uçot siyasətinə əsasən",
+      "Daxili siyasətə əsasən"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "9.",
+    "question": "İdarəetmə uçotunun əsas funksiyası nədir?",
+    "options": [
+      "Idarəetmə qərarlarının qəbulu prosesinin əsaslandırılması",
+      "Təsərrüfat fəaliyyəti faktlarını qeydə almaq",
+      "Planlaşdırma və büdcələşdirmə prosesinin əsaslandırılması",
+      "məhsulun (iş, xidmətin) maya dəyərinin formalaşdırılması",
+      "istehsal fəaliyyətinin qeydə alınması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "10.",
+    "question": "İdarəetmə uçotunun əsas məqsədi informasiyanın ... təqdim edilməsindən ibarətdir:",
+    "options": [
+      "daxili istifadəçilərə",
+      "icra hakimiyyəti orqanlarına",
+      "xarici istifadəçilərə",
+      "daxili istifadəçilərə və icra hakimiyyəti orqanlarına",
+      "ictimaiyyətə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "Nəzarətin hansı növləri fərqləndirilir?",
+    "options": [
+      "İlkin nəzarət, cari nəzarət və sonrakı nəzarət",
+      "Daxili nəzarət, xarici nəzarət və qarışıq nəzarət",
+      "Operativ nəzarət, taktiki nəzarət və strateji nəzarət",
+      "Planlı nəzarət, plandankənar nəzarət və təsadüfi nəzarət",
+      "Maliyyə nəzarəti, vergi nəzarəti və statistik nəzarət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "12.",
+    "question": "İdarəetmə uçotunda daxili informasiyanın keyfiyyəti qiymətləndirilərkən məlumatların dürüstlüyü (dəqiqliyi) ilə vaxtında təqdim olunması (operativliyi) arasında nə üçün kompromis edilir və operativlik ön plana çəkilir?",
+    "options": [
+      "Çünki idarəetmə qərarının vaxtında qəbul edilməsi üçün gecikdirilmiş dəqiq məlumat öz faydalılığını və əhəmiyyətini itirir.",
+      "idarəetmə uçotunda maliyyə göstəricilərini dəqiq hesablamaq texniki olaraq mümkün deyildi",
+      "idarəetmə uçotunun hesabatları kənar auditorlar və vergi orqanları üçün nəzərdə tutulur.",
+      "idarəetmə uçotunda yalnız keçmiş dövrün faktiki nəticələri əks etdirilməlidir.",
+      "Çünki idarəetmə uçotunda ikili yazılış və hesablar sistemindən tətbiq edilməsi qadağandır."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "13.",
+    "question": "İdarəetmə uçotunun metodlarını əks etdirəni göstərin",
+    "options": [
+      "Sənədləşmə, inventarizasiya, qiymət, qruplaşdırma, nəzarətedici hesablar, normalaşdırma, planlaşdırma və limitləşdirmə, təhlil və nəzarət",
+      "Qiymət",
+      "Sənədləşmə, inventarizasiya",
+      "Qiymət, qruplaşdırma, nəzarətedici hesablar, normalaşdırma, planlaşdırma və limitləşdirmə, təhlil və nəzarət",
+      "Kalkulyasiyalaşdırma"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "14.",
+    "question": "Aşağıda yazılanlardan hansı yanlışdır?",
+    "options": [
+      "Bölüşdürmə metodunun tətbiqi zamanı mal-material ehtiyatları dəyişkən istehsal məsrəflərinə uyğun dəyərləndirilir.",
+      "Bölüşdürmə metodu həm də tam məsrəf hesablanması kimi də tanınır",
+      "Qısa-müddətli dövr nəzərdən keçirilərsə, marjinal metod ilə hesablanmış maya dəyəri sabit qalır",
+      "Marjinal məsrəf elə məsrəfdir ki, məhsul istehsal olunmasaydı həmin məsrəfin yaranmasının qarşısı alına bilərdi",
+      "Uzunmüddətli dövr nəzərdən keçirilərsə, marjinal metod ilə hesablanmış maya dəyəri sabit qalmır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "Balanslaşdırılmış göstəricilər sistemi (BGS) fəaliyyəti hansı dörd tərkib üzrə əks etdirir?",
+    "options": [
+      "Maliyyə, müştəri, daxili biznes-proseslər və heyətin inkişafı",
+      "Maliyyə, vergi, kadr və marketinq",
+      "İstehsal, satış, təchizat və maliyyə",
+      "Xərclər, gəlirlər, nəticələr və risklər",
+      "Strateji, taktiki, operativ və maliyyə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "16.",
+    "question": "Baş (əsas) büdcə dedikdə bunlardan hansı nəzərdə tutulur?",
+    "options": [
+      "bütövlükdə müəssisə üçün tərtib olunan planların məcmusu",
+      "Müəssisənin satış planı",
+      "Müəssisənin əsas istehsalat bölmələri üçün tərtib olunan planların məcmusu",
+      "Filialların istehsal planlarının məcmusu",
+      "İnzibati xərclər planı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "17.",
+    "question": "Baş büdcənin hazırlanması prosesində ilkin başlanğıc nöqtə hansı büdcənin tərtibi hesab olunur?",
+    "options": [
+      "satış büdcəsi",
+      "satışın maya dəyəri büdcəsi",
+      "kommersiya xərcləri büdcəsi",
+      "istehsal büdcəsi",
+      "pul vəsaitləri hərəkəti üzrə büdcə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "18.",
+    "question": "Daxili idarəetmə hesabatlarının kütləvi informasiya vasitələrində dərc edilməsi həyata keçirilir?",
+    "options": [
+      "heç bir halda dərc olunmur",
+      "hər rüb",
+      "müəssisə rəhbəri dəyişdikdə",
+      "hər il",
+      "hər gün"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "19.",
+    "question": "Daxili nəzarət sisteminin zəif olması ilk növbədə hansı riskə səbəb olur?",
+    "options": [
+      "Səhvlər və fırıldaqçılıq riskinin artmasına",
+      "Mənfəətin avtomatik artmasına",
+      "Vergi yükünün azalmasına",
+      "Satışların sabit qalmasına",
+      "İstehsal xərclərinin yox olmasına"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "İdarəetmə qərarlarının hazırlanması və həyata keçirilməsində idarəetmə uçotu proseslərin bilavasitə neçə mərhələsini əhatə edir?",
+    "options": [
+      "4",
+      "3",
+      "2",
+      "5",
+      "6"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Aktivlər dedikdə nə başa düşülür?",
+    "options": [
+      "Keçmiş əməliyyatlar nəticəsində yaranan, müəssisənin nəzarətində olan və gələcəkdə iqtisadi mənfəət gətirməsi gözlənilən resurslardır",
+      "Aktivlər dedikdə müəssisənin qiymətli kağızları və pul vəsaitləri başa düşülür",
+      "Aktivlər dedikdə maddi və qeyri-maddi aktivləri başa düşülür",
+      "Aktivlər dedikdə müəssisənin uzunmüddətli aktivləri başa düşülür",
+      "Aktivlər dedikdə borclar başa düşülür"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "22.",
+    "question": "Beynəlxalq təcrübədə mühasibat uçotu hansı tərkib hissələrə bölünür?",
+    "options": [
+      "maliyyə və idarəetmə",
+      "maliyyə və statistika uçotu",
+      "operativ və statistik uçot",
+      "idarəetmə və büdcə uçotu",
+      "idarəetmə uçotunda"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "23.",
+    "question": "Effektiv idarəetmənin əsas şərti nədir?",
+    "options": [
+      "Doğru və vaxtında məlumatın olması",
+      "Yalnız böyük büdcənin olması",
+      "Yalnız işçilərin çox olması",
+      "Yalnız sabit xərclərin artması",
+      "Yalnız satışların yüksək olması"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "24.",
+    "question": "İqtisadi informasiya adətən hansı növlərə ayrılır?",
+    "options": [
+      "Plan, normativ, proqnoz və mühasibat uçotu informasiyası",
+      "Yalnız plan və normativ informasiya",
+      "Maliyyə, vergi və statistik informasiya",
+      "Daxili, xarici və qarışıq informasiya",
+      "İlkin, aralıq və yekun informasiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "25.",
+    "question": "İcbari qaydalarla aparılma daha çox uçotun hansı növünə aiddir?",
+    "options": [
+      "maliyyə uçotunda",
+      "idarəetmə uçotunda",
+      "operativ istehsalat uçotunda",
+      "statistik uçotda",
+      "vergi uçotunda"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "26.",
+    "question": "İdarəetmə uçotu aşağıdakılardan hansının altsistemini təşkil edir?",
+    "options": [
+      "mühasibat uçotunun",
+      "maliyyə uçotunun",
+      "statistik uçotunun",
+      "vergi uçotunun",
+      "büdcə uçotunun"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "27.",
+    "question": "Maliyyə uçotu hansı bazis bərabərliyinə əsaslanır?",
+    "options": [
+      "Aktivlər = Kapital + Öhdəliklər",
+      "Aktivlər = Kapital − Öhdəliklər",
+      "Aktivlər + Öhdəliklər = Kapital",
+      "Kapital = Gəlirlər + Xərclər",
+      "Öhdəliklər = Aktivlər + Kapital"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "28.",
+    "question": "İdarəetmə uçotu sisteminin iki başlıca xüsusiyyəti hansılardır?",
+    "options": [
+      "İnformasiyadan istifadə edənlərə istinad və məlumatların təqdim olunmasının operativliyi",
+      "Bazis bərabərliyinə əsaslanma və hesabatın mütləq dərc edilməsi",
+      "Ümumqəbuledilmiş standartlara uyğunluq və aparılmasının məcburiliyi",
+      "Yalnız keçmiş dövrlərə yönəlmə və informasiyanın sənədlərlə təsdiqi",
+      "Kənar istifadəçilərə yönəlmə və illik dövrülük"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "29.",
+    "question": "İdarəetmə uçotunun mühasibat uçotunun vahid sistemindən ayrılması aşağıdakılarla şərtlənir?",
+    "options": [
+      "idarəetmə uçotunun məqsədi və vəzifələri ilə",
+      "vergi orqanlarının tələbləri ilə",
+      "Maliyyə uçotunun aparılma xüsusiyyəti ilə",
+      "Maliyyə orqanlarının tələbi ilə",
+      "statistik orqanların tələbi ilə"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "30.",
+    "question": "İdarəetmə uçotunun mühüm vəzifəsi nədir?",
+    "options": [
+      "İdarəetmə uçotunun mühüm vəzifəsi optimal idarəetmə qərarlarının qəbul edilməsi üçün informasiya hazırlamaqdan ibarətdir",
+      "İdarəetmə uçotunun mühüm vəzifəsi məhsul istehsalı, fəaliyyəti haqqında məlumatlar əldə etməkdən ibarətdir",
+      "İdarəetmə uçotunun mühüm vəzifəsi müəssisənin istehsal fəaliyyəti haqqında məlumatlar əldə etməkdən ibarətdir",
+      "İdarəetmə uçotunun mühüm vəzifəsi xarici istifadəçilər üçün zəruri məlumatlar hazırlamaqdan ibarətdir",
+      "Əsas məqsədi hesabatların hazırlanmasıdır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "31.",
+    "question": "İdarəetmə uçotunun obyektləri hansılardır?",
+    "options": [
+      "Bütünlükdə müəssisənin və onun ayrı-ayrı struktur bölmələrinin məsrəfləri, istehsal təsərrüfat fəaliyyətinin nəticələri, daxili qiymətin əmələ gəlməsi, büdcənin planlaşdırılması və daxili hesabat",
+      "Müəssisənin debitor və kreditor borcları",
+      "Fəaliyyətin maliyyə nəticələri",
+      "Müəssisənin gəlirləri və xərcləri",
+      "Müəssisənin malsatanlara borcu"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "32.",
+    "question": "İdarəetmə uçotunun predmetini nə təşkil edir?",
+    "options": [
+      "ümumilikdə müəssisənin və onun ayrı-ayrı struktur bölmələrinin (məsuliyyət mərkəzlərinin) istehsal fəaliyyəti",
+      "müəssisənin təsərrüfat fəaliyyəti",
+      "Daşıyıcılar üzrə xərclər və gəlirlərin uçotu",
+      "Müəssisənin struktur bölmələrinin istehsal uçotu",
+      "müəssisənin maliyyə fəaliyyəti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "İdarəetmə uçotunun prinsiplərini əks etdirəni göstərin.",
+    "options": [
+      "Müəssisə fəaliyyətinin fasiləsizliyi, vahid plan-ölçü vahidindən istifadə, müəssisə bölmələrinin fəaliyyətinin nəticələrinin qiymətləndirilməsi, daxili hesabat göstəricilərinin formalaşması, büdcə metodunun tətbiqi, Hesablama metodu və ikili yazılışdan istifadə, dolğunluq və analitik, dövrilik",
+      "Daxili hesabat göstəricilərinin formalaşması",
+      "Müəssisə fəaliyyətinin fasiləsizliyi",
+      "Bazis bərabərliyi",
+      "Müəssisənin satış planı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "34.",
+    "question": "\"R\" şirkəti sabit qaimə məsrəflərini maşın-saatlar əsasında maya dəyərinə bölüşdürür. Keçən il ərzində çəkilən cəmi qaimə məsrəfləri 120.000$, sərf edilən maşın-saatlar isə 45.520 olub. Sabit qaimə məsrəfləri normadan 6.200 aşağı səviyyədə bölüşdürülüb. Büdcədə proqnozlaşdırılmış maşın-saatların 42.000 saat olduğunu nəzərə alaraq sabit qaimə məsrəflərinin bölüşdürülmə dərəcəsini hesablayın.",
+    "options": [
+      "2,50$",
+      "3,86$",
+      "2,64$",
+      "2,96$",
+      "2,76$"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "35.",
+    "question": "Şirkət realizə olunacaq məhsulun maya dəyərini 2 000 000 manat məbləğində planlaşdırıb. O cümlədən daimi məsrəflər 400 000 manat dəyişən məsrəflər isə ümumi satışın 75% ni təşkil edir. Şirkət satışın həcmini nə qədər planlaşdırır?",
+    "options": [
+      "2 133 333 manat",
+      "2 666 667 manat",
+      "2 400 000 manat",
+      "4 200 000 manat",
+      "2 766 667 manat"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "36.",
+    "question": "Şirkətin hazırladığı bütün məhsulların istehsalına nəzarət etmək üçün dörd supervayzer (usta) fəaliyyət göstərir. Bu supervayzerlərə ödənilən əmək haqqı aşağıdakılardan hansıdır?",
+    "options": [
+      "İstehsal üzrə qaimə məsrəfləri",
+      "İnzibati qaimə məsrəfləri",
+      "Birbaşa əmək məsrəfləri",
+      "Birbaşa istehsal xərcləri",
+      "Satış məsrəfləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "Strateji idarəetmə uçotu hansı üç mərhələdən ibarətdir?",
+    "options": [
+      "Qərarlar üçün informasiya təminatının yaradılması; uzunmüddətli planlaşdırma (strategiyanın icrası); strategiyanın reallaşdırılmasına nəzarət və onun təhlili",
+      "Variantların relevant təhlili; büdcələşdirmə; idarəetmə hesabatının tərtibi",
+      "Balanslaşdırılmış göstəricilərin seçilməsi; xərclərin təsnifatı; maya dəyərinin kalkulyasiyası",
+      "Operativ, taktiki və strateji qərarların qəbulu",
+      "Artım; sabit vəziyyət; məhsul “yığımı”"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "Strateji idarəetmə uçotunda xərclərin təhlilində istehsal olunan məhsulların həcminə münasibət necədir?",
+    "options": [
+      "İstehsal olunan məhsulların həcmi əhəmiyyətli amil sayılmır",
+      "Xərclərin təhlili istehsal olunan məhsulların miqdarından asılı olaraq aparılır",
+      "Xərclər yalnız keçmiş dövr üzrə faktiki göstəricilərlə təhlil olunur",
+      "Xərclərin təhlili ümumiyyətlə həyata keçirilmir",
+      "Yalnız daimi xərclər təhlil olunur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "39.",
+    "question": "Transfer qiymətləri hansı məqsədlə istifadə olunur?",
+    "options": [
+      "Bölmələrarası əməliyyatları qiymətləndirmək üçün",
+      "Yalnız vergi hesabatı üçün",
+      "Yalnız maliyyə uçotu üçün",
+      "İşçilərin maaşını hesablamaq üçün",
+      "Sabit xərcləri bölüşdürmək üçün"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "40.",
+    "question": "Məhsul \"yığımı” mərhələsi üçün başlıca maliyyə məqsədi nədir?",
+    "options": [
+      "Pul axınlarının maksimum həcmdə qaytarılmasına nail olmaq",
+      "Bütöv seqmentdə gəlirlərin və satışın həcminin faizlə artımına nail olmaq",
+      "İnvestisiya olunan kapitaldan maksimum gəlir alınmasına cəhd göstərmək",
+      "Yeni məhsulların inkişafı üçün xeyli resurslar cəlb etmək və istehsal güclərini genişləndirmək",
+      "İnfrastruktur sisteminə investisiya qoyuluşunu artırmaq"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "41.",
+    "question": "İdarəetmə uçotu ilə maliyyə uçotu arasındakı fərqləndirici əlamətlərini göstərin.",
+    "options": [
+      "Uçotun qaydaya salınma dərəcəsi, informasiyanın dürüstlüyü, uçotun məqsədi, informasiya istifadəçiləri, məsrəflərin qruplaşdırılması, uçotun aparılması könüllülüyü, informasiyaların açıqlığı.",
+      "Məsrəflərin qruplaşdırılması, uçotun aparılması metodları, uçotun düzgün aparılmasına məsuliyyət, ölçü vahidi göstəriciləri, hesabatın təqdim edilməsi və s.",
+      "İnformasiya istifadəçilərinə görə, uçotun strukturuna görə fərqlər və s.",
+      "Qaydaya salınması dərəcəsinə görə, informasiyanın düzgünlüyünə görə",
+      "Uçotun düzgün aparılmasına məsuliyyət, ölçü vahidi göstəriciləri, hesabatın təqdim edilməsi və s."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "Strateji, taktiki və operativ informasiyanın vaxt diapazonu üzrə düzgün uyğunluğu göstərin.",
+    "options": [
+      "Strateji - orta və uzunmüddətli dövr (1-3 il, 3-10 il); taktiki - təxminən bir il; operativ - bir il və daha az dövr",
+      "Strateji - bir il; taktiki - 3-10 il; operativ - 1-3 il",
+      "Strateji - bir ildən az; taktiki - 1-3 il; operativ - 3-10 il",
+      "Strateji - 3-10 il; taktiki - 1-3 il; operativ - 10 ildən çox",
+      "Üçünün də vaxt diapazonu eynidir və yalnız bir ili əhatə edir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "43.",
+    "question": "İdarəetmə uçotunda informasiya istifadəçiləri hansılardır?",
+    "options": [
+      "Müxtəlif səviyyələrdə idarəetmə heyəti",
+      "Kreditorlar",
+      "Müəssisə ilə müəyyən münasibətdə olan hüquqi və fiziki şəxslər",
+      "Vergi orqanları",
+      "Bank orqanları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "44.",
+    "question": "Mühasibat – idarəetmə uçotunun əsasını nə təşkil edir?",
+    "options": [
+      "istehsalat uçotu",
+      "vergi uçotu",
+      "Statistik uçot",
+      "Operativ uçot",
+      "Natural uçot"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "Mühasibat (maliyyə) uçotunu kimlər aparmalıdır?",
+    "options": [
+      "Bütün hüquqi və fiziki şəxslər",
+      "Mülkiyyət formasından asılı olmayaraq ölkə ərazisində bütün hüquqi şəxslər",
+      "Dövlət mülkiyyətində olan hüquqi şəxslər",
+      "Ölkə ərazisində yerləşən xarici hüquqi şəxslər",
+      "Yalnız fiziki şəxslər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "46.",
+    "question": "Mühasibat uçotunda əməliyyat hesabları hansılardır?",
+    "options": [
+      "Aktiv və passiv hesablar",
+      "Fondlar və kapitallar hesabları",
+      "Pul passivləri və hesablaşmalar",
+      "Kalkulyasiyaedici, toplayıcı – bölüşdürücü, maliyyə nəticəli hesablar",
+      "bölüşdürücü, maliyyə nəticəli hesablar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "47.",
+    "question": "Mühasibat uçotunda qeyri-maddi aktivlər dedikdə nə nəzərdə tutulur?",
+    "options": [
+      "Qeyri - maddi aktivlər dedikdə fiziki əsası olmayan, lakin sahibkarın imtiyazı və hüquqi əsasında dəyər yaradan dövriyyədən kənar aktivlər nəzərdə tutulur",
+      "Qeyri - maddi aktivlər dedikdə uzun müddət istifadə edilən və gəlir gətirən dövriyyədən kənar aktivlər nəzərdə tutulur",
+      "Qeyri - maddi aktivlər dedikdə yalnız patentlər, lisenziyalar, ticarət markaları və əmtəə nişanları nəzərdə tutulur",
+      "Qeyri - maddi aktivlər dedikdə torpaq sahəli və təbiətdən istifadə obyektləri nəzərdə tutulur",
+      "Qeyri -maddi aktivlər dedikdə qısamüddətli aktivlər başa düşülür"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "48.",
+    "question": "İdarəetmə qərarlarının hazırlanması prosesi hansı işlərin yerinə yetirilməsini nəzərdə tutur?",
+    "options": [
+      "idarəetmə obyekti haqqında informasiyanın yığılması, işlənməsi və təhlili, məqsədin müəyyən edilməsi və qərarın hazırlanması, idarəedici əmrin verilməsi, onun icraçılara çatdırılması və qərarların həyata keçirilməsi",
+      "idarəedici əmrin verilməsi, onun icraçılara çatdırılması və qərarların həyata keçirilməsi",
+      "",
+      "idarəedici əmrin verilməsi və onun icraçılara çatdırılması",
+      "malsatan və podratçılara verilməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "İdarəetmə qərarlarının qəbul edilməsi üçün xərclər hansı növə bölünür?",
+    "options": [
+      "Dəyişən, daimi xərclər, nəzərə alınan və nəzərə alınmayan xərclər; qaytarılmayan xərclər, xəyali xərclər",
+      "Müstəqim və qeyri- müstəqim xərclər",
+      "Sabit və dəyişən xərclər",
+      "Sadə və mürəkkəb xərclər",
+      "Daimi dəyişən xərclər"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "50.",
+    "question": "İdarəetmə qərarlarının qəbul edilməsi və həyata keçirilməsi prosesi neçə mərhələdən ibarətdir?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "answer": "A"
+  }
+];
+
+
+const PART_SIZE = 50;
+const answerMap = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+const sourceQuestions = questions.map((q, index) => ({
+  ...q,
+  number: q.number || `${index + 1}.`,
+  options: [...q.options]
+}));
+
+const portionScreen = document.getElementById("portion-screen");
+const portionGrid = document.getElementById("portion-grid");
+const portionCopy = document.getElementById("portion-copy");
+const quizScreen = document.getElementById("quiz-screen");
+const feed = document.getElementById("question-feed");
+const progress = document.getElementById("progress");
+const scoreCounter = document.getElementById("score-counter");
+const mainMenuLink = document.getElementById("main-menu-link");
+const quizTitle = document.getElementById("quiz-title");
+const portionEyebrow = document.getElementById("portion-eyebrow");
+const portionHeading = document.getElementById("portion-heading");
+
+let activeQuestions = [];
+let selectedPortion = null;
+let userAnswers = [];
+let score = 0;
+let activeIndex = 0;
+let furthestUnlocked = 0;
+let resultRendered = false;
+let scrollTimer = null;
+let audioContext = null;
+let flashLayer = null;
+let skipToast = null;
+let lastSkipEffectAt = 0;
+
+function applyConfig() {
+  document.title = QUIZ_CONFIG.pageTitle || `${QUIZ_CONFIG.quizName} Quiz`;
+  mainMenuLink.href = QUIZ_CONFIG.homeUrl;
+  mainMenuLink.textContent = QUIZ_CONFIG.homeLabel;
+  quizTitle.textContent = QUIZ_CONFIG.quizName;
+  portionEyebrow.textContent = QUIZ_CONFIG.portionEyebrow;
+  portionHeading.textContent = QUIZ_CONFIG.portionHeading;
+}
+
+mainMenuLink.addEventListener("click", playActionSound);
+
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+function buildPortions() {
+  if (sourceQuestions.length <= PART_SIZE) {
+    return [{ label: "Full", start: 0, end: sourceQuestions.length, full: true }];
+  }
+  const portions = [];
+  for (let start = 0; start < sourceQuestions.length; start += PART_SIZE) {
+    const end = Math.min(start + PART_SIZE, sourceQuestions.length);
+    portions.push({ label: `${start + 1}-${end}`, start, end, full: false });
+  }
+  portions.push({ label: "Full", start: 0, end: sourceQuestions.length, full: true });
+  return portions;
+}
+
+function renderPortions() {
+  portionGrid.innerHTML = "";
+  portionCopy.textContent = `${sourceQuestions.length} ${QUIZ_CONFIG.questionCountLabel} available. Pick a 50-question part or take the full quiz.`;
+  buildPortions().forEach((portion) => {
+    const button = document.createElement("button");
+    button.className = "portion-btn";
+    button.type = "button";
+    const range = document.createElement("span");
+    range.className = "portion-range";
+    range.textContent = portion.label;
+    const meta = document.createElement("span");
+    meta.className = "portion-meta";
+    meta.textContent = `${portion.end - portion.start} ${QUIZ_CONFIG.questionCountLabel}`;
+    button.append(range, meta);
+    button.addEventListener("click", () => { playStartSound(); startQuiz(portion); });
+    portionGrid.appendChild(button);
+  });
+}
+
+function prepareQuestion(question, absoluteIndex) {
+  const correctOption = question.options[answerMap[question.answer]];
+  const shuffledOptions = shuffleArray(question.options);
+  return {
+    ...question,
+    absoluteIndex,
+    options: shuffledOptions,
+    correctOption,
+    correctIndex: shuffledOptions.indexOf(correctOption)
+  };
+}
+
+function startQuiz(portion) {
+  selectedPortion = portion;
+
+  // FIX 2: Shuffle question order when Full mode is selected
+  let orderedQuestions = sourceQuestions.slice(portion.start, portion.end);
+  if (portion.full) {
+    orderedQuestions = shuffleArray(orderedQuestions);
+  }
+
+  activeQuestions = orderedQuestions.map((question, index) =>
+    prepareQuestion(question, portion.start + index)
+  );
+
+  userAnswers = Array(activeQuestions.length).fill(null);
+  score = 0;
+  activeIndex = 0;
+  furthestUnlocked = 0;
+  resultRendered = false;
+
+  portionScreen.classList.add("hidden");
+  quizScreen.classList.remove("hidden");
+  feed.innerHTML = "";
+  activeQuestions.forEach(renderQuestion);
+  updateHud();
+  window.scrollTo({ top: 0, behavior: "auto" });
+  feed.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function renderQuestion(question, index) {
+  const slide = document.createElement("section");
+  slide.className = "question-slide";
+  slide.dataset.index = String(index);
+
+  const card = document.createElement("article");
+  card.className = "question-card";
+
+  const confetti = document.createElement("div");
+  confetti.className = "confetti";
+
+  const meta = document.createElement("div");
+  meta.className = "question-meta";
+  const current = document.createElement("span");
+  current.textContent = `Question ${index + 1} / ${activeQuestions.length}`;
+  const original = document.createElement("span");
+  original.textContent = `Original ${question.number}`;
+
+  const text = document.createElement("div");
+  text.className = "question-text";
+  text.textContent = question.question;
+
+  const options = document.createElement("div");
+  options.className = "options-grid";
+
+  question.options.forEach((option, optionIndex) => {
+    const button = document.createElement("button");
+    button.className = "option-btn";
+    button.type = "button";
+    button.dataset.optionIndex = String(optionIndex);
+
+    if (index > furthestUnlocked) {
+      button.disabled = true;
+      button.classList.add("locked-ahead");
+    }
+
+    const letter = document.createElement("span");
+    letter.className = "option-letter";
+    letter.textContent = String.fromCharCode(65 + optionIndex);
+    const label = document.createElement("span");
+    label.textContent = option;
+
+    button.append(letter, label);
+    button.addEventListener("click", () => {
+      if (index > furthestUnlocked) {
+        showSkipEffect();
+        feed.scrollTo({ top: getSlideTop(furthestUnlocked), behavior: "smooth" });
+        return;
+      }
+      selectAnswer(index, optionIndex, card);
+    });
+    options.appendChild(button);
+  });
+
+  const hint = document.createElement("div");
+  hint.className = "scroll-hint";
+  hint.textContent = "Answer to unlock the next card.";
+
+  meta.append(current, original);
+  card.append(confetti, meta, text, options, hint);
+  slide.appendChild(card);
+  feed.appendChild(slide);
+}
+
+function unlockQuestion(index) {
+  const slide = feed.querySelector(`[data-index="${index}"]`);
+  if (!slide) return;
+  slide.querySelectorAll(".option-btn.locked-ahead").forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove("locked-ahead");
+  });
+}
+
+function selectAnswer(questionIndex, optionIndex, card) {
+  if (userAnswers[questionIndex]) return;
+
+  const question = activeQuestions[questionIndex];
+  const isCorrect = optionIndex === question.correctIndex;
+  const buttons = card.querySelectorAll(".option-btn");
+  const hint = card.querySelector(".scroll-hint");
+
+  buttons.forEach((button, index) => {
+    button.disabled = true;
+    if (index === question.correctIndex) button.classList.add("correct");
+    if (index === optionIndex && !isCorrect) button.classList.add("incorrect");
+    if (index !== question.correctIndex && index !== optionIndex) button.classList.add("dimmed");
+  });
+
+  if (isCorrect) score++;
+
+  userAnswers[questionIndex] = {
+    question: question.question,
+    questionNumber: question.number,
+    userAnswer: question.options[optionIndex],
+    correctAnswer: question.correctOption,
+    isCorrect
+  };
+
+  card.classList.add("answered");
+  card.classList.add(isCorrect ? "correct-answer" : "wrong-answer");
+  hint.textContent = questionIndex === activeQuestions.length - 1 ? "Scroll to see your result." : "Scroll down for the next question.";
+
+  furthestUnlocked = Math.max(furthestUnlocked, questionIndex + 1);
+
+  unlockQuestion(furthestUnlocked);
+
+  if (questionIndex === activeQuestions.length - 1) renderResult();
+
+  updateHud();
+  playSound(isCorrect);
+  triggerFlash(isCorrect);
+  triggerHaptics(isCorrect);
+  burstParticles(card, isCorrect);
+}
+
+function updateHud() {
+  const answeredCount = userAnswers.filter(Boolean).length;
+  const percent = activeQuestions.length ? (answeredCount / activeQuestions.length) * 100 : 0;
+  progress.style.width = `${percent}%`;
+  scoreCounter.textContent = `${score} / ${activeQuestions.length}`;
+}
+
+function getSlideTop(index) {
+  const slide = feed.querySelector(`[data-index="${index}"]`);
+  return slide ? slide.offsetTop : index * feed.clientHeight;
+}
+
+function getNearestSlideIndex() {
+  const slides = [...feed.querySelectorAll(".question-slide")];
+  let closestIndex = 0;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  slides.forEach((slide) => {
+    const distance = Math.abs(slide.offsetTop - feed.scrollTop);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = Number(slide.dataset.index);
+    }
+  });
+  return closestIndex;
+}
+
+function renderResult() {
+  if (resultRendered) return;
+  resultRendered = true;
+
+  const slide = document.createElement("section");
+  slide.className = "question-slide";
+  slide.dataset.index = String(activeQuestions.length);
+
+  const card = document.createElement("article");
+  card.className = "result-card finished";
+
+  const confetti = document.createElement("div");
+  confetti.className = "confetti";
+
+  const eyebrow = document.createElement("div");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = selectedPortion.full ? "Full quiz complete" : `Part ${selectedPortion.label} complete`;
+
+  const title = document.createElement("h1");
+  title.textContent = "Finished";
+
+  const scoreDisplay = document.createElement("div");
+  scoreDisplay.className = "score-display";
+  scoreDisplay.textContent = `${score}/${activeQuestions.length}`;
+
+  const percentage = document.createElement("div");
+  percentage.className = "score-percentage";
+  percentage.textContent = `${Math.round((score / activeQuestions.length) * 100)}% correct`;
+
+  const actions = document.createElement("div");
+  actions.className = "result-actions";
+
+  const retry = document.createElement("button");
+  retry.className = "primary-btn";
+  retry.type = "button";
+  retry.textContent = "Retry";
+  retry.addEventListener("click", () => { playActionSound(); startQuiz(selectedPortion); });
+
+  const choose = document.createElement("button");
+  choose.className = "ghost-btn";
+  choose.type = "button";
+  choose.textContent = "Select different portion";
+  choose.addEventListener("click", () => { playActionSound(); showPortionPicker(); });
+
+  const menu = document.createElement("a");
+  menu.className = "ghost-btn";
+  menu.href = QUIZ_CONFIG.homeUrl;
+  menu.textContent = QUIZ_CONFIG.homeLabel;
+  menu.addEventListener("click", playActionSound);
+
+  actions.append(retry, choose, menu);
+  card.append(confetti, eyebrow, title, scoreDisplay, percentage, actions);
+
+  const mistakes = userAnswers.filter((answer) => answer && !answer.isCorrect);
+  if (mistakes.length) {
+    const section = document.createElement("div");
+    section.className = "mistakes-section";
+    const heading = document.createElement("h2");
+    heading.textContent = "Review mistakes";
+    section.appendChild(heading);
+    mistakes.forEach((mistake, index) => {
+      const item = document.createElement("div");
+      item.className = "mistake-item";
+      const question = document.createElement("div");
+      question.className = "mistake-question";
+      question.textContent = `${index + 1}. ${mistake.question}`;
+      const yours = document.createElement("div");
+      yours.className = "your-answer";
+      yours.textContent = `Your answer: ${mistake.userAnswer}`;
+      const correct = document.createElement("div");
+      correct.className = "correct-answer";
+      correct.textContent = `Correct answer: ${mistake.correctAnswer}`;
+      item.append(question, yours, correct);
+      section.appendChild(item);
+    });
+    card.appendChild(section);
+  }
+
+  slide.appendChild(card);
+  feed.appendChild(slide);
+  window.setTimeout(() => {
+    burstParticles(card, true, 72);
+    playFinishSound();
+    triggerFlash(true);
+  }, 120);
+}
+
+function showPortionPicker() {
+  quizScreen.classList.add("hidden");
+  portionScreen.classList.remove("hidden");
+  feed.innerHTML = "";
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function playSound(isCorrect) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const master = audioContext.createGain();
+    const notes = isCorrect
+      ? [{ frequency: 523.25, start: 0, duration: 0.11, type: "triangle", volume: 0.2 }, { frequency: 659.25, start: 0.08, duration: 0.12, type: "triangle", volume: 0.22 }, { frequency: 987.77, start: 0.17, duration: 0.2, type: "sine", volume: 0.24 }]
+      : [{ frequency: 196, start: 0, duration: 0.16, type: "sawtooth", volume: 0.18 }, { frequency: 146.83, start: 0.1, duration: 0.22, type: "square", volume: 0.15 }];
+    master.gain.setValueAtTime(0.9, now);
+    master.connect(audioContext.destination);
+    notes.forEach((note) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + note.start;
+      const end = start + note.duration;
+      oscillator.type = note.type;
+      oscillator.frequency.setValueAtTime(note.frequency, start);
+      if (!isCorrect) oscillator.frequency.exponentialRampToValueAtTime(note.frequency * 0.72, end);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(note.volume, start + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain);
+      gain.connect(master);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (e) {}
+}
+
+function playStartSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    [{ frequency: 329.63, start: 0, duration: 0.1, volume: 0.16 }, { frequency: 493.88, start: 0.055, duration: 0.12, volume: 0.18 }, { frequency: 659.25, start: 0.12, duration: 0.16, volume: 0.2 }].forEach((note) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + note.start;
+      const end = start + note.duration;
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(note.frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(note.volume, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (e) {}
+}
+
+function playActionSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(587.33, now);
+    oscillator.frequency.exponentialRampToValueAtTime(739.99, now + 0.09);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.15);
+  } catch (e) {}
+}
+
+function playLockSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(330, now);
+    oscillator.frequency.exponentialRampToValueAtTime(180, now + 0.18);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.24);
+  } catch (e) {}
+}
+
+function playFinishSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    [392, 523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + index * 0.075;
+      const end = start + 0.22;
+      oscillator.type = index === 4 ? "sine" : "triangle";
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.2, start + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (e) {}
+}
+
+function triggerFlash(isCorrect) {
+  flashLayer = flashLayer || document.createElement("div");
+  if (!flashLayer.parentNode) document.body.appendChild(flashLayer);
+  flashLayer.className = `answer-flash ${isCorrect ? "correct" : "incorrect"}`;
+  window.setTimeout(() => { flashLayer.className = "answer-flash"; }, 700);
+}
+
+function triggerLockedFlash() {
+  flashLayer = flashLayer || document.createElement("div");
+  if (!flashLayer.parentNode) document.body.appendChild(flashLayer);
+  flashLayer.className = "answer-flash locked";
+  window.setTimeout(() => { flashLayer.className = "answer-flash"; }, 820);
+}
+
+function triggerHaptics(isCorrect) {
+  if (!navigator.vibrate) return;
+  navigator.vibrate(isCorrect ? [18, 28, 18] : [42, 32, 42]);
+}
+
+function burstParticles(card, isCorrect, overrideCount) {
+  const container = card.querySelector(".confetti");
+  const colors = isCorrect ? ["#2563eb","#16a34a","#f59e0b","#22c55e","#0f766e"] : ["#dc2626","#f97316","#991b1b","#fca5a5","#7f1d1d"];
+  const count = overrideCount || (isCorrect ? 48 : 28);
+  container.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement(isCorrect ? "i" : "span");
+    if (isCorrect) { piece.style.background = colors[i % colors.length]; }
+    else { piece.className = "x-particle"; piece.textContent = "X"; piece.style.color = colors[i % colors.length]; piece.style.setProperty("--r", `${Math.round(Math.random() * 520 - 260)}deg`); }
+    piece.style.setProperty("--x", `${Math.round(Math.random() * 620 - 310)}px`);
+    piece.style.setProperty("--y", `${Math.round(Math.random() * 420 - 290)}px`);
+    piece.style.animationDelay = `${Math.random() * 120}ms`;
+    container.appendChild(piece);
+  }
+  window.setTimeout(() => { container.innerHTML = ""; }, 1400);
+}
+
+function showSkipEffect() {
+  const now = Date.now();
+  if (now - lastSkipEffectAt < 850) return;
+  lastSkipEffectAt = now;
+
+  const currentSlide = feed.querySelector(`[data-index="${furthestUnlocked}"]`);
+  const card = currentSlide ? currentSlide.querySelector(".question-card") : null;
+  if (card) { card.classList.remove("lock-bounce"); void card.offsetWidth; card.classList.add("lock-bounce"); }
+
+  skipToast = skipToast || document.createElement("div");
+  if (!skipToast.parentNode) document.body.appendChild(skipToast);
+  skipToast.className = "skip-toast";
+  skipToast.textContent = "Answer this question first";
+  void skipToast.offsetWidth;
+  skipToast.classList.add("show");
+
+  triggerLockedFlash();
+  playLockSound();
+  triggerHaptics(false);
+}
+
+feed.addEventListener("scroll", () => {
+  window.clearTimeout(scrollTimer);
+  scrollTimer = window.setTimeout(() => {
+    const nextIndex = getNearestSlideIndex();
+    if (nextIndex > furthestUnlocked) {
+      showSkipEffect();
+      feed.scrollTo({ top: getSlideTop(furthestUnlocked), behavior: "smooth" });
+      return;
+    }
+    activeIndex = Math.min(nextIndex, activeQuestions.length);
+    updateHud();
+  }, 70);
+});
+
+applyConfig();
+
+if (sourceQuestions.length > PART_SIZE) {
+  renderPortions();
+} else {
+  startQuiz({ label: "Full", start: 0, end: sourceQuestions.length, full: true });
+}
+</script>
+</body>
+</html>
