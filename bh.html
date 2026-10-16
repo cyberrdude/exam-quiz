@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --ink: #162033;
+    --muted: #647084;
+    --panel: #ffffff;
+    --line: #dfe5ef;
+    --brand: #2563eb;
+    --brand-dark: #1d4ed8;
+    --good: #16a34a;
+    --good-soft: #dcfce7;
+    --bad: #dc2626;
+    --bad-soft: #fee2e2;
+    --amber: #f59e0b;
+    --shadow: 0 22px 70px rgba(25, 35, 55, 0.16);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; scroll-behavior: smooth; }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.16), transparent 28%),
+      radial-gradient(circle at 84% 18%, rgba(245, 158, 11, 0.16), transparent 24%),
+      linear-gradient(180deg, #f8fbff 0%, var(--bg) 48%, #eef3f8 100%);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+  button, a { font: inherit; }
+  button { border: 0; }
+  .hidden { display: none !important; }
+
+  .app-topbar {
+    align-items: center; display: flex; gap: 14px; justify-content: space-between;
+    left: 50%; max-width: 980px; padding: 18px 20px; position: fixed; top: 0;
+    transform: translateX(-50%); width: min(100%, 980px); z-index: 10;
+  }
+  .back-btn, .ghost-btn, .primary-btn {
+    align-items: center; border-radius: 8px; cursor: pointer; display: inline-flex;
+    font-size: 14px; font-weight: 800; gap: 8px; min-height: 42px; padding: 10px 14px;
+    text-decoration: none; transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+  .back-btn, .ghost-btn {
+    background: rgba(255,255,255,0.88); border: 1px solid var(--line); color: var(--ink);
+    box-shadow: 0 10px 28px rgba(26,38,62,0.08);
+  }
+  .primary-btn { background: var(--brand); color: #fff; box-shadow: 0 14px 30px rgba(37,99,235,0.24); }
+  .back-btn:hover, .ghost-btn:hover, .primary-btn:hover { transform: translateY(-2px); }
+  .quiz-title {
+    background: rgba(255,255,255,0.88); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(26,38,62,0.08); color: var(--muted); font-size: 13px;
+    font-weight: 900; letter-spacing: 0.08em; padding: 11px 14px; text-transform: uppercase;
+  }
+  .portion-screen { align-items: center; display: flex; min-height: 100svh; padding: 96px 20px 34px; }
+  .portion-card {
+    background: rgba(255,255,255,0.92); border: 1px solid rgba(223,229,239,0.9); border-radius: 8px;
+    box-shadow: var(--shadow); margin: 0 auto; max-width: 980px; padding: clamp(22px,5vw,42px); width: 100%;
+  }
+  .eyebrow { color: var(--brand); font-size: 13px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+  h1 { font-size: clamp(34px,7vw,72px); letter-spacing: 0; line-height: 0.95; margin-top: 12px; max-width: 760px; }
+  .portion-copy { color: var(--muted); font-size: clamp(16px,2.4vw,20px); line-height: 1.55; margin-top: 16px; max-width: 680px; }
+  .portion-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 30px; }
+  .portion-btn {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 14px 34px rgba(22,32,51,0.08); color: var(--ink); cursor: pointer;
+    min-height: 98px; padding: 18px; text-align: left;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .portion-btn:hover { border-color: var(--brand); box-shadow: 0 18px 40px rgba(37,99,235,0.16); transform: translateY(-4px); }
+  .portion-range { display: block; font-size: 22px; font-weight: 900; }
+  .portion-meta { color: var(--muted); display: block; font-size: 13px; font-weight: 700; margin-top: 8px; }
+  .quiz-screen { height: 100svh; overflow: hidden; }
+  .quiz-hud {
+    left: 50%; max-width: 980px; padding: 70px 20px 0; pointer-events: none;
+    position: fixed; top: 0; transform: translateX(-50%); width: min(100%, 980px); z-index: 9;
+  }
+  .hud-row {
+    align-items: center; background: rgba(255,255,255,0.9); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: 0 12px 30px rgba(26,38,62,0.08); display: grid;
+    gap: 12px; grid-template-columns: 1fr auto; padding: 10px 12px;
+  }
+  .progress-track { background: #e6edf6; border-radius: 999px; height: 10px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--brand), var(--good)); height: 100%; transition: width 0.25s ease; width: 0; }
+  .score-pill { color: var(--ink); font-size: 13px; font-weight: 900; min-width: 92px; text-align: right; }
+  .question-feed { height: 100svh; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
+  .question-slide {
+    align-items: center; display: flex; min-height: 100svh; padding: 132px 20px 34px;
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
+  .question-card, .result-card {
+    background: rgba(255,255,255,0.96); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: var(--shadow); margin: 0 auto; max-width: 860px; overflow: hidden;
+    padding: clamp(20px,4vw,34px); position: relative; width: 100%;
+  }
+  .question-card.correct-answer { animation: cardCorrectImpact 0.72s cubic-bezier(0.2,1.4,0.32,1) both; box-shadow: 0 26px 86px rgba(22,163,74,0.34); }
+  .question-card.wrong-answer { animation: cardWrongImpact 0.62s ease both; box-shadow: 0 26px 86px rgba(220,38,38,0.3); }
+  .question-meta { align-items: center; color: var(--muted); display: flex; font-size: 13px; font-weight: 900; justify-content: space-between; margin-bottom: 18px; text-transform: uppercase; }
+  .question-text { font-size: clamp(18px,2.7vw,26px); font-weight: 800; letter-spacing: 0; line-height: 1.35; }
+  .options-grid { display: grid; gap: 12px; margin-top: 24px; }
+  .option-btn {
+    align-items: center; background: #fff; border: 2px solid var(--line); border-radius: 8px;
+    color: var(--ink); cursor: pointer; display: grid; font-size: clamp(14px,2vw,17px);
+    font-weight: 700; gap: 12px; grid-template-columns: 36px 1fr; line-height: 1.45;
+    min-height: 62px; overflow: hidden; padding: 12px 14px; position: relative;
+    text-align: left; transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--brand); transform: translateY(-2px); }
+  .option-letter {
+    align-items: center; background: #eef4ff; border-radius: 8px; color: var(--brand-dark);
+    display: inline-flex; font-weight: 900; height: 36px; justify-content: center; width: 36px;
+  }
+  .option-btn.correct { animation: correctPulse 0.72s cubic-bezier(0.2,1.4,0.32,1) both; background: var(--good-soft); border-color: var(--good); color: #14532d; box-shadow: 0 0 0 7px rgba(22,163,74,0.16), 0 16px 34px rgba(22,163,74,0.24); }
+  .option-btn.incorrect { animation: wrongShake 0.58s ease both; background: var(--bad-soft); border-color: var(--bad); color: #7f1d1d; box-shadow: 0 0 0 7px rgba(220,38,38,0.14), 0 16px 34px rgba(220,38,38,0.2); }
+  .option-btn.dimmed { opacity: 0.55; }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.locked-ahead { cursor: not-allowed; opacity: 0.4; }
+  .scroll-hint { color: var(--muted); font-size: 13px; font-weight: 800; margin-top: 12px; }
+  .confetti { inset: 0; overflow: hidden; pointer-events: none; position: absolute; }
+  .confetti i { animation: confettiDrop 1200ms ease-out forwards; background: var(--brand); border-radius: 2px; height: 18px; left: 50%; opacity: 0; position: absolute; top: 38%; width: 9px; }
+  .confetti .x-particle { animation: xBurst 900ms cubic-bezier(0.12,0.72,0.2,1) forwards; color: var(--bad); font-size: 34px; font-weight: 950; left: 50%; line-height: 1; opacity: 0; position: absolute; text-shadow: 0 8px 24px rgba(127,29,29,0.38); top: 42%; }
+  .answer-flash { inset: 0; opacity: 0; pointer-events: none; position: fixed; z-index: 40; }
+  .answer-flash.correct { animation: flashCorrect 620ms ease-out both; background: radial-gradient(circle at center, rgba(34,197,94,0.34), rgba(34,197,94,0.12) 34%, transparent 72%); }
+  .answer-flash.incorrect { animation: flashWrong 620ms ease-out both; background: radial-gradient(circle at center, rgba(239,68,68,0.34), rgba(239,68,68,0.12) 34%, transparent 72%); }
+  .answer-flash.locked { animation: flashLocked 760ms ease-out both; background: radial-gradient(circle at center, rgba(245,158,11,0.36), rgba(245,158,11,0.14) 34%, transparent 72%); }
+  .skip-toast {
+    align-items: center; background: rgba(255,251,235,0.96); border: 1px solid rgba(245,158,11,0.42);
+    border-radius: 8px; box-shadow: 0 18px 42px rgba(146,64,14,0.18); color: #92400e;
+    display: flex; font-size: 15px; font-weight: 950; gap: 10px; left: 50%; opacity: 0;
+    padding: 13px 16px; pointer-events: none; position: fixed; top: 128px;
+    transform: translate(-50%, -12px) scale(0.96); z-index: 50;
+  }
+  .skip-toast.show { animation: toastPop 1050ms ease both; }
+  .question-card.lock-bounce { animation: lockBounce 720ms ease both; box-shadow: 0 26px 86px rgba(245,158,11,0.34); }
+  .result-card { text-align: center; }
+  .result-card.finished { animation: resultPop 900ms cubic-bezier(0.2,1.35,0.34,1) both; box-shadow: 0 30px 96px rgba(37,99,235,0.28); }
+  .score-display { color: var(--brand); font-size: clamp(54px,12vw,110px); font-weight: 950; line-height: 1; margin-top: 16px; }
+  .score-percentage { color: var(--muted); font-size: 20px; font-weight: 800; margin-top: 8px; }
+  .result-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 24px; }
+  .mistakes-section { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; margin-top: 24px; max-height: 34vh; overflow-y: auto; padding: 16px; text-align: left; }
+  .mistake-item { background: #fff; border-left: 4px solid var(--bad); border-radius: 8px; margin-top: 12px; padding: 12px; }
+  .mistake-question { font-weight: 800; line-height: 1.45; }
+  .your-answer { color: var(--bad); font-weight: 800; margin-top: 8px; }
+  .correct-answer { color: var(--good); font-weight: 800; margin-top: 4px; }
+
+  @keyframes correctPulse { 0% { transform: scale(1); } 35% { transform: scale(1.055); } 70% { transform: scale(0.992); } 100% { transform: scale(1); } }
+  @keyframes wrongShake { 0%, 100% { transform: translateX(0); } 15% { transform: translateX(-11px) rotate(-0.8deg); } 30% { transform: translateX(10px) rotate(0.8deg); } 45% { transform: translateX(-8px) rotate(-0.6deg); } 60% { transform: translateX(6px) rotate(0.4deg); } 75% { transform: translateX(-3px); } }
+  @keyframes cardCorrectImpact { 0% { transform: scale(1); } 38% { transform: scale(1.018); } 100% { transform: scale(1); } }
+  @keyframes cardWrongImpact { 0%, 100% { transform: translateX(0); } 18% { transform: translateX(-8px); } 36% { transform: translateX(8px); } 54% { transform: translateX(-5px); } 72% { transform: translateX(3px); } }
+  @keyframes confettiDrop { 0% { opacity: 1; transform: translate(0,0) rotate(0deg) scale(1); } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(520deg); } }
+  @keyframes xBurst { 0% { opacity: 0; transform: translate(0,0) rotate(0deg) scale(0.5); } 16% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1.25); } }
+  @keyframes flashCorrect { 0% { opacity: 0; transform: scale(0.9); } 20% { opacity: 1; } 100% { opacity: 0; transform: scale(1.18); } }
+  @keyframes flashWrong { 0% { opacity: 0; transform: scale(0.92); } 18% { opacity: 1; } 100% { opacity: 0; transform: scale(1.12); } }
+  @keyframes flashLocked { 0% { opacity: 0; transform: scale(0.92); } 22% { opacity: 1; } 100% { opacity: 0; transform: scale(1.16); } }
+  @keyframes toastPop { 0% { opacity: 0; transform: translate(-50%,-12px) scale(0.96); } 16% { opacity: 1; transform: translate(-50%,0) scale(1.02); } 78% { opacity: 1; transform: translate(-50%,0) scale(1); } 100% { opacity: 0; transform: translate(-50%,-10px) scale(0.98); } }
+  @keyframes lockBounce { 0%, 100% { transform: translateY(0) scale(1); } 18% { transform: translateY(-12px) scale(1.012); } 38% { transform: translateY(8px) scale(0.996); } 58% { transform: translateY(-5px); } 78% { transform: translateY(2px); } }
+  @keyframes resultPop { 0% { opacity: 0; transform: translateY(34px) scale(0.92); } 54% { opacity: 1; transform: translateY(-8px) scale(1.025); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+  @media (max-width: 680px) {
+    .app-topbar { padding: 12px; }
+    .quiz-title { display: none; }
+    .quiz-hud { padding: 60px 12px 0; }
+    .question-slide { padding: 118px 12px 24px; }
+    .question-card, .result-card, .portion-card { padding: 18px; }
+    .option-btn { grid-template-columns: 32px 1fr; min-height: 58px; padding: 10px; }
+    .option-letter { height: 32px; width: 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<header class="app-topbar">
+  <a href="index.html" class="back-btn" id="main-menu-link"></a>
+  <div class="quiz-title" id="quiz-title"></div>
+</header>
+
+<main>
+  <section class="portion-screen" id="portion-screen">
+    <div class="portion-card">
+      <div class="eyebrow" id="portion-eyebrow"></div>
+      <h1 id="portion-heading"></h1>
+      <p class="portion-copy" id="portion-copy"></p>
+      <div class="portion-grid" id="portion-grid"></div>
+    </div>
+  </section>
+
+  <section class="quiz-screen hidden" id="quiz-screen">
+    <div class="quiz-hud">
+      <div class="hud-row">
+        <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+        <div class="score-pill" id="score-counter">0 / 0</div>
+      </div>
+    </div>
+    <div class="question-feed" id="question-feed" aria-live="polite"></div>
+  </section>
+</main>
+
+<script>
+const QUIZ_CONFIG = {
+  quizName: "BH",
+  pageTitle: "BH Quiz",
+  homeUrl: "index.html",
+  homeLabel: "Main Menu",
+  portionEyebrow: "Choose your run",
+  portionHeading: "Which part do you want to start?",
+  questionCountLabel: "questions"
+};
+
+let questions = [
+  {
+    "number": "1.",
+    "question": "Hüquq -",
+    "options": [
+      "Hüquq dövlət tərəfindən müəyyən edilən, məcburi xarakter daşıyan, ictimai münasibətləri tənzimləyən normalar sistemidir",
+      "Hüquq yalnız yazılı qanunlardan ibarət olan və məhkəmələr tərəfindən tətbiq edilən qaydalar toplusudur",
+      "Hüquq cəmiyyətdə formalaşmış bütün sosial normaların məcmusudur",
+      "Hüquq insanların mənəvi dəyərləri əsasında formalaşan və dövlət tərəfindən təmin olunmayan davranış qaydalarıdır",
+      "Hüquq yalnız dövlət orqanlarının fəaliyyətini tənzimləyən qaydalar sistemidir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "2.",
+    "question": "Aşağıdakılardan hansı obyektiv hüququ daha dəqiq xarakterizə edir?",
+    "options": [
+      "Dövlət tərəfindən müəyyən edilən və ya sanksiyalaşdırılan, bütün ölkə əhalisi üçün ümumi məcburi olan, dövlətin qüvvəsi ilə qorunan davranış qaydalarının məcmusudur",
+      "Şəxsin öz maraqlarını təmin etmək üçün malik olduğu imkanların məcmusudu",
+      "Yalnız dövlət orqanlarının fəaliyyətini tənzimləyən qaydalardır",
+      "Ayrı-ayrı şəxslərin hüquq və vəzifələrini müəyyən edən fərdi göstərişlərdir",
+      "Cəmiyyətdə formalaşmış əxlaq normalarının məcmusudur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "3.",
+    "question": "Aşağıdakılardan hansı hüququn əsas əlamətlərindən biri hesab edilmir?",
+    "options": [
+      "Hüquq yalnız cəmiyyətin müəyyən bir hissəsi üçün məcburidir",
+      "Hüquq normaları ümumməcburi xarakter daşıyır",
+      "Hüquq dövlət tərəfindən müəyyən edilir və ya tanınır",
+      "Hüququn həyata keçirilməsi dövlətin məcburetmə qüvvəsi ilə təmin olunur",
+      "Hüquq ictimai münasibətləri tənzimləyən normalar sistemidir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "4.",
+    "question": "Hüququn mənbələri dedikdə nə başa düşülür?",
+    "options": [
+      "Dövlətin hüquqyaratma fəaliyyətinin nəticəsi olan hüquq normalarının zahirən ifadə forması",
+      "Hüquq münasibətlərinin iştirakçılarının hüquq və vəzifələri",
+      "Hüquq normalarının tətbiq edilməsi üsulları",
+      "Hüquq normalarının yaranmasına səbəb olan ictimai münasibətlər",
+      "Dövlət hakimiyyəti orqanlarının sistemi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "5.",
+    "question": "Hüquq münasibətləri nədir?",
+    "options": [
+      "Hüquq subyektlərinin hüquq normaları əsasında yaranan ikitərəfli və ya çoxtərəfli əlaqəsidir",
+      "Hüququn əsas prinsiplərinin ifadəsidir",
+      "Hüquq pozuntularına görə tətbiq edilən sanksiyaların məcmusudur",
+      "Hüquq normalarının xarici ifadə formasıdır",
+      "Dövlət orqanlarının fəaliyyətini müəyyən edən qaydalar sistemidir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "6.",
+    "question": "Hüquq münasibətlərinin strukturuna hansı elementlər daxildir?",
+    "options": [
+      "Subyektlər, Obyektlər, Subyektiv hüquqlar, Hüquqi vəzivələ",
+      "Yalnız subyektlər və obyektlər",
+      "Yalnız subyektiv hüquqlar və hüquqi vəzifələr",
+      "Hüquqlar, vəzifələr, adətlər",
+      "Qanunlar, qərarlar, qaydalar, normalar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "7.",
+    "question": "Adları aşağıda qeyd olunanlardan biri Azərbaycan Respublikasının məhkəmə sisteminə daxil deyil :",
+    "options": [
+      "Azərbaycan Respublikasının Konstitusiya Məhkəməsi",
+      "Naxçıvan Muxtar Respublikasının Ali Məhkəməsi",
+      "Naxçıvan Muxtar Respublikasının ağır cinayətlər məhkəməsi",
+      "hərbi məhkəmələr",
+      "Azərbaycan Respublikasının Ali Məhkəməsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "8.",
+    "question": "Aşağıdakılardan hansı normativ hüquqi aktın əsas əlamətlərindən biri deyildir?",
+    "options": [
+      "Yalnız konkret bir şəxs və ya hadisə üçün qəbul edilir",
+      "Dəfələrlə tətbiq olunmaq üçün nəzərdə tutulur.",
+      "Göstərişləri ümumi məcburi xarakter daşıyır",
+      "Hüquq normaları müəyyən edir, dəyişdirir və ya ləğv edir",
+      "Səlahiyyətli dövlət orqanı tərəfindən qəbul edilir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "9.",
+    "question": "Qanunqüvvəli aktların əsas xüsusiyyəti hansıdır?",
+    "options": [
+      "Onlar qanunlara uyğun olaraq, qanunlar əsasında və qanunların icrası məqsədilə qəbul edilir",
+      "Onlar yalnız bir dəfə tətbiq olunur",
+      "Onlar hüquqi adətlərin yazılı formasıdır",
+      "Onlar qanunlardan üstün hüquqi qüvvəyə malikdir",
+      "Onlar yalnız Milli Məclis tərəfindən qəbul edilir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "10.",
+    "question": "Azərbaycan Respublikasında məhkəmə hakmiyyətini həyata keçirir....",
+    "options": [
+      "Azərbaycan Respublikasının məhkəmələri",
+      "Azərbaycan Respublikasının Milli Məclisi",
+      "Azərbaycan Respublikasının Prezidenti",
+      "Azərbaycan Respublikası Nazirlər Komitsi",
+      "Azərbaycan Respublikası Vergilər Nazirliyi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "11.",
+    "question": "Konstitusiya hüququnun mahiyyəti nədir?",
+    "options": [
+      "Dövlət quruluşunu, hakimiyyətin təşkili və vətəndaşların əsas hüquq və azadlıqlarını tənzimləyən hüquq sahəsidir",
+      "Cinayət və cəzaları müəyyən edən hüquq sahəsidir",
+      "Əmlak münasibətlərini tənzimləyən hüquq sahəsidir",
+      "Əmək münasibətlərini tənzimləyən hüquq sahəsidir",
+      "Beynəlxalq münasibətləri tənzimləyən hüquq sahəsidir."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "12.",
+    "question": "Məhkəmə sistemi dedikdə nə başa düşülür?",
+    "options": [
+      "Azərbaycan Respublikasında ədalət mühakiməsini həyata keçirən məhkəmələrin qanunla müəyyən edilmiş vahid məcmusu",
+      "Hüquq-mühafizə orqanlarının məcmusu",
+      "Yalnız Ali Məhkəmə və Konstitusiya Məhkəməsinin fəaliyyəti",
+      "Hakimlərin və prokurorların vahid sistemi",
+      "Məhkəmə qərarlarının məcmusu"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "13.",
+    "question": "Sahibkarın vəzifələrinə aid olmayanı müəyyən edin.",
+    "options": [
+      "müvafiq verginin növünü və məbləğini müstəqil seçmək",
+      "işçilərin həmkarlar ittifaqlarında birləşməsinə mane olmamaq",
+      "işçilərin əmək haqqını Azərbaycan Respublikasının qanunvericiliyi ilə müəyyən olunmuş minimum məbləğindən az olmayan səviyyədə ödəmək",
+      "qanunvericilikdə müəyyən edilmiş vergilər ödəmək",
+      "istehsal olunan məhsulların (işlərin, xidmətlərin) rəqabət qabiliyyətliliyinə nail olmaq;"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "14.",
+    "question": "Sahibkarlıq subyektlərinin ölçüsünə görə kateqoriyalarını müəyyən edin.",
+    "options": [
+      "Mikro sahibkar; Kiçik sahibkar; Orta sahibkar; İri sahibkar",
+      "Mikro sahibkar; Makro sahibkarlıq; Kiçik sahibkar; Orta sahibkar",
+      "Kiçik sahibkar; Orta sahibkar; İri sahibkar; Kollektiv sahibkarlıq",
+      "Mikro sahibkar; Orta sahibkar; İri sahibkar; Hüquqi şəxs olan sahibkarlıq",
+      "Kiçik sahibkar; Orta sahibkar; İri sahibkar; Fərdi şəxs olan sahibkar"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "15.",
+    "question": "Sahibkarlıq subyektlərinin işçilərinin orta siyahı sayı (nəfər) üzrə uyğunluğunu müəyyən edin",
+    "options": [
+      "Mikro sahibkar: 1-10; Kiçik sahibkar: 11-50: Orta sahibkar: 51-250; İri sahibkar: 251 və ondan yuxarı",
+      "Mikro sahibkar: 1-10; Makro sahibkarlıq: 11-50: Orta sahibkar: 51-250; İri sahibkar: 251 və ondan yuxarı",
+      "Mikro sahibkar: 1-11; Kiçik sahibkar: 11-51: Orta sahibkar: 51-251; İri sahibkar: 251 və ondan yuxarı",
+      "Mikro sahibkar: 1-15; Kiçik sahibkar: 16-51: Orta sahibkar: 52-251; İri sahibkar: 252 və ondan yuxarı",
+      "Mikro sahibkar: 1-20; Makro sahibkarlıq: 11-50: Orta sahibkar: 51-250; İri sahibkar: 251 və ondan yuxarı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "16.",
+    "question": "Azərbaycan Respublikası Konstitusiyasına uyğun olaraq qanun anlayışını daha düzgün ifadə edən variant hansıdır?",
+    "options": [
+      "Referendumla və ya Azərbaycan Respublikası Milli Məclisi tərəfindən Konstitusiyaya uyğun qaydada qəbul edilən normativ hüquqi aktdır",
+      "Dövlət orqanlarının daxili fəaliyyətini tənzimləyən sənəddir",
+      "Nazirlər Kabineti tərəfindən qəbul edilən məcburi davranış qaydalarıdır",
+      "Məhkəmələrin hüquqi məsələlər üzrə qəbul etdiyi qərarların məcmusudur",
+      "Hüquqi adətlərin dövlət tərəfindən tanınmış formasıdır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "17.",
+    "question": "Sahibkarlıq hüququ dedikdə, ...",
+    "options": [
+      "fiziki və ya hüquqi şəxsin (şəxslərin) qazanc əldə etmək məqsədilə iqtisadi fəaliyyətini nizamlayan və dövlət tərəfindən təmin edilən hüquqi normaların məcmusudur",
+      "fiziki və ya hüquqi şəxsin fəaliyyətini nizamlayan və dövlət tərəfindən təmin edilən hüquqi normalar məcmusudur",
+      "dövlət tərəfindən təmin edilən hüquqi normalar məcmusudur",
+      "fiziki və ya hüquqi şəxsin (şəxslərin) qazanc əldə etmək məqsədli iqtisadi fəaliyyətini nizamlayan normalar məcmusudur",
+      "Hüquq normaları məcmusudur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "18.",
+    "question": "Mülki hüquq-.",
+    "options": [
+      "əmlak və şəxsi qeyri-əmlak münasibətlərini nizamlayan hüquq normaları məcmusudur",
+      "əmlak və qeyri-əmlak münasibətlərini nizamlayan hüquq normaları məcmusudur",
+      "əmlak münasibətlərini nizamlayan hüquq normaları məcmusudur",
+      "qeyri-əmlak münasibətlərini nizamlayan hüquq normaları məcmusudur",
+      "sosial münasibətləri nizamlayan hüquq normaları məcmusudur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "19.",
+    "question": "Mülki hüququn bərabər və müstəqil subyektlərinin dairəsini müəyyən edin.",
+    "options": [
+      "Fiziki şəxslər, hüquqi şəxslər və dövlət",
+      "Məhkəmələr, prokurorluq və polis orqanları",
+      "Hüquq-mühafizə orqanları və yerli icra hakimiyyətləri",
+      "Yalnız fiziki şəxslər",
+      "Milli Məclis, Prezident və Nazirlər Kabineti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "20.",
+    "question": "Mülki hüquqda fərdi subyektlər dedikdə kimlər başa düşülür?",
+    "options": [
+      "Ayrı-ayrı fiziki şəxslər",
+      "Hüquqi şəxslər",
+      "Dövlət və bələdiyyələr",
+      "Beynəlxalq təşkilatlar",
+      "Kommersiya təşkilatları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "21.",
+    "question": "Mülki hüquqda kollektiv subyektlərə hansı subyektlər aiddir?",
+    "options": [
+      "Hüquqi şəxslər, dövlət və bələdiyyələr",
+      "Yalnız məhdud fəaliyyət qabiliyyətli fiziki şəxslər",
+      "Fiziki şəxslər və ailə üzvləri",
+      "Yalnız Azərbaycan Respublikası vətəndaşları",
+      "Hüquq qabiliyyətinə malik olan hər bir şəxs"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "22.",
+    "question": "Mülki hüquq münasibətlərinin strukturunu təşkil edən əsas elementlər hansılardır?",
+    "options": [
+      "Subyekt, obyekt və məzmun",
+      "Hüquq norması, hüquq prinsipi və hüquqi fakt",
+      "Fiziki şəxs, hüquqi şəxs və dövlət",
+      "Qanunçuluq, ədalət və humanizm",
+      "Hipoteza, dispozisiya və sanksiya"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "23.",
+    "question": "İradə ifadə edən tərəflərin sayına görə əqdlər hansı növlərə bölünür?",
+    "options": [
+      "Birtərəfli, ikitərəfli və çoxtərəfli",
+      "Əvəzli və əvəzsiz",
+      "Konsensual və real",
+      "Yazılı və şifahi",
+      "Mülki və inzibati"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "24.",
+    "question": "Əqdlər hansı formada bağlanır?",
+    "options": [
+      "şifahi və ya yazılı formada bağlanır",
+      "yalnız şifahi formada bağlanır",
+      "yalnız yazılı formada bağlanır",
+      "qanunla müvafiq forma müəyyən edilməyib",
+      "Müqavilə əsasınada müəyyən edilir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "25.",
+    "question": "Qeyri-əmlak münasibətləri hansılardır?",
+    "options": [
+      "Əmlakla əlaqədar olan şəxsi qeyri-əmlak münasibətləri; əmlakla əlaqədar olmayan şəxsi qeyri-əmlak münasibətləri",
+      "Əmlakla əlaqədar olan şəxsi qeyri-əmlak münasibətləri",
+      "Əmlakla əlaqədar olmayan şəxsi qeyri-əmlak münasibətləri",
+      "Müqavilə ilə əlaqədar olan şəxsi qeyri-əmlak münasibətləri; əmlakla əlaqədar olmayan şəxsi qeyri-əmlak münasibətləri",
+      "Sosial öhəliklərlə əlaqədar olan şəxsi qeyri-əmlak münasibətləri; əmlakla əlaqədar olmayan şəxsi qeyri-əmlak münasibətləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "26.",
+    "question": "Mülki hüquq münasibətlərinin məzmununu nə təşkil edir?",
+    "options": [
+      "Tərəflərin subyektiv hüquq və hüquqi vəzifələri",
+      "Hüquq münasibətinin iştirakçıları",
+      "Əmlak və qeyri-əmlak nemətləri",
+      "Hüquqi faktlar və hadisələr",
+      "Hüquq normaları və prinsipləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "27.",
+    "question": "Əqd dedikdə nə başa düşülür?",
+    "options": [
+      "Mülki hüquq münasibətlərinin yaranmasına, dəyişdirilməsinə və ya xitamına yönəlmiş iradəvi hərəkət",
+      "Hüquq pozuntusu törətmiş şəxsin hərəkəti",
+      "Dövlət orqanının qəbul etdiyi qərar",
+      "Məhkəmənin çıxardığı hökm",
+      "Hüquq normasının bir hissəsi"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "28.",
+    "question": "Mülkiyyət hüququ dedikdə nə başa düşülür?",
+    "options": [
+      "Əmlaka sahib olmaq, ondan istifadə etmək və ona sərəncam vermək hüququ",
+      "Əmlakdan yalnız istifadə etmək hüququ",
+      "Əmlakı yalnız satmaq hüququ",
+      "Başqasının əmlakından istifadə etmək hüququ",
+      "Dövlətin əmlaka nəzarət etmək hüququ"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "29.",
+    "question": "Sahiblik səlahiyyəti nədir?",
+    "options": [
+      "Şəxsin əşyaya yiyəlik və ona fiziki nəzarət etmək imkanı",
+      "Əşyanı satmaq və ya bağışlamaq imkanı",
+      "Əşyanın faydalı xüsusiyyətlərindən istifadə etmək imkanı",
+      "Əşyanın hüquqi taleyini müəyyən etmək imkanı",
+      "Əşyanı girov qoymaq imkanı"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "30.",
+    "question": "Qeyd olunanlardan hansı mülkiyyət hüququnun əmələ gəlmə əsaslarına aiddir?",
+    "options": [
+      "Alqı-satqı müqaviləsi, mirasın qəbul edilməsi, bağışlama və yeni əşyanın yaradılması",
+      "Məhkəmədə şahid qismində iştirak etmə",
+      "Cinayət məsuliyyətinə cəlb edilmə və inzibati tənbeh",
+      "Hüquq pozuntusunun törədilməsi",
+      "Dövlət orqanlarının daxili fəaliyyəti"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "31.",
+    "question": "Aşağıdakılardan hansı Azərbaycan Respublikasında mülkiyyət növlərinə aiddir?",
+    "options": [
+      "Xüsusi, dövlət və bələdiyyə mülkiyyəti",
+      "Şəxsi, ailə və kollektiv mülkiyyət",
+      "Dövlət, inzibati və kommersiya mülkiyyəti",
+      "Ümumi, xüsusi və qarışıq mülkiyyət",
+      "Fərdi, korporativ və beynəlxalq mülkiyyət"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "32.",
+    "question": "Mülki hüquq münasibətləri dedikdə nə başa düşülür?",
+    "options": [
+      "Mülki hüquq normaları ilə tənzimlənən, iştirakçıları qarşılıqlı hüquq və vəzifələrə malik olan əmlak və şəxsi qeyri-əmlak münasibətləri",
+      "Dövlət orqanları ilə vətəndaşlar arasında hakimiyyət-tabeçilik əsasında yaranan münasibətlər",
+      "Cinayət törədilməsi ilə əlaqədar yaranan ictimai münasibətlər",
+      "Məhkəmələrin ədalət mühakiməsini həyata keçirməsi ilə bağlı münasibətlər",
+      "İşçi ilə işəgötürən arasında yaranan əmək münasibətləri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "33.",
+    "question": "Mülki hüquq münasibətlərinin subyektləri dedikdə nə başa düşülür?",
+    "options": [
+      "Hüquq və vəzifələrin daşıyıcısı olmaq qabiliyyətinə malik olan fiziki şəxslər, hüquqi şəxslər, Azərbaycan Respublikası, bələdiyyələr və xarici hüquq subyektləri",
+      "Yalnız fiziki şəxslər və hüquqi şəxslər",
+      "Yalnız dövlət orqanları və vəzifəli şəxslər",
+      "Məhkəmələr, prokurorluq və hüquq-mühafizə orqanları",
+      "Yalnız Azərbaycan Respublikasının vətəndaşları"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "34.",
+    "question": "Əmlak münasibətləri -",
+    "options": [
+      "Mülki hüquq subyektləri arasında əmlaka sahiblik, ondan istifadə və onun üzərində sərəncam vermə ilə bağlı münasibətlərdir",
+      "Şəxsin şərəf və ləyaqəti ilə bağlı münasibətlərdir",
+      "Dövlət orqanları ilə vətəndaşlar arasında yaranan idarəetmə münasibətləridir",
+      "Əmək fəaliyyəti zamanı işçi ilə işəgötürən arasında yaranan münasibətlərdir",
+      "Cinayət törədən şəxslərlə dövlət arasında yaranan münasibətlərdir"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "35.",
+    "question": "Mülki hüquqda \"müqavilə\" termini əsasən neçə mənada işlədilir?",
+    "options": [
+      "3 – hüquqi fakt, hüquq münasibəti və sənəd",
+      "2 – hüquqi fakt və hüquq norması",
+      "4 – hüquqi fakt, hüquq münasibəti, hüquq norması və məhkəmə qərarı",
+      "1 – yalnız yazılı sənəd kimi",
+      "5 – hüquqi fakt, hüquq münasibəti, qanun, fərman və sərəncam"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "36.",
+    "question": "Mülki-hüquqi müqavilənin subyektləri dedikdə nə başa düşülür?",
+    "options": [
+      "Müqaviləni bağlayan fiziki və ya hüquqi şəxslər",
+      "Müqavilənin şərtləri",
+      "Müqavilənin predmeti",
+      "Müqavilənin forması",
+      "Müqavilənin bağlanma yeri"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "37.",
+    "question": "İlkin müqavilə hansı formada bağlanır?",
+    "options": [
+      "əsas müqavilə üçün nəzərdə tutulmuş formada bağlanır",
+      "ümumi müqavilə üçün nəzərdə tutulmuş formada bağlanır",
+      "müqavilədə nəzərdə tutulmuş formada bağlanır",
+      "tərəflər üçün nəzərdə tutulmuş formada bağlanır",
+      "Belə bir hər-hansı forma nəzərdə tutulmamışdır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "38.",
+    "question": "Öhdəliyin icra edilməməsi dedikdə, ...",
+    "options": [
+      "onun pozulması və ya lazımınca icra edilməməsi başa düşülür",
+      "onun pozulmasına rəvac verən hərəkətlət başa düşülür",
+      "onun pozulmasına cəhd və icra edilməməsi başa düşülür",
+      "onun icra edilməməsi başa düşülür",
+      "onun pozulması nəticəsində dəymiş zərər başa düşülür"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "39.",
+    "question": "Öhdəlik mülki hüquq münasibətlərinin iştirakçıları olan kreditorun və borclunun arasında ...",
+    "options": [
+      "subyektiv mülki hüquq və vəzifələr yaradır",
+      "obyektiv mülki hüquq və vəzifələr yaradır",
+      "mülki hüquq və vəzifələr yaradır",
+      "subyektiv mülki hüquq və vəzifələr yaratmır",
+      "Mülki- prosessual hüquq və vəzifələr yaradır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "40.",
+    "question": "Subyektiv hüquqlar nədir?",
+    "options": [
+      "şəxsin davranışının yol verilən növü və ölçüsüdür",
+      "şəxsin davranışının yol verilən növüdür",
+      "şəxsin davranışının yol verilən ölçüsüdür",
+      "şəxsin davranışının öhdəliklər üzrə yol verilən növü və ölçüsüdür",
+      "şəxsin davranışının müqavilə ilə müəyyən edilmiş növü və ölçüsüdür"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "41.",
+    "question": "Subyektiv hüquqi vəzifələr nədir?",
+    "options": [
+      "şəxsin məcburi (tələb olunan) davranışının növü və ölçüsüdür",
+      "şəxsin məcburi (tələb olunan) davranışının növüdür",
+      "şəxsin məcburi (tələb olunan) davranışının ölçüsüdür",
+      "şəxsin məcburi (tələb olunan) öhdəliklər üzrə davranışının növü və ölçüsüdür",
+      "şəxsin məcburi (tələb olunan) müqavilə ilə davranışının növü və ölçüsüdür"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "42.",
+    "question": "Muqavilə nəyə deyilir (MM-389.1)?",
+    "options": [
+      "İki və ya daha çox şəxsin mülki hüquq və vəzifələri müəyyənləşdirmək, dəyişdirmək və ya xitam vermək barədə razılaşmasıdır.",
+      "Yalnız mülki hüquqların müəyyənləşdirilməsi barədə razılaşmadır.",
+      "Yalnız hüquq və vəzifələrin dəyişdirilməsi barədə razılaşmadır.",
+      "Hüquq və vəzifələrin yalnız müəyyənləşdirilməsi və dəyişdirilməsi barədə razılaşmadır.",
+      "Yalnız mülki vəzifələrin müəyyənləşdirilməsi barədə razılaşmadır."
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "43.",
+    "question": "Az.Resp.Mülki Məcəlləsinə əsasən müqavilə nə vaxt bağlanmış sayılır?",
+    "options": [
+      "Tərəflər müqavilənin bütün mühüm şərtləri barəsində tələb olunan formada razılığa gəldikdə",
+      "Müqavilə notarius tərəfindən təsdiq edildikdə",
+      "Müqavilə məhkəmədə təsdiq edildikdə",
+      "Müqavilə tərəflərdən biri tərəfindən imzalandıqda",
+      "Müqavilə dövlət orqanında qeydiyyata alındıqda"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "44.",
+    "question": "Az.Resp.Mülki Məcəlləsinə əsasən müqavilə hansı halda əqdlərin bağlanması üçün nəzərdə tutulan hər hansı formada bağlana bilər (MM-406.6)?",
+    "options": [
+      "Qanunla həmin növ müqavilə üçün xüsusi forma müəyyən edilmədikdə",
+      "Müqavilə notariat qaydasında təsdiq edildikdə",
+      "Müqavilə yalnız fiziki şəxslər arasında bağlandıqda",
+      "Müqavilə dövlət qeydiyyatına alındıqda",
+      "Müqavilənin predmeti daşınar əmlak olduqda"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "45.",
+    "question": "Müqavilə nə vaxt bağlanmış sayılır?",
+    "options": [
+      "Müqavilə oferta göndərmiş şəxsin onun akseptini aldığı anda bağlanmış sayılır",
+      "Müqavilə oferta göndərmiş şəxsin onun akseptini aldığı aydan bağlanmış sayılır",
+      "Müqavilə oferta göndərmiş anda bağlanmış sayılır",
+      "Müqavilə oferta göndərmiş şəxsin onun akseptini aldığı ildən bağlanmış sayılır",
+      "Müqavilə oferta göndərmiş şəxsin onu tərtib etdiyi andan bağlanmış sayılır"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "46.",
+    "question": "Az.Resp.Mülki Məcəlləsinə əsasən aksept dedikdə nə başa düşülür?",
+    "options": [
+      "Müqavilə bağlamaq barədə təklifin tam və qeyd-şərtsiz qəbul edilməsi",
+      "Müqavilənin dövlət qeydiyyatına alınması",
+      "Müqavilənin notarial qaydada təsdiq edilməsi",
+      "Müqavilədən birtərəfli imtina",
+      "Müqavilə bağlamaq haqqında təklif"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "47.",
+    "question": "Öhdəlik hüququ nədir?",
+    "options": [
+      "kreditorla borclu arasında yaranan öhdəlik münasibətləri tənzimləyən hüquq normalarının məcmusudur",
+      "kreditorlar arasında yaranan öhdəlik münasibətləri tənzimləyən hüquq normalarının məcmusudur",
+      "borclular arasında yaranan öhdəlik münasibətləri tənzimləyən hüquq normalarının məcmusudur",
+      "öhdəlik münasibətləri tənzimləyən hüquq normalarının məcmusudur",
+      "müqavilə münasibətlərini tənzimləyən hüquq normalarının məcmusudur"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "48.",
+    "question": "Mülki hüquqda müqavilənin hüquqi fakt kimi başa düşülməsi nəyi ifadə edir?",
+    "options": [
+      "Müqavilənin mülki hüquq və vəzifələrinin əmələ gəlməsinə, dəyişdirilməsinə və ya xitamına səbəb olmasını",
+      "Müqavilənin tərəflər arasında yaranmış hüquq münasibətini əks etdirməsini",
+      "Müqavilənin yalnız yazılı sənəd formasında tərtib edilməsini",
+      "Müqavilənin yalnız notariat qaydasında təsdiq edilməsini",
+      "Müqavilənin məhkəmə qərarı ilə təsdiqlənməsini"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "49.",
+    "question": "Müqavilənin sənəd kimi başa düşülməsi nəyi ifadə edir?",
+    "options": [
+      "Müqavilənin tərəflərin razılığını və müqavilə şərtlərini əks etdirən yazılı sənəd olmasını",
+      "Müqavilənin mülki hüquq və vəzifələr yaradan hüquqi fakt olmasını",
+      "Müqavilənin tərəflər arasında hüquq münasibəti yaratmasını",
+      "Müqavilənin yalnız məhkəmə qərarı ilə qüvvəyə minməsini",
+      "Müqavilənin yalnız dövlət orqanları tərəfindən bağlanmasını"
+    ],
+    "answer": "A"
+  },
+  {
+    "number": "50.",
+    "question": "Oferta dedikdə nə başa düşülür?",
+    "options": [
+      "Bir və ya bir neçə konkret şəxsə ünvanlanmış, kifayət qədər müəyyən olan və qəbul edildiyi halda müqavilə bağlamaq niyyətini ifadə edən təklif",
+      "Müqavilənin bağlanmasına razılıq verilməsi",
+      "Müqavilənin dəyişdirilməsi barədə razılaşma",
+      "Məhkəməyə edilən müraciət",
+      "Müqavilənin ləğv edilməsi haqqında bildiriş"
+    ],
+    "answer": "A"
+  }
+];
+
+
+const PART_SIZE = 50;
+const answerMap = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+const sourceQuestions = questions.map((q, index) => ({
+  ...q,
+  number: q.number || `${index + 1}.`,
+  options: [...q.options]
+}));
+
+const portionScreen = document.getElementById("portion-screen");
+const portionGrid = document.getElementById("portion-grid");
+const portionCopy = document.getElementById("portion-copy");
+const quizScreen = document.getElementById("quiz-screen");
+const feed = document.getElementById("question-feed");
+const progress = document.getElementById("progress");
+const scoreCounter = document.getElementById("score-counter");
+const mainMenuLink = document.getElementById("main-menu-link");
+const quizTitle = document.getElementById("quiz-title");
+const portionEyebrow = document.getElementById("portion-eyebrow");
+const portionHeading = document.getElementById("portion-heading");
+
+let activeQuestions = [];
+let selectedPortion = null;
+let userAnswers = [];
+let score = 0;
+let activeIndex = 0;
+let furthestUnlocked = 0;
+let resultRendered = false;
+let scrollTimer = null;
+let audioContext = null;
+let flashLayer = null;
+let skipToast = null;
+let lastSkipEffectAt = 0;
+
+function applyConfig() {
+  document.title = QUIZ_CONFIG.pageTitle || `${QUIZ_CONFIG.quizName} Quiz`;
+  mainMenuLink.href = QUIZ_CONFIG.homeUrl;
+  mainMenuLink.textContent = QUIZ_CONFIG.homeLabel;
+  quizTitle.textContent = QUIZ_CONFIG.quizName;
+  portionEyebrow.textContent = QUIZ_CONFIG.portionEyebrow;
+  portionHeading.textContent = QUIZ_CONFIG.portionHeading;
+}
+
+mainMenuLink.addEventListener("click", playActionSound);
+
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+function buildPortions() {
+  if (sourceQuestions.length <= PART_SIZE) {
+    return [{ label: "Full", start: 0, end: sourceQuestions.length, full: true }];
+  }
+  const portions = [];
+  for (let start = 0; start < sourceQuestions.length; start += PART_SIZE) {
+    const end = Math.min(start + PART_SIZE, sourceQuestions.length);
+    portions.push({ label: `${start + 1}-${end}`, start, end, full: false });
+  }
+  portions.push({ label: "Full", start: 0, end: sourceQuestions.length, full: true });
+  return portions;
+}
+
+function renderPortions() {
+  portionGrid.innerHTML = "";
+  portionCopy.textContent = `${sourceQuestions.length} ${QUIZ_CONFIG.questionCountLabel} available. Pick a 50-question part or take the full quiz.`;
+  buildPortions().forEach((portion) => {
+    const button = document.createElement("button");
+    button.className = "portion-btn";
+    button.type = "button";
+    const range = document.createElement("span");
+    range.className = "portion-range";
+    range.textContent = portion.label;
+    const meta = document.createElement("span");
+    meta.className = "portion-meta";
+    meta.textContent = `${portion.end - portion.start} ${QUIZ_CONFIG.questionCountLabel}`;
+    button.append(range, meta);
+    button.addEventListener("click", () => { playStartSound(); startQuiz(portion); });
+    portionGrid.appendChild(button);
+  });
+}
+
+function prepareQuestion(question, absoluteIndex) {
+  const correctOption = question.options[answerMap[question.answer]];
+  const shuffledOptions = shuffleArray(question.options);
+  return {
+    ...question,
+    absoluteIndex,
+    options: shuffledOptions,
+    correctOption,
+    correctIndex: shuffledOptions.indexOf(correctOption)
+  };
+}
+
+function startQuiz(portion) {
+  selectedPortion = portion;
+
+  // FIX 2: Shuffle question order when Full mode is selected
+  let orderedQuestions = sourceQuestions.slice(portion.start, portion.end);
+  if (portion.full) {
+    orderedQuestions = shuffleArray(orderedQuestions);
+  }
+
+  activeQuestions = orderedQuestions.map((question, index) =>
+    prepareQuestion(question, portion.start + index)
+  );
+
+  userAnswers = Array(activeQuestions.length).fill(null);
+  score = 0;
+  activeIndex = 0;
+  furthestUnlocked = 0;
+  resultRendered = false;
+
+  portionScreen.classList.add("hidden");
+  quizScreen.classList.remove("hidden");
+  feed.innerHTML = "";
+  activeQuestions.forEach(renderQuestion);
+  updateHud();
+  window.scrollTo({ top: 0, behavior: "auto" });
+  feed.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function renderQuestion(question, index) {
+  const slide = document.createElement("section");
+  slide.className = "question-slide";
+  slide.dataset.index = String(index);
+
+  const card = document.createElement("article");
+  card.className = "question-card";
+
+  const confetti = document.createElement("div");
+  confetti.className = "confetti";
+
+  const meta = document.createElement("div");
+  meta.className = "question-meta";
+  const current = document.createElement("span");
+  current.textContent = `Question ${index + 1} / ${activeQuestions.length}`;
+  const original = document.createElement("span");
+  original.textContent = `Original ${question.number}`;
+
+  const text = document.createElement("div");
+  text.className = "question-text";
+  text.textContent = question.question;
+
+  const options = document.createElement("div");
+  options.className = "options-grid";
+
+  question.options.forEach((option, optionIndex) => {
+    const button = document.createElement("button");
+    button.className = "option-btn";
+    button.type = "button";
+    button.dataset.optionIndex = String(optionIndex);
+
+    if (index > furthestUnlocked) {
+      button.disabled = true;
+      button.classList.add("locked-ahead");
+    }
+
+    const letter = document.createElement("span");
+    letter.className = "option-letter";
+    letter.textContent = String.fromCharCode(65 + optionIndex);
+    const label = document.createElement("span");
+    label.textContent = option;
+
+    button.append(letter, label);
+    button.addEventListener("click", () => {
+      if (index > furthestUnlocked) {
+        showSkipEffect();
+        feed.scrollTo({ top: getSlideTop(furthestUnlocked), behavior: "smooth" });
+        return;
+      }
+      selectAnswer(index, optionIndex, card);
+    });
+    options.appendChild(button);
+  });
+
+  const hint = document.createElement("div");
+  hint.className = "scroll-hint";
+  hint.textContent = "Answer to unlock the next card.";
+
+  meta.append(current, original);
+  card.append(confetti, meta, text, options, hint);
+  slide.appendChild(card);
+  feed.appendChild(slide);
+}
+
+function unlockQuestion(index) {
+  const slide = feed.querySelector(`[data-index="${index}"]`);
+  if (!slide) return;
+  slide.querySelectorAll(".option-btn.locked-ahead").forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove("locked-ahead");
+  });
+}
+
+function selectAnswer(questionIndex, optionIndex, card) {
+  if (userAnswers[questionIndex]) return;
+
+  const question = activeQuestions[questionIndex];
+  const isCorrect = optionIndex === question.correctIndex;
+  const buttons = card.querySelectorAll(".option-btn");
+  const hint = card.querySelector(".scroll-hint");
+
+  buttons.forEach((button, index) => {
+    button.disabled = true;
+    if (index === question.correctIndex) button.classList.add("correct");
+    if (index === optionIndex && !isCorrect) button.classList.add("incorrect");
+    if (index !== question.correctIndex && index !== optionIndex) button.classList.add("dimmed");
+  });
+
+  if (isCorrect) score++;
+
+  userAnswers[questionIndex] = {
+    question: question.question,
+    questionNumber: question.number,
+    userAnswer: question.options[optionIndex],
+    correctAnswer: question.correctOption,
+    isCorrect
+  };
+
+  card.classList.add("answered");
+  card.classList.add(isCorrect ? "correct-answer" : "wrong-answer");
+  hint.textContent = questionIndex === activeQuestions.length - 1 ? "Scroll to see your result." : "Scroll down for the next question.";
+
+  furthestUnlocked = Math.max(furthestUnlocked, questionIndex + 1);
+
+  unlockQuestion(furthestUnlocked);
+
+  if (questionIndex === activeQuestions.length - 1) renderResult();
+
+  updateHud();
+  playSound(isCorrect);
+  triggerFlash(isCorrect);
+  triggerHaptics(isCorrect);
+  burstParticles(card, isCorrect);
+}
+
+function updateHud() {
+  const answeredCount = userAnswers.filter(Boolean).length;
+  const percent = activeQuestions.length ? (answeredCount / activeQuestions.length) * 100 : 0;
+  progress.style.width = `${percent}%`;
+  scoreCounter.textContent = `${score} / ${activeQuestions.length}`;
+}
+
+function getSlideTop(index) {
+  const slide = feed.querySelector(`[data-index="${index}"]`);
+  return slide ? slide.offsetTop : index * feed.clientHeight;
+}
+
+function getNearestSlideIndex() {
+  const slides = [...feed.querySelectorAll(".question-slide")];
+  let closestIndex = 0;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  slides.forEach((slide) => {
+    const distance = Math.abs(slide.offsetTop - feed.scrollTop);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = Number(slide.dataset.index);
+    }
+  });
+  return closestIndex;
+}
+
+function renderResult() {
+  if (resultRendered) return;
+  resultRendered = true;
+
+  const slide = document.createElement("section");
+  slide.className = "question-slide";
+  slide.dataset.index = String(activeQuestions.length);
+
+  const card = document.createElement("article");
+  card.className = "result-card finished";
+
+  const confetti = document.createElement("div");
+  confetti.className = "confetti";
+
+  const eyebrow = document.createElement("div");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = selectedPortion.full ? "Full quiz complete" : `Part ${selectedPortion.label} complete`;
+
+  const title = document.createElement("h1");
+  title.textContent = "Finished";
+
+  const scoreDisplay = document.createElement("div");
+  scoreDisplay.className = "score-display";
+  scoreDisplay.textContent = `${score}/${activeQuestions.length}`;
+
+  const percentage = document.createElement("div");
+  percentage.className = "score-percentage";
+  percentage.textContent = `${Math.round((score / activeQuestions.length) * 100)}% correct`;
+
+  const actions = document.createElement("div");
+  actions.className = "result-actions";
+
+  const retry = document.createElement("button");
+  retry.className = "primary-btn";
+  retry.type = "button";
+  retry.textContent = "Retry";
+  retry.addEventListener("click", () => { playActionSound(); startQuiz(selectedPortion); });
+
+  const choose = document.createElement("button");
+  choose.className = "ghost-btn";
+  choose.type = "button";
+  choose.textContent = "Select different portion";
+  choose.addEventListener("click", () => { playActionSound(); showPortionPicker(); });
+
+  const menu = document.createElement("a");
+  menu.className = "ghost-btn";
+  menu.href = QUIZ_CONFIG.homeUrl;
+  menu.textContent = QUIZ_CONFIG.homeLabel;
+  menu.addEventListener("click", playActionSound);
+
+  actions.append(retry, choose, menu);
+  card.append(confetti, eyebrow, title, scoreDisplay, percentage, actions);
+
+  const mistakes = userAnswers.filter((answer) => answer && !answer.isCorrect);
+  if (mistakes.length) {
+    const section = document.createElement("div");
+    section.className = "mistakes-section";
+    const heading = document.createElement("h2");
+    heading.textContent = "Review mistakes";
+    section.appendChild(heading);
+    mistakes.forEach((mistake, index) => {
+      const item = document.createElement("div");
+      item.className = "mistake-item";
+      const question = document.createElement("div");
+      question.className = "mistake-question";
+      question.textContent = `${index + 1}. ${mistake.question}`;
+      const yours = document.createElement("div");
+      yours.className = "your-answer";
+      yours.textContent = `Your answer: ${mistake.userAnswer}`;
+      const correct = document.createElement("div");
+      correct.className = "correct-answer";
+      correct.textContent = `Correct answer: ${mistake.correctAnswer}`;
+      item.append(question, yours, correct);
+      section.appendChild(item);
+    });
+    card.appendChild(section);
+  }
+
+  slide.appendChild(card);
+  feed.appendChild(slide);
+  window.setTimeout(() => {
+    burstParticles(card, true, 72);
+    playFinishSound();
+    triggerFlash(true);
+  }, 120);
+}
+
+function showPortionPicker() {
+  quizScreen.classList.add("hidden");
+  portionScreen.classList.remove("hidden");
+  feed.innerHTML = "";
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function playSound(isCorrect) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const master = audioContext.createGain();
+    const notes = isCorrect
+      ? [{ frequency: 523.25, start: 0, duration: 0.11, type: "triangle", volume: 0.2 }, { frequency: 659.25, start: 0.08, duration: 0.12, type: "triangle", volume: 0.22 }, { frequency: 987.77, start: 0.17, duration: 0.2, type: "sine", volume: 0.24 }]
+      : [{ frequency: 196, start: 0, duration: 0.16, type: "sawtooth", volume: 0.18 }, { frequency: 146.83, start: 0.1, duration: 0.22, type: "square", volume: 0.15 }];
+    master.gain.setValueAtTime(0.9, now);
+    master.connect(audioContext.destination);
+    notes.forEach((note) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + note.start;
+      const end = start + note.duration;
+      oscillator.type = note.type;
+      oscillator.frequency.setValueAtTime(note.frequency, start);
+      if (!isCorrect) oscillator.frequency.exponentialRampToValueAtTime(note.frequency * 0.72, end);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(note.volume, start + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain);
+      gain.connect(master);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (e) {}
+}
+
+function playStartSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    [{ frequency: 329.63, start: 0, duration: 0.1, volume: 0.16 }, { frequency: 493.88, start: 0.055, duration: 0.12, volume: 0.18 }, { frequency: 659.25, start: 0.12, duration: 0.16, volume: 0.2 }].forEach((note) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + note.start;
+      const end = start + note.duration;
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(note.frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(note.volume, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (e) {}
+}
+
+function playActionSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(587.33, now);
+    oscillator.frequency.exponentialRampToValueAtTime(739.99, now + 0.09);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.15);
+  } catch (e) {}
+}
+
+function playLockSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(330, now);
+    oscillator.frequency.exponentialRampToValueAtTime(180, now + 0.18);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.24);
+  } catch (e) {}
+}
+
+function playFinishSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext = audioContext || new AudioCtx();
+    const now = audioContext.currentTime;
+    [392, 523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + index * 0.075;
+      const end = start + 0.22;
+      oscillator.type = index === 4 ? "sine" : "triangle";
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.2, start + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    });
+  } catch (e) {}
+}
+
+function triggerFlash(isCorrect) {
+  flashLayer = flashLayer || document.createElement("div");
+  if (!flashLayer.parentNode) document.body.appendChild(flashLayer);
+  flashLayer.className = `answer-flash ${isCorrect ? "correct" : "incorrect"}`;
+  window.setTimeout(() => { flashLayer.className = "answer-flash"; }, 700);
+}
+
+function triggerLockedFlash() {
+  flashLayer = flashLayer || document.createElement("div");
+  if (!flashLayer.parentNode) document.body.appendChild(flashLayer);
+  flashLayer.className = "answer-flash locked";
+  window.setTimeout(() => { flashLayer.className = "answer-flash"; }, 820);
+}
+
+function triggerHaptics(isCorrect) {
+  if (!navigator.vibrate) return;
+  navigator.vibrate(isCorrect ? [18, 28, 18] : [42, 32, 42]);
+}
+
+function burstParticles(card, isCorrect, overrideCount) {
+  const container = card.querySelector(".confetti");
+  const colors = isCorrect ? ["#2563eb","#16a34a","#f59e0b","#22c55e","#0f766e"] : ["#dc2626","#f97316","#991b1b","#fca5a5","#7f1d1d"];
+  const count = overrideCount || (isCorrect ? 48 : 28);
+  container.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement(isCorrect ? "i" : "span");
+    if (isCorrect) { piece.style.background = colors[i % colors.length]; }
+    else { piece.className = "x-particle"; piece.textContent = "X"; piece.style.color = colors[i % colors.length]; piece.style.setProperty("--r", `${Math.round(Math.random() * 520 - 260)}deg`); }
+    piece.style.setProperty("--x", `${Math.round(Math.random() * 620 - 310)}px`);
+    piece.style.setProperty("--y", `${Math.round(Math.random() * 420 - 290)}px`);
+    piece.style.animationDelay = `${Math.random() * 120}ms`;
+    container.appendChild(piece);
+  }
+  window.setTimeout(() => { container.innerHTML = ""; }, 1400);
+}
+
+function showSkipEffect() {
+  const now = Date.now();
+  if (now - lastSkipEffectAt < 850) return;
+  lastSkipEffectAt = now;
+
+  const currentSlide = feed.querySelector(`[data-index="${furthestUnlocked}"]`);
+  const card = currentSlide ? currentSlide.querySelector(".question-card") : null;
+  if (card) { card.classList.remove("lock-bounce"); void card.offsetWidth; card.classList.add("lock-bounce"); }
+
+  skipToast = skipToast || document.createElement("div");
+  if (!skipToast.parentNode) document.body.appendChild(skipToast);
+  skipToast.className = "skip-toast";
+  skipToast.textContent = "Answer this question first";
+  void skipToast.offsetWidth;
+  skipToast.classList.add("show");
+
+  triggerLockedFlash();
+  playLockSound();
+  triggerHaptics(false);
+}
+
+feed.addEventListener("scroll", () => {
+  window.clearTimeout(scrollTimer);
+  scrollTimer = window.setTimeout(() => {
+    const nextIndex = getNearestSlideIndex();
+    if (nextIndex > furthestUnlocked) {
+      showSkipEffect();
+      feed.scrollTo({ top: getSlideTop(furthestUnlocked), behavior: "smooth" });
+      return;
+    }
+    activeIndex = Math.min(nextIndex, activeQuestions.length);
+    updateHud();
+  }, 70);
+});
+
+applyConfig();
+
+if (sourceQuestions.length > PART_SIZE) {
+  renderPortions();
+} else {
+  startQuiz({ label: "Full", start: 0, end: sourceQuestions.length, full: true });
+}
+</script>
+</body>
+</html>
