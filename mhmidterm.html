@@ -12,7 +12,7 @@
     --shadow: 0 22px 70px rgba(25, 35, 55, 0.16);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html, body { min-height: 100%; scroll-behavior: smooth; }
   body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background:
@@ -20,7 +20,7 @@
       radial-gradient(circle at 84% 18%, rgba(245, 158, 11, 0.16), transparent 24%),
       linear-gradient(180deg, #f8fbff 0%, var(--bg) 48%, #eef3f8 100%);
     background-attachment: fixed;
-    color: var(--ink); min-height: 100vh; overflow-x: hidden;
+    color: var(--ink); overflow-x: hidden;
   }
   button, a, textarea { font: inherit; }
   button { border: 0; }
@@ -42,13 +42,13 @@
   }
   .primary-btn { background: var(--brand); color: #fff; box-shadow: 0 14px 30px rgba(37,99,235,0.24); }
   .back-btn:hover, .ghost-btn:hover, .primary-btn:hover { transform: translateY(-2px); }
-  .primary-btn:disabled, .ghost-btn:disabled { cursor: default; opacity: 0.45; transform: none; }
   .quiz-title {
     background: rgba(255,255,255,0.92); border: 1px solid var(--line); border-radius: 8px;
     box-shadow: 0 10px 28px rgba(26,38,62,0.08); color: var(--muted); font-size: 13px;
     font-weight: 900; letter-spacing: 0.08em; padding: 11px 14px; text-transform: uppercase;
   }
 
+  /* ---------- Part picker ---------- */
   .portion-screen { align-items: center; display: flex; min-height: 100svh; padding: 96px 20px 34px; }
   .portion-card {
     background: rgba(255,255,255,0.92); border: 1px solid rgba(223,229,239,0.9); border-radius: 8px;
@@ -57,7 +57,7 @@
   .eyebrow { color: var(--brand); font-size: 13px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
   h1 { font-size: clamp(34px,7vw,72px); letter-spacing: 0; line-height: 0.95; margin-top: 12px; max-width: 760px; }
   .portion-copy { color: var(--muted); font-size: clamp(16px,2.4vw,20px); line-height: 1.55; margin-top: 16px; max-width: 680px; }
-  .portion-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 30px; }
+  .portion-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 22px; }
   .portion-btn {
     background: #fff; border: 1px solid var(--line); border-radius: 8px;
     box-shadow: 0 14px 34px rgba(22,32,51,0.08); color: var(--ink); cursor: pointer;
@@ -68,8 +68,25 @@
   .portion-range { display: block; font-size: 22px; font-weight: 900; }
   .portion-meta { color: var(--muted); display: block; font-size: 13px; font-weight: 700; margin-top: 8px; }
 
-  /* Normal page scrolling — no snap, no forced jumps */
-  .quiz-screen { padding: 140px 20px 70vh; }
+  .shuffle-toggle {
+    align-items: center; cursor: pointer; display: inline-flex; font-size: 15px;
+    font-weight: 800; gap: 10px; margin-top: 22px; position: relative; user-select: none;
+  }
+  .shuffle-toggle input { height: 0; opacity: 0; position: absolute; width: 0; }
+  .shuffle-toggle .switch {
+    background: #d5dce8; border-radius: 999px; flex-shrink: 0; height: 26px; position: relative;
+    transition: background 0.18s ease; width: 46px;
+  }
+  .shuffle-toggle .switch::after {
+    background: #fff; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.2); content: "";
+    height: 20px; left: 3px; position: absolute; top: 3px; transition: transform 0.18s ease; width: 20px;
+  }
+  .shuffle-toggle input:checked + .switch { background: var(--brand); }
+  .shuffle-toggle input:checked + .switch::after { transform: translateX(20px); }
+  .shuffle-toggle input:focus-visible + .switch { box-shadow: 0 0 0 3px rgba(37,99,235,0.35); }
+
+  /* ---------- Quiz: snap scrolling, one card per screen ---------- */
+  .quiz-screen { height: 100svh; overflow: hidden; }
   .quiz-hud {
     left: 50%; max-width: 980px; padding: 70px 20px 0; pointer-events: none;
     position: fixed; top: 0; transform: translateX(-50%); width: min(100%, 980px); z-index: 9;
@@ -82,10 +99,19 @@
   .progress-track { background: #e6edf6; border-radius: 999px; height: 10px; overflow: hidden; }
   .progress-fill { background: linear-gradient(90deg, var(--brand), var(--good)); height: 100%; transition: width 0.25s ease; width: 0; }
   .score-pill { color: var(--ink); font-size: 13px; font-weight: 900; min-width: 92px; text-align: right; }
-  .question-slide { margin: 0 auto 28px; max-width: 860px; scroll-margin-top: 136px; }
+
+  .question-feed {
+    height: 100svh; overflow-y: auto; position: relative;
+    scroll-behavior: smooth; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;
+  }
+  .question-slide {
+    align-items: center; display: flex; height: 100svh;
+    padding: 132px 20px 24px; scroll-snap-align: start; scroll-snap-stop: always;
+  }
   .question-card, .result-card {
     background: rgba(255,255,255,0.97); border: 1px solid var(--line); border-radius: 8px;
-    box-shadow: var(--shadow); overflow: hidden; padding: clamp(20px,4vw,34px); position: relative; width: 100%;
+    box-shadow: var(--shadow); margin: 0 auto; max-height: 100%; max-width: 860px;
+    overflow-y: auto; padding: clamp(20px,4vw,34px); position: relative; width: 100%;
   }
   .question-card.correct-answer { animation: cardCorrectImpact 0.72s cubic-bezier(0.2,1.4,0.32,1) both; box-shadow: 0 26px 86px rgba(22,163,74,0.30); }
   .question-card.wrong-answer { animation: cardWrongImpact 0.62s ease both; box-shadow: 0 26px 86px rgba(220,38,38,0.26); }
@@ -157,8 +183,7 @@
     .app-topbar { padding: 12px; }
     .quiz-title { display: none; }
     .quiz-hud { padding: 62px 12px 0; }
-    .quiz-screen { padding: 124px 12px 70vh; }
-    .question-slide { scroll-margin-top: 120px; }
+    .question-slide { padding: 118px 12px 14px; }
     .question-card, .result-card, .portion-card { padding: 18px; }
     .kbd-hint { display: none; }
   }
@@ -179,6 +204,11 @@
       <div class="eyebrow" id="portion-eyebrow"></div>
       <h1 id="portion-heading"></h1>
       <p class="portion-copy" id="portion-copy"></p>
+      <label class="shuffle-toggle">
+        <input type="checkbox" id="shuffle-toggle">
+        <span class="switch"></span>
+        <span>Mix question order</span>
+      </label>
       <div class="portion-grid" id="portion-grid"></div>
     </div>
   </section>
@@ -190,7 +220,7 @@
         <div class="score-pill" id="score-counter">0 / 0</div>
       </div>
     </div>
-    <div id="question-feed" aria-live="polite"></div>
+    <div class="question-feed" id="question-feed" aria-live="polite"></div>
   </section>
 </main>
 
@@ -364,6 +394,7 @@ const mainMenuLink = document.getElementById("main-menu-link");
 const quizTitle = document.getElementById("quiz-title");
 const portionEyebrow = document.getElementById("portion-eyebrow");
 const portionHeading = document.getElementById("portion-heading");
+const shuffleToggle = document.getElementById("shuffle-toggle");
 
 let activeQuestions = [];
 let selectedPortion = null;
@@ -373,6 +404,13 @@ let resultCard = null;
 let audioContext = null;
 let flashLayer = null;
 let toastEl = null;
+
+// Remember the "Mix question order" choice between visits
+try { shuffleToggle.checked = localStorage.getItem("mh-shuffle") === "1"; } catch (e) {}
+shuffleToggle.addEventListener("change", () => {
+  try { localStorage.setItem("mh-shuffle", shuffleToggle.checked ? "1" : "0"); } catch (e) {}
+  playActionSound();
+});
 
 function applyConfig() {
   document.title = QUIZ_CONFIG.pageTitle;
@@ -427,7 +465,7 @@ function renderPortions() {
 function startQuiz(portion) {
   selectedPortion = portion;
   let list = sourceQuestions.slice(portion.start, portion.end);
-  if (portion.full) list = shuffleArray(list);
+  if (shuffleToggle.checked) list = shuffleArray(list);
   activeQuestions = list;
 
   userAnswers = Array(activeQuestions.length).fill(null);
@@ -440,6 +478,7 @@ function startQuiz(portion) {
   renderQuestion(0);
   updateHud();
   window.scrollTo({ top: 0, behavior: "auto" });
+  feed.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function getSlide(index) { return feed.querySelector(`[data-index="${index}"]`); }
@@ -447,9 +486,17 @@ function getSlide(index) { return feed.querySelector(`[data-index="${index}"]`);
 function goTo(index) {
   const slide = index >= activeQuestions.length ? feed.querySelector(".result-slide") : getSlide(index);
   if (!slide) return;
-  slide.scrollIntoView({ behavior: "smooth", block: "start" });
+  feed.scrollTo({ top: slide.offsetTop, behavior: "smooth" });
   const box = slide.querySelector(".answer-box");
   if (box && !box.readOnly) window.setTimeout(() => box.focus({ preventScroll: true }), 450);
+}
+
+function makeButton(label, cls) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = cls;
+  b.textContent = label;
+  return b;
 }
 
 function renderQuestion(index) {
@@ -525,14 +572,6 @@ function renderQuestion(index) {
   if (resultSlide) feed.insertBefore(slide, resultSlide); else feed.appendChild(slide);
 }
 
-function makeButton(label, cls) {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = cls;
-  b.textContent = label;
-  return b;
-}
-
 function resetForRetry(ui) {
   ui.box.readOnly = false;
   ui.box.classList.remove("right", "wrong");
@@ -595,6 +634,7 @@ function submitAnswer(index, ui, gaveUp) {
 
   ui.feedback.innerHTML = "";
   if (!isCorrect) ui.feedback.append(renderLegend(), renderDiff(ops));
+  ui.card.scrollTo({ top: Math.max(0, ui.verdict.offsetTop - 140), behavior: "smooth" });
 
   ui.card.classList.remove("correct-answer", "wrong-answer");
   void ui.card.offsetWidth;
@@ -692,11 +732,13 @@ function fillResult(card) {
       sc.textContent = a.isCorrect
         ? `Fixed on attempt ${a.attempts} — your first attempt:`
         : a.gaveUp ? "Skipped — the whole answer is missing" : `${a.pct}% match (attempt ${a.attempts})`;
-      const goBtn = makeButton("Go to question ↑", "ghost-btn");
-      goBtn.style.marginTop = "8px";
-      goBtn.addEventListener("click", () => goTo(i));
       item.append(q, sc, renderDiff(a.isCorrect ? a.firstOps : a.ops));
-      if (!a.isCorrect) item.appendChild(goBtn);
+      if (!a.isCorrect) {
+        const goBtn = makeButton("Go to question ↑", "ghost-btn");
+        goBtn.style.marginTop = "8px";
+        goBtn.addEventListener("click", () => goTo(i));
+        item.appendChild(goBtn);
+      }
       section.appendChild(item);
     });
     card.appendChild(section);
