@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maliyyə Hesabatlılığı Midterm</title>
+<style>
+  :root {
+    --bg: #f5f7fb; --ink: #162033; --muted: #647084; --panel: #ffffff; --line: #dfe5ef;
+    --brand: #2563eb; --brand-dark: #1d4ed8; --good: #16a34a; --good-soft: #dcfce7;
+    --bad: #dc2626; --bad-soft: #fee2e2; --amber: #f59e0b;
+    --shadow: 0 22px 70px rgba(25, 35, 55, 0.16);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; scroll-behavior: smooth; }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.16), transparent 28%),
+      radial-gradient(circle at 84% 18%, rgba(245, 158, 11, 0.16), transparent 24%),
+      linear-gradient(180deg, #f8fbff 0%, var(--bg) 48%, #eef3f8 100%);
+    color: var(--ink); overflow-x: hidden;
+  }
+  button, a, textarea { font: inherit; }
+  button { border: 0; }
+  .hidden { display: none !important; }
+
+  .app-topbar {
+    align-items: center; display: flex; gap: 14px; justify-content: space-between;
+    left: 50%; max-width: 980px; padding: 18px 20px; position: fixed; top: 0;
+    transform: translateX(-50%); width: min(100%, 980px); z-index: 10;
+  }
+  .back-btn, .ghost-btn, .primary-btn {
+    align-items: center; border-radius: 8px; cursor: pointer; display: inline-flex;
+    font-size: 14px; font-weight: 800; gap: 8px; min-height: 42px; padding: 10px 14px;
+    text-decoration: none; transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  }
+  .back-btn, .ghost-btn {
+    background: rgba(255,255,255,0.88); border: 1px solid var(--line); color: var(--ink);
+    box-shadow: 0 10px 28px rgba(26,38,62,0.08);
+  }
+  .primary-btn { background: var(--brand); color: #fff; box-shadow: 0 14px 30px rgba(37,99,235,0.24); }
+  .back-btn:hover, .ghost-btn:hover, .primary-btn:hover { transform: translateY(-2px); }
+  .primary-btn:disabled, .ghost-btn:disabled { cursor: default; opacity: 0.45; transform: none; }
+  .quiz-title {
+    background: rgba(255,255,255,0.88); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(26,38,62,0.08); color: var(--muted); font-size: 13px;
+    font-weight: 900; letter-spacing: 0.08em; padding: 11px 14px; text-transform: uppercase;
+  }
+  .portion-screen { align-items: center; display: flex; min-height: 100svh; padding: 96px 20px 34px; }
+  .portion-card {
+    background: rgba(255,255,255,0.92); border: 1px solid rgba(223,229,239,0.9); border-radius: 8px;
+    box-shadow: var(--shadow); margin: 0 auto; max-width: 980px; padding: clamp(22px,5vw,42px); width: 100%;
+  }
+  .eyebrow { color: var(--brand); font-size: 13px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+  h1 { font-size: clamp(34px,7vw,72px); letter-spacing: 0; line-height: 0.95; margin-top: 12px; max-width: 760px; }
+  .portion-copy { color: var(--muted); font-size: clamp(16px,2.4vw,20px); line-height: 1.55; margin-top: 16px; max-width: 680px; }
+  .portion-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 30px; }
+  .portion-btn {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 14px 34px rgba(22,32,51,0.08); color: var(--ink); cursor: pointer;
+    min-height: 98px; padding: 18px; text-align: left;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .portion-btn:hover { border-color: var(--brand); box-shadow: 0 18px 40px rgba(37,99,235,0.16); transform: translateY(-4px); }
+  .portion-range { display: block; font-size: 22px; font-weight: 900; }
+  .portion-meta { color: var(--muted); display: block; font-size: 13px; font-weight: 700; margin-top: 8px; }
+
+  .quiz-screen { height: 100svh; overflow: hidden; }
+  .quiz-hud {
+    left: 50%; max-width: 980px; padding: 70px 20px 0; pointer-events: none;
+    position: fixed; top: 0; transform: translateX(-50%); width: min(100%, 980px); z-index: 9;
+  }
+  .hud-row {
+    align-items: center; background: rgba(255,255,255,0.9); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: 0 12px 30px rgba(26,38,62,0.08); display: grid;
+    gap: 12px; grid-template-columns: 1fr auto; padding: 10px 12px;
+  }
+  .progress-track { background: #e6edf6; border-radius: 999px; height: 10px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--brand), var(--good)); height: 100%; transition: width 0.25s ease; width: 0; }
+  .score-pill { color: var(--ink); font-size: 13px; font-weight: 900; min-width: 92px; text-align: right; }
+  .question-feed { height: 100svh; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y proximity; -webkit-overflow-scrolling: touch; }
+  .question-slide { align-items: center; display: flex; min-height: 100svh; padding: 132px 20px 34px; scroll-snap-align: start; }
+  .question-card, .result-card {
+    background: rgba(255,255,255,0.96); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: var(--shadow); margin: 0 auto; max-width: 860px; overflow: hidden;
+    padding: clamp(20px,4vw,34px); position: relative; width: 100%;
+  }
+  .question-card.correct-answer { animation: cardCorrectImpact 0.72s cubic-bezier(0.2,1.4,0.32,1) both; box-shadow: 0 26px 86px rgba(22,163,74,0.34); }
+  .question-card.wrong-answer { animation: cardWrongImpact 0.62s ease both; box-shadow: 0 26px 86px rgba(220,38,38,0.3); }
+  .question-meta { align-items: center; color: var(--muted); display: flex; font-size: 13px; font-weight: 900; justify-content: space-between; margin-bottom: 18px; text-transform: uppercase; }
+  .question-text { font-size: clamp(18px,2.7vw,26px); font-weight: 800; line-height: 1.35; }
+
+  .answer-box {
+    background: #fff; border: 2px solid var(--line); border-radius: 8px; color: var(--ink);
+    display: block; font-size: 16px; line-height: 1.55; margin-top: 20px; min-height: 190px;
+    padding: 14px; resize: vertical; width: 100%; transition: border-color 0.16s ease, background 0.16s ease;
+  }
+  .answer-box:focus { border-color: var(--brand); outline: none; }
+  .answer-box.locked { cursor: not-allowed; opacity: 0.45; }
+  .answer-box.right { background: var(--good-soft); border-color: var(--good); }
+  .answer-box.wrong { background: var(--bad-soft); border-color: var(--bad); }
+  .answer-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .kbd-hint { color: var(--muted); font-size: 12px; font-weight: 700; margin-left: auto; }
+  .verdict { font-weight: 900; margin-top: 12px; }
+  .verdict.good { color: var(--good); }
+  .verdict.bad { color: var(--bad); }
+  .scroll-hint { color: var(--muted); font-size: 13px; font-weight: 800; margin-top: 10px; }
+
+  .confetti { inset: 0; overflow: hidden; pointer-events: none; position: absolute; }
+  .confetti i { animation: confettiDrop 1200ms ease-out forwards; background: var(--brand); border-radius: 2px; height: 18px; left: 50%; opacity: 0; position: absolute; top: 38%; width: 9px; }
+  .confetti .x-particle { animation: xBurst 900ms cubic-bezier(0.12,0.72,0.2,1) forwards; color: var(--bad); font-size: 34px; font-weight: 950; left: 50%; line-height: 1; opacity: 0; position: absolute; text-shadow: 0 8px 24px rgba(127,29,29,0.38); top: 42%; }
+  .answer-flash { inset: 0; opacity: 0; pointer-events: none; position: fixed; z-index: 40; }
+  .answer-flash.correct { animation: flashCorrect 620ms ease-out both; background: radial-gradient(circle at center, rgba(34,197,94,0.34), rgba(34,197,94,0.12) 34%, transparent 72%); }
+  .answer-flash.incorrect { animation: flashWrong 620ms ease-out both; background: radial-gradient(circle at center, rgba(239,68,68,0.34), rgba(239,68,68,0.12) 34%, transparent 72%); }
+  .answer-flash.locked { animation: flashLocked 760ms ease-out both; background: radial-gradient(circle at center, rgba(245,158,11,0.36), rgba(245,158,11,0.14) 34%, transparent 72%); }
+  .skip-toast {
+    align-items: center; background: rgba(255,251,235,0.96); border: 1px solid rgba(245,158,11,0.42);
+    border-radius: 8px; box-shadow: 0 18px 42px rgba(146,64,14,0.18); color: #92400e;
+    display: flex; font-size: 15px; font-weight: 950; gap: 10px; left: 50%; opacity: 0;
+    padding: 13px 16px; pointer-events: none; position: fixed; top: 128px;
+    transform: translate(-50%, -12px) scale(0.96); z-index: 50;
+  }
+  .skip-toast.show { animation: toastPop 1050ms ease both; }
+  .question-card.lock-bounce { animation: lockBounce 720ms ease both; box-shadow: 0 26px 86px rgba(245,158,11,0.34); }
+
+  .result-card { text-align: center; }
+  .result-card.finished { animation: resultPop 900ms cubic-bezier(0.2,1.35,0.34,1) both; box-shadow: 0 30px 96px rgba(37,99,235,0.28); }
+  .score-display { color: var(--brand); font-size: clamp(54px,12vw,110px); font-weight: 950; line-height: 1; margin-top: 16px; }
+  .score-percentage { color: var(--muted); font-size: 20px; font-weight: 800; margin-top: 8px; }
+  .result-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 24px; }
+  .mistakes-section { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; margin-top: 24px; max-height: 58vh; overflow-y: auto; padding: 16px; text-align: left; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; font-weight: 700; color: var(--muted); margin-top: 8px; }
+  .mistake-item { background: #fff; border-left: 4px solid var(--bad); border-radius: 8px; margin-top: 12px; padding: 12px; }
+  .mistake-question { font-weight: 800; line-height: 1.45; }
+  .mistake-score { color: var(--muted); font-size: 13px; font-weight: 800; margin-top: 6px; }
+  .diff { line-height: 2; margin-top: 8px; font-size: 15px; }
+  .diff span { border-radius: 4px; padding: 1px 3px; }
+  .w-wrong, .w-extra { background: var(--bad-soft); color: var(--bad); text-decoration: line-through; }
+  .w-fix { background: var(--good-soft); color: #14532d; font-weight: 800; }
+  .w-missing { background: #fef3c7; border-bottom: 2px dashed var(--amber); color: #92400e; font-weight: 800; }
+  details.full-answer { margin-top: 8px; font-size: 14px; line-height: 1.55; }
+  details.full-answer summary { color: var(--brand); cursor: pointer; font-weight: 800; }
+  details.full-answer p { color: #14532d; margin-top: 6px; }
+
+  @keyframes cardCorrectImpact { 0% { transform: scale(1); } 38% { transform: scale(1.018); } 100% { transform: scale(1); } }
+  @keyframes cardWrongImpact { 0%, 100% { transform: translateX(0); } 18% { transform: translateX(-8px); } 36% { transform: translateX(8px); } 54% { transform: translateX(-5px); } 72% { transform: translateX(3px); } }
+  @keyframes confettiDrop { 0% { opacity: 1; transform: translate(0,0) rotate(0deg) scale(1); } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(520deg); } }
+  @keyframes xBurst { 0% { opacity: 0; transform: translate(0,0) rotate(0deg) scale(0.5); } 16% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1.25); } }
+  @keyframes flashCorrect { 0% { opacity: 0; transform: scale(0.9); } 20% { opacity: 1; } 100% { opacity: 0; transform: scale(1.18); } }
+  @keyframes flashWrong { 0% { opacity: 0; transform: scale(0.92); } 18% { opacity: 1; } 100% { opacity: 0; transform: scale(1.12); } }
+  @keyframes flashLocked { 0% { opacity: 0; transform: scale(0.92); } 22% { opacity: 1; } 100% { opacity: 0; transform: scale(1.16); } }
+  @keyframes toastPop { 0% { opacity: 0; transform: translate(-50%,-12px) scale(0.96); } 16% { opacity: 1; transform: translate(-50%,0) scale(1.02); } 78% { opacity: 1; transform: translate(-50%,0) scale(1); } 100% { opacity: 0; transform: translate(-50%,-10px) scale(0.98); } }
+  @keyframes lockBounce { 0%, 100% { transform: translateY(0) scale(1); } 18% { transform: translateY(-12px) scale(1.012); } 38% { transform: translateY(8px) scale(0.996); } 58% { transform: translateY(-5px); } 78% { transform: translateY(2px); } }
+  @keyframes resultPop { 0% { opacity: 0; transform: translateY(34px) scale(0.92); } 54% { opacity: 1; transform: translateY(-8px) scale(1.025); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+  @media (max-width: 680px) {
+    .app-topbar { padding: 12px; }
+    .quiz-title { display: none; }
+    .quiz-hud { padding: 60px 12px 0; }
+    .question-slide { padding: 118px 12px 24px; }
+    .question-card, .result-card, .portion-card { padding: 18px; }
+    .kbd-hint { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<header class="app-topbar">
+  <a href="index.html" class="back-btn" id="main-menu-link"></a>
+  <div class="quiz-title" id="quiz-title"></div>
+</header>
+
+<main>
+  <section class="portion-screen" id="portion-screen">
+    <div class="portion-card">
+      <div class="eyebrow" id="portion-eyebrow"></div>
+      <h1 id="portion-heading"></h1>
+      <p class="portion-copy" id="portion-copy"></p>
+      <div class="portion-grid" id="portion-grid"></div>
+    </div>
+  </section>
+
+  <section class="quiz-screen hidden" id="quiz-screen">
+    <div class="quiz-hud">
+      <div class="hud-row">
+        <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+        <div class="score-pill" id="score-counter">0 / 0</div>
+      </div>
+    </div>
+    <div class="question-feed" id="question-feed" aria-live="polite"></div>
+  </section>
+</main>
+
+<script>
+const QUIZ_CONFIG = {
+  quizName: "Maliyyə Hesabatlılığı Midterm",
+  pageTitle: "Maliyyə Hesabatlılığı Midterm",
+  homeUrl: "index.html",
+  homeLabel: "Main Menu",
+  portionEyebrow: "Choose your run",
+  portionHeading: "Which part do you want to start?",
+  questionCountLabel: "questions"
+};
+
+const PART_SIZE = 7;
+
+const ITEMS = [
+  { q: "Maliyyə Hesabatlılığının Beynəlxalq Standartlarının işlənib hazırlanmasının ilkin şərtləri və zəruriliyi",
+    a: "Qlobal kapital bazarlarının sürətli inkişafı və beynəlxalq ticarətin genişlənməsi müxtəlif ölkələrin maliyyə hesabatları arasında müqayisəolunmanı təmin edən vahid dilin yaradılmasını zəruri etmişdir. MHBS müxtəlif milli mühasibat sistemləri arasındakı fərqləri aradan qaldırmaq, şəffaflığı artırmaq və investorların qərar qəbul etməsini asanlaşdırmaq məqsədilə işlənib hazırlanmışdır. Bu standartlar qlobal miqyasda kapitalın səmərəli bölüşdürülməsinə və maliyyə riski analizinin dürüstlüyünə xidmət edir." },
+  { q: "Maliyyə Hesabatının Beynəlxalq Standartları Fondu, onun məqsədləri və strukturu",
+    a: "MHBS Fondu (IFRS Foundation) beynəlxalq maliyyə hesabatlılığı standartlarının işlənilməsi, təşviqi və tətbiqinə nəzarət edən müstəqil, qeyri-kommersiya təşkilatıdır. Fondun əsas məqsədi ictimai maraqlara xidmət edən, yüksək keyfiyyətli, anlaşılır və icrası məcburi olan vahid qlobal standartlar toplusunu hazırlamaqdır. İyerarxik struktura Mütəvəllilər Heyəti (Trustees), Standartlar üzrə Beynəlxalq Şura (IASB) və Məsləhət Şurası kimi əsas idarəetmə orqanları daxildir." },
+  { q: "Beynəlxalq standartların (IAS və IFRS) işlənib hazırlanması və qəbul edilməsi prosedurları və mərhələləri",
+    a: "Standartların qəbulu şəffaf və açıq müzakirə (\"Due Process\") proseduru vasitəsilə həyata keçirilir. Əvvəlcə tədqiqat aparılır, gündəlik müəyyənləşdirilir, Müzakirə Sənədi (Discussion Paper) və ya Layihə Sənədi (Exposure Draft) hazırlanaraq ictimaiyyətin rəyinə təqdim olunur. Daxil olan təkliflər təkrar təhlil edildikdən sonra IASB üzvlərinin səsverməsi ilə yekun IFRS standartı təsdiqlənir və dərc olunur." },
+  { q: "MHBS Fondu orqanlarının tərkibi və funksiyaları",
+    a: "Fondun tərkibinə strateji istiqaməti müəyyən edən və maliyyələşməyə cavabdeh olan Qəyyumlardan (Trustees) ibarət Şura daxildir. Əsas icraedici orqan olan IASB standartların birbaşa hazırlanması və təsdiqinə cavabdehdir, MHBS Şərhlər Komitəsi (IFRIC) isə standartların tətbiqi zamanı ortaya çıxan qeyri-müəyyənliklərə rəsmi izahlar verir. Məsləhət Şurası (IFRS Advisory Council) isə tənzimləmə prosesində IASB-yə geniş ekspert tövsiyələri təqdim edir." },
+  { q: "Maliyyə hesabatlarının təqdim edilməsinin Konseptual əsaslarının məzmunu və təyinatı",
+    a: "Konseptual Əsaslar maliyyə hesabatlılığının təməl prinsiplərini, məqsədlərini, elementlərini və keyfiyyət xüsusiyyətlərini müəyyən edən standartüstü çərçivə sənədidir. O, özlüyündə bir standart olmasa da, IASB-yə yeni standartlar hazırlamaqda, mühasiblərə standartlarda birbaşa cavabı olmayan hallarda ardıcıl uçot siyasəti seçməkdə kömək edir. Sənəd istifadəçilərə mühasibat məlumatlarını doğru şərh etmək üçün konseptual bazanı təmin edir." },
+  { q: "Ümumi təyinatlı maliyyə hesabatlarının təqdim edilməsinin məqsədi və onların istifadəçiləri",
+    a: "Ümumi təyinatlı maliyyə hesabatlarının məqsədi müəssisəyə resurs təmin etməklə bağlı qərarlar qəbul edərkən mövcud və potensial investorlar, borc verənlər və digər kreditorlar üçün faydalı maliyyə informasiyasını təqdim etməkdir. Bu hesabatlar müəssisənin iqtisadi resursları, öhdəlikləri və onların dəyişməsi barədə tam mənzərə yaradır. Əsas istifadəçilərə investorlar, banklar, təchizatçılar, dövlət orqanları və analizçilər daxildir." },
+  { q: "Maliyyə hesabatlılığının məqsədi və tərkibi, hesabat verən təşkilat",
+    a: "Maliyyə hesabatlılığının məqsədi təşkilatın maliyyə vəziyyəti, fəaliyyətinin nəticələri və pul axınları haqqında dürüst və tərəfsiz məlumat verməkdir. Tərkibinə Maliyyə vəziyyəti haqqında hesabat, Məcmu gəlir haqqında hesabat, Kapitalda dəyişikliklər haqqında hesabat, Pul vəsaitlərinin hərəkəti haqqında hesabat və Qeydlər daxildir. Hesabat verən təşkilat isə maliyyə hesabatlarını hazırlamaq tələb olunan və ya bunu seçən hüquqi, yaxud müəyyən edilmiş qrup subyektdir." },
+  { q: "Maliyyə hesabatlarının elementləri, onların tanınması və tanınmanın dayandırılması",
+    a: "Hesabatların elementləri aktivlər, öhdəliklər, kapital, gəlir və xərclərdir. Element Konseptual Əsaslardakı tərifə cavab verdikdə və istifadəçilər üçün faydalı (relevant və dürüst) informasiya təmin etdikdə hesabatda tanınır. Tanınmanın dayandırılması isə aktiv üzərində nəzarət və ya öhdəlik üzrə borc tamamilə itirildikdə, ləğv edildikdə və ya üçüncü tərəfə ötürüldükdə həyata keçirilir." },
+  { q: "Maliyyə hesabatlılığının məqsədi, təyinatı və tam komplekti",
+    a: "Maliyyə hesabatlılığı müəssisənin iqtisadi resurslarını, maliyyə dayanıqlığını və idarəetmənin effektivliyini qiymətləndirmək üçün xidmət edir. Tam komplektə daxildir: dövrün sonuna Maliyyə vəziyyəti haqqında hesabat, dövr üzrə Məcmu gəlir hesabatı, Kapitalda dəyişikliklər hesabatı, Pul vəsaitlərinin hərəkəti hesabatı, uçot siyasəti və izahlı Qeydlər, habelə geriyə şamil olunan uçot düzəlişləri zamanı əvvəlki dövrün əvvəlinə olan balans hesabatı." },
+  { q: "Maliyyə vəziyyəti haqqında hesabatın, məcmu gəlir haqqında hesabatın və kapitaldakı dəyişikliklər haqqında hesabatın strukturu və məzmunu",
+    a: "Maliyyə vəziyyəti haqqında hesabat müəyyən tarixə aktivlərin, öhdəliklərin və kapitalın strukturunu göstərir. Məcmu gəlir haqqında hesabat dövr ərzində əldə edilən mənfəət/zərəri və birbaşa kapitalda əks olunan digər məcmu gəlirləri (OCI) əks etdirir. Kapitalda dəyişikliklər haqqında hesabat isə səhmdarlarla əməliyyatları, bölüşdürülməmiş mənfəətin və digər ehtiyatların dinamikasını tam açıqlayır." },
+  { q: "Qeydlər, onların məzmunu, qeydlərdə açıqlanmalı olan informasiya",
+    a: "Qeydlər maliyyə hesabatlarının ayrılmaz hissəsi olub, əsas hesabat formalardakı rəqəmlərin detallı izahını və parçalanmasını təmin edir. Qeydlərdə tətbiq edilən uçot siyasəti, rəhbərliyin vacib mühakimələri və qiymətləndirmə təxminləri açıqlanır. Şərti öhdəliklər, hesabat tarixindən sonrakı hadisələr və aidiyyəti tərəflərlə əməliyyatlar kimi vacib faktlar da məhz burada əks olunur." },
+  { q: "Uzunmüddətli aktivlər haqqında ümumi anlayış",
+    a: "Uzunmüddətli aktivlər müəssisənin adi fəaliyyət tsiklində dərhal satılmaq üçün nəzərdə tutulmayan və 1 ildən artıq müddətdə iqtisadi mənfəət gətirməsi gözlənilən resurslarıdır. Bura torpaq, tikili və avadanlıqlar (əsas vəsaitlər), qeyri-maddi aktivlər, investisiya əmlakı və uzunmüddətli maliyyə qoyuluşları daxildir. Bu aktivlər adətən amortizasiya vasitəsilə tədricən xərcə silinir." },
+  { q: "Bioloji aktivlər",
+    a: "Bioloji aktivlər IAS 41 standartına əsasən kənd təsərrüfatı fəaliyyəti ilə bağlı olan canlı heyvanlar və ya bitkilərdir (məsələn, mal-qara, meşə zolaqları, meyvə ağacları). Bioloji aktivlər ilkin tanınma zamanı və hər hesabat tarixində, satış xərcləri çıxılmaqla ədalətli dəyəri (Fair Value less costs to sell) ilə qiymətləndirilir. Ədalətli dəyərin dəyişməsindən yaranan mənfəət və ya zərər bilavasitə yaranan dövrün mənfəət və zərərinə aid edilir." },
+  { q: "Qeyri-maddi aktivlər",
+    a: "Qeyri-maddi aktivlər IAS 38-ə əsasən fiziki forması olmayan, lakin eyniləşdirilə bilən, pul şəklində olmayan qeyri-monetar aktivlərdir (məsələn, proqram təminatı, patentlər, lisenziyalar, ticarət nişanları). Aktiv kimi tanınması üçün müəssisənin ona nəzarət etməsi, gələcək iqtisadi səmərə gətirməsi və dəyərinin etibarlı qiymətləndirilməsi şərtləndirilir. Faydalı xidmət müddəti məhdud olan QMA-lar amortizasiya olunur, qeyri-müəyyən olanlar isə hər il qiymətdən düşmə testindən keçirilir." },
+  { q: "Qudvil anlayışı",
+    a: "Qudvil (Goodwill) başqa bir müəssisə (biznes) əldə edilərkən ödənilən əvəzin (alış qiymətinin) əldə edilən xalis eyniləşdirilən aktivlərin ədalətli dəyərindəki paydan artıq olan hissəsidir. O, ayrıca satıla bilməyən sinerji, reputasiya, müştəri bazası və kadr potensialı kimi gələcək iqtisadi səmərələri təcəssüm etdirir. Qudvil amortizasiya olunmur, lakin IFRS 3 və IAS 36-ya əsasən hər il azı bir dəfə qiymətdən düşmə (impairment) testinə cəlb edilir." },
+  { q: "Ehtiyatlar, onların tanınması",
+    a: "Ehtiyatlar (IAS 2) adi fəaliyyət gedişində satılmaq üçün saxlanılan, satış üçün istehsal prosesində olan və ya xidmət/məhsul istehsalında istifadə ediləcək xammal və materiallar formasında olan aktivlərdir. Ehtiyatlar müəssisə gələcək iqtisadi səmərələrin daxil olacağına əmin olduqda və onun maya dəyəri etibarlı qiymətləndirildikdə aktiv kimi tanınır. Onlar anbara daxil olduğu andan balansa daxil edilir." },
+  { q: "Ehtiyatların təsnifatı və qiymətləndirilməsi",
+    a: "Ehtiyatlar üç əsas qrupa bölünür: xammal və materiallar, bitməmiş istehsalat və hazır məhsul (və ya satış üçün mallar). IAS 2-yə əsasən ehtiyatlar maya dəyəri (cost) ilə mümkün xalis satış dəyərindən (Net Realizable Value - NRV) ən aşağı olanı ilə qiymətləndirilir. Əgər NRV maya dəyərindən aşağı düşərsə, ehtiyatlar NRV səviyyəsinə qədər silinir və fərq xərc kimi tanınır." },
+  { q: "Ehtiyatların əldə edilməsinə və emalına məsrəflər",
+    a: "Əldə edilmə məsrəflərinə alış qiyməti, idxal rüsumları, bərpa olunmayan vergilər, nəqliyyat və digər birbaşa əlaqəli xərclər daxildir (ticarət güzəştləri çıxılmaqla). Emal məsrəflərinə isə birbaşa işçi qüvvəsi xərcləri, habelə istehsal həcminə mütənasib bölüşdürülən sabit və dəyişən istehsalüstü xərclər daxil edilir. İnzibati, satış və normadan artıq məhsul itkisi xərcləri ehtiyatın maya dəyərinə daxil edilmir." },
+  { q: "Ehtiyatların maya dəyərinin hesablanması metodları",
+    a: "IAS 2 standartına əsasən qarşılıqlı əvəz oluna bilən ehtiyatların maya dəyərini müəyyən etmək üçün iki əsas metod tətbiq edilir: FIFO (İlk daxil olan - ilk xaric olan) və Orta çəkili dəyər (Weighted Average Cost) metodu. Fərdi spesifik aktivlər və xüsusi layihələr üçün isə Xüsusi eyniləşdirmə (Specific Identification) metodu tətbiq edilir. Qeyd: LIFO metodunun MHBS-də tətbiqinə icazə verilmir." },
+  { q: "Maliyyə alətləri, maliyyə aktivləri və maliyyə öhdəlikləri",
+    a: "Maliyyə aləti bir müəssisədə maliyyə aktivinin, digər müəssisədə isə maliyyə öhdəliyinin və ya kapital alətinin yaranmasına səbəb olan müqavilədir (IFRS 9 / IAS 32). Maliyyə aktivlərinə pul vəsaitləri, başqa müəssisənin kapital alətləri, debitor borcları və istiqrazlar daxildir. Maliyyə öhdəliklərinə isə pul və ya başqa maliyyə aktivini təhvil vermək üzrə müqavilə öhdəlikləri (kreditlər, kreditor borcları) aiddir." },
+  { q: "Törəmə maliyyə alətləri haqqında anlayış",
+    a: "Törəmə maliyyə aləti (Derivatives) dəyəri başqa bir baza aktivindən (faiz dərəcəsi, valyuta məzənnəsi, səhm qiyməti və s.) asılı olan, ilkin xalis investisiya tələb etməyən (və ya çox az olan) və gələcək tarixdə hesablaşması aparılan maliyyə alətidir. Əsas növlərinə fyuçers, forvard, opsion və svop müqavilələri daxildir. Onlar adətən maliyyə risklərindən sığortalanma (hedcinq) və ya spekulyasiya məqsədilə tətbiq edilir." },
+  { q: "Maliyyə aktivləri və maliyyə öhdəliklərinin tanınması və ilkin qiymətləndirilməsi",
+    a: "Maliyyə aktivləri və öhdəlikləri müəssisə alətin müqavilə şərtlərinin tərəfi olduğu halda balansa daxil edilir. İlkin tanınma zamanı onlar bir qayda olaraq ədalətli dəyəri (Fair Value) ilə qiymətləndirilir. Mənfəət/zərərlə ədalətli dəyərlə uçota alınanlar istisna olmaqla, digər maliyyə aktivləri və öhdəliklərinin ilkin dəyərinə birbaşa əlaqəli əməliyyat xərcləri də əlavə olunur." },
+  { q: "Aktivlərin qiymətdən düşməsi anlayışı",
+    a: "Aktivlərin qiymətdən düşməsi (IAS 36) aktivin balans dəyərinin (Book Value) onun bərpa olunan dəyərindən (Recoverable Amount) artıq olması halıdır. Bərpa olunan dəyər aktivin satış xərcləri çıxılmaqla ədalətli dəyəri ilə istifadə dəyərindən (Value in Use) ən böyük olanıdır. Əgər balans dəyəri bərpa olunan dəyərdən böyükdürsə, aradakı fərq qiymətdən düşmə zərəri kimi mənfəət və zərər hesabatında tanınır." },
+  { q: "Qiymətdəndüşmənin kənar və daxili əlamətləri",
+    a: "Kənar əlamətlərə aktivin bazar dəyərinin kəskin düşməsi, texnoloji, bazar, hüquqi və ya iqtisadi mühitdə əlverişsiz dəyişikliklər, eləcə də faiz dərəcələrinin artması daxildir. Daxili əlamətlərə isə aktivin fiziki mənəvi köhnəlməsi və ya zədələnməsi, aktivin istifadə intensivliyinin azalması (məsələn, fəaliyyətin dayandırılması) və gələcəkdə gətirəcəyi iqtisadi səmərələrin gözləniləndən az olması daxildir." },
+  { q: "Qiymətdəndüşmədən yaranmış zərərin bölüşdürülməsi və bərpa olunması qaydası",
+    a: "Qiymətdəndüşmə zərəri ilk növbədə pul vəsaitləri doğuran aqreqata (CGU) aid olan Qudvilin üzərinə silinir, qalan məbləğ isə digər aktivlərin balans dəyərinə mütənasib olaraq bölüşdürülür. Sonrakı dövrlərdə şərait müsbətə doğru dəyişərsə, zərər mənfəət/zərər hesabatı vasitəsilə bərpa oluna bilər. Lakin Qudvil üzrə tanınmış qiymətdəndüşmə zərərinin sonradan bərpa edilməsinə IAS 36 tərəfindən icazə verilmir." },
+  { q: "Qiymətləndirilmiş öhdəliklər və şərti öhdəliklər",
+    a: "Qiymətləndirilmiş öhdəlik (Provision - IAS 37) icra vaxtı və ya məbləği qeyri-müəyyən olan, lakin ödənilməsi ehtimal olunan və etibarlı qiymətləndirilə bilən mövcud hüquqi/konstruktiv öhdəlikdir (balansda tanınır). Şərti öhdəlik (Contingent Liability) isə baş verməsi qeyri-müəyyən olan keçmiş hadisələrdən yaranan və ya resurs axını ehtimalı aşağı olan öhdəlikdir; o balansda tanınmır, yalnız qeydlərdə açıqlanır." },
+  { q: "Şərti öhdəliklər və şərti aktivlər",
+    a: "Şərti öhdəlik müəssisə üçün potensial öhdəlikdir və maliyyə resurslarının çıxma ehtimalı yüksək olmadıqca balansa salınmır. Şərti aktiv isə keçmiş hadisələrdən yaranan və iqtisadi səmərə daxil olması ehtimal edilən potensial aktivdir. İhtiyatlılıq prinsipinə (prudence) əsasən şərti aktivlər heç vaxt balansa daxil edilmir, yalnız iqtisadi səmərə daxilolması ehtimalı yüksək olduqda maliyyə hesabatlarının qeydlərində açıqlanır." },
+  { q: "Şərti öhdəliklər və şərti aktivlər, onların maliyyə hesabatında əks etdirilməsi qaydası",
+    a: "Şərti öhdəliklər üzrə resurs axını ehtimalı yüksəkdirsə qiymətləndirilmiş öhdəlik (provision) tanınır, ehtimal müəyyən dərəcədədirsə (mümkündürsə) yalnız qeydlərdə açıqlanır, ehtimal çox cüzidirsə (remote) ümumiyyətlə göstərilmir. Şərti aktivlər üzrə resurs daxilolması praktiki olaraq mütləqdirsə (virtually certain) aktiv kimi tanınır, yüksək ehtimallıdırsa (probable) yalnız qeydlərdə izah edilir, digər hallarda isə hesabatlarda heç bir şəkildə əks etdirilmir." }
+];
+
+const sourceQuestions = ITEMS.map((item, i) => ({ ...item, number: `${i + 1}.` }));
+
+/* ---------- Answer matching ---------- */
+
+// Lowercase + strip Azerbaijani/Turkish diacritics so "ucot" == "Uçot", "umumiyyetle" == "ümumiyyətlə"
+function normalizeWord(word) {
+  return word
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/ə/g, "e")
+    .replace(/ı/g, "i");
+}
+
+// Words only — punctuation, brackets, quotes, slashes and hyphens are ignored
+function tokenize(text) {
+  return (text.match(/[\p{L}\p{N}]+/gu) || []).map((raw) => ({ raw, norm: normalizeWord(raw) }));
+}
+
+// Word-level LCS diff → eq / sub (wrong word) / missing / extra
+function diffWords(expected, given) {
+  const n = expected.length, m = given.length;
+  const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i][j] = expected[i].norm === given[j].norm
+        ? dp[i + 1][j + 1] + 1
+        : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const raw = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (expected[i].norm === given[j].norm) { raw.push({ type: "eq", exp: expected[i++], got: given[j++] }); }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { raw.push({ type: "del", exp: expected[i++] }); }
+    else { raw.push({ type: "ins", got: given[j++] }); }
+  }
+  while (i < n) raw.push({ type: "del", exp: expected[i++] });
+  while (j < m) raw.push({ type: "ins", got: given[j++] });
+
+  const ops = [];
+  let dels = [], ins = [];
+  const flush = () => {
+    const pairs = Math.min(dels.length, ins.length);
+    for (let k = 0; k < pairs; k++) ops.push({ type: "sub", exp: dels[k], got: ins[k] });
+    for (let k = pairs; k < dels.length; k++) ops.push({ type: "missing", exp: dels[k] });
+    for (let k = pairs; k < ins.length; k++) ops.push({ type: "extra", got: ins[k] });
+    dels = []; ins = [];
+  };
+  raw.forEach((op) => {
+    if (op.type === "eq") { flush(); ops.push(op); }
+    else if (op.type === "del") dels.push(op.exp);
+    else ins.push(op.got);
+  });
+  flush();
+  return ops;
+}
+
+function renderDiff(ops) {
+  const box = document.createElement("div");
+  box.className = "diff";
+  const add = (text, cls, title) => {
+    const span = document.createElement("span");
+    if (cls) span.className = cls;
+    if (title) span.title = title;
+    span.textContent = text;
+    box.append(span, " ");
+  };
+  ops.forEach((op) => {
+    if (op.type === "eq") add(op.got.raw);
+    else if (op.type === "sub") { add(op.got.raw, "w-wrong", "Wrong word"); add(op.exp.raw, "w-fix", "Correct word"); }
+    else if (op.type === "missing") add(op.exp.raw, "w-missing", "Missing word");
+    else add(op.got.raw, "w-extra", "Extra word");
+  });
+  return box;
+}
+
+/* ---------- DOM ---------- */
+
+const portionScreen = document.getElementById("portion-screen");
+const portionGrid = document.getElementById("portion-grid");
+const portionCopy = document.getElementById("portion-copy");
+const quizScreen = document.getElementById("quiz-screen");
+const feed = document.getElementById("question-feed");
+const progress = document.getElementById("progress");
+const scoreCounter = document.getElementById("score-counter");
+const mainMenuLink = document.getElementById("main-menu-link");
+const quizTitle = document.getElementById("quiz-title");
+const portionEyebrow = document.getElementById("portion-eyebrow");
+const portionHeading = document.getElementById("portion-heading");
+
+let activeQuestions = [];
+let selectedPortion = null;
+let userAnswers = [];
+let score = 0;
+let furthestUnlocked = 0;
+let resultRendered = false;
+let scrollTimer = null;
+let audioContext = null;
+let flashLayer = null;
+let skipToast = null;
+let lastSkipEffectAt = 0;
+
+function applyConfig() {
+  document.title = QUIZ_CONFIG.pageTitle;
+  mainMenuLink.href = QUIZ_CONFIG.homeUrl;
+  mainMenuLink.textContent = QUIZ_CONFIG.homeLabel;
+  quizTitle.textContent = QUIZ_CONFIG.quizName;
+  portionEyebrow.textContent = QUIZ_CONFIG.portionEyebrow;
+  portionHeading.textContent = QUIZ_CONFIG.portionHeading;
+}
+
+mainMenuLink.addEventListener("click", playActionSound);
+
+function shuffleArray(array) {
+  const a = [...array];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildPortions() {
+  if (sourceQuestions.length <= PART_SIZE) {
+    return [{ label: "Full", start: 0, end: sourceQuestions.length, full: true }];
+  }
+  const portions = [];
+  for (let start = 0; start < sourceQuestions.length; start += PART_SIZE) {
+    const end = Math.min(start + PART_SIZE, sourceQuestions.length);
+    portions.push({ label: `${start + 1}-${end}`, start, end, full: false });
+  }
+  portions.push({ label: "Full", start: 0, end: sourceQuestions.length, full: true });
+  return portions;
+}
+
+function renderPortions() {
+  portionGrid.innerHTML = "";
+  portionCopy.textContent = `${sourceQuestions.length} ${QUIZ_CONFIG.questionCountLabel} available. Type each answer exactly — pick a ${PART_SIZE}-question part or take the full quiz.`;
+  buildPortions().forEach((portion) => {
+    const button = document.createElement("button");
+    button.className = "portion-btn";
+    button.type = "button";
+    const range = document.createElement("span");
+    range.className = "portion-range";
+    range.textContent = portion.label;
+    const meta = document.createElement("span");
+    meta.className = "portion-meta";
+    meta.textContent = `${portion.end - portion.start} ${QUIZ_CONFIG.questionCountLabel}`;
+    button.append(range, meta);
+    button.addEventListener("click", () => { playStartSound(); startQuiz(portion); });
+    portionGrid.appendChild(button);
+  });
+}
+
+function startQuiz(portion) {
+  selectedPortion = portion;
+  let list = sourceQuestions.slice(portion.start, portion.end);
+  if (portion.full) list = shuffleArray(list);
+  activeQuestions = list;
+
+  userAnswers = Array(activeQuestions.length).fill(null);
+  score = 0;
+  furthestUnlocked = 0;
+  resultRendered = false;
+
+  portionScreen.classList.add("hidden");
+  quizScreen.classList.remove("hidden");
+  feed.innerHTML = "";
+  activeQuestions.forEach(renderQuestion);
+  updateHud();
+  window.scrollTo({ top: 0, behavior: "auto" });
+  feed.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function isLocked(index) { return index > furthestUnlocked; }
+
+function bounceToCurrent() {
+  showSkipEffect();
+  feed.scrollTo({ top: getSlideTop(furthestUnlocked), behavior: "smooth" });
+}
+
+function renderQuestion(question, index) {
+  const slide = document.createElement("section");
+  slide.className = "question-slide";
+  slide.dataset.index = String(index);
+
+  const card = document.createElement("article");
+  card.className = "question-card";
+
+  const confetti = document.createElement("div");
+  confetti.className = "confetti";
+
+  const meta = document.createElement("div");
+  meta.className = "question-meta";
+  const current = document.createElement("span");
+  current.textContent = `Question ${index + 1} / ${activeQuestions.length}`;
+  const original = document.createElement("span");
+  original.textContent = `Original ${question.number}`;
+  meta.append(current, original);
+
+  const text = document.createElement("div");
+  text.className = "question-text";
+  text.textContent = question.q;
+
+  const box = document.createElement("textarea");
+  box.className = "answer-box";
+  box.placeholder = "Type the exact answer…";
+  box.spellcheck = false;
+  box.autocomplete = "off";
+  box.setAttribute("autocapitalize", "off");
+  if (isLocked(index)) { box.readOnly = true; box.classList.add("locked"); }
+  box.addEventListener("focus", () => {
+    if (isLocked(index)) { box.blur(); bounceToCurrent(); }
+  });
+  box.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); trySubmit(); }
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "answer-actions";
+  const check = document.createElement("button");
+  check.className = "primary-btn";
+  check.type = "button";
+  check.textContent = "Check";
+  const giveUp = document.createElement("button");
+  giveUp.className = "ghost-btn";
+  giveUp.type = "button";
+  giveUp.textContent = "I don't know";
+  const kbd = document.createElement("span");
+  kbd.className = "kbd-hint";
+  kbd.textContent = "Ctrl / ⌘ + Enter to check";
+  actions.append(check, giveUp, kbd);
+
+  const verdict = document.createElement("div");
+  verdict.className = "verdict";
+
+  const hint = document.createElement("div");
+  hint.className = "scroll-hint";
+  hint.textContent = "Answer to unlock the next card.";
+
+  function trySubmit() {
+    if (isLocked(index)) { bounceToCurrent(); return; }
+    if (!box.value.trim()) { showToast("Type your answer first"); box.focus(); return; }
+    submitAnswer(index, card, false);
+  }
+  check.addEventListener("click", trySubmit);
+  giveUp.addEventListener("click", () => {
+    if (isLocked(index)) { bounceToCurrent(); return; }
+    submitAnswer(index, card, true);
+  });
+
+  card.append(confetti, meta, text, box, actions, verdict, hint);
+  slide.appendChild(card);
+  feed.appendChild(slide);
+}
+
+function unlockQuestion(index) {
+  const slide = feed.querySelector(`[data-index="${index}"]`);
+  if (!slide) return;
+  const box = slide.querySelector(".answer-box");
+  if (box) { box.readOnly = false; box.classList.remove("locked"); }
+}
+
+function submitAnswer(questionIndex, card, gaveUp) {
+  if (userAnswers[questionIndex]) return;
+
+  const question = activeQuestions[questionIndex];
+  const box = card.querySelector(".answer-box");
+  const given = gaveUp ? "" : box.value;
+  const expectedTokens = tokenize(question.a);
+  const givenTokens = tokenize(given);
+  const ops = diffWords(expectedTokens, givenTokens);
+  const matched = ops.filter((op) => op.type === "eq").length;
+  const isCorrect = !gaveUp && matched === expectedTokens.length && givenTokens.length === expectedTokens.length;
+  const total = expectedTokens.length + givenTokens.length;
+  const pct = total ? Math.round((200 * matched) / total) : 0;
+
+  if (isCorrect) score++;
+
+  userAnswers[questionIndex] = {
+    question: question.q,
+    questionNumber: question.number,
+    correctAnswer: question.a,
+    ops, pct, gaveUp, isCorrect
+  };
+
+  box.readOnly = true;
+  box.classList.add(isCorrect ? "right" : "wrong");
+  card.querySelectorAll(".answer-actions button").forEach((b) => { b.disabled = true; });
+
+  const verdict = card.querySelector(".verdict");
+  verdict.classList.add(isCorrect ? "good" : "bad");
+  verdict.textContent = isCorrect
+    ? "Exact match ✓"
+    : gaveUp
+      ? "Skipped — counted as wrong. The answer is shown at the end."
+      : `Not exact — ${pct}% match. Wrong and missing words are highlighted at the end.`;
+
+  card.classList.add(isCorrect ? "correct-answer" : "wrong-answer");
+  card.querySelector(".scroll-hint").textContent =
+    questionIndex === activeQuestions.length - 1 ? "Scroll to see your result." : "Scroll down for the next question.";
+
+  furthestUnlocked = Math.max(furthestUnlocked, questionIndex + 1);
+  unlockQuestion(furthestUnlocked);
+
+  if (questionIndex === activeQuestions.length - 1) renderResult();
+
+  updateHud();
+  playSound(isCorrect);
+  triggerFlash(isCorrect);
+  triggerHaptics(isCorrect);
+  burstParticles(card, isCorrect);
+}
+
+function updateHud() {
+  const answeredCount = userAnswers.filter(Boolean).length;
+  const percent = activeQuestions.length ? (answeredCount / activeQuestions.length) * 100 : 0;
+  progress.style.width = `${percent}%`;
+  scoreCounter.textContent = `${score} / ${activeQuestions.length}`;
+}
+
+function getSlideTop(index) {
+  const slide = feed.querySelector(`[data-index="${index}"]`);
+  return slide ? slide.offsetTop : index * feed.clientHeight;
+}
+
+function getNearestSlideIndex() {
+  const slides = [...feed.querySelectorAll(".question-slide")];
+  let closestIndex = 0, closestDistance = Infinity;
+  slides.forEach((slide) => {
+    const d = Math.abs(slide.offsetTop - feed.scrollTop);
+    if (d < closestDistance) { closestDistance = d; closestIndex = Number(slide.dataset.index); }
+  });
+  return closestIndex;
+}
+
+function legendItem(cls, sample, label) {
+  const wrap = document.createElement("span");
+  const s = document.createElement("span");
+  s.className = cls;
+  s.style.padding = "1px 4px";
+  s.style.borderRadius = "4px";
+  s.textContent = sample;
+  wrap.append(s, ` ${label}`);
+  return wrap;
+}
+
+function renderResult() {
+  if (resultRendered) return;
+  resultRendered = true;
+
+  const slide = document.createElement("section");
+  slide.className = "question-slide";
+  slide.dataset.index = String(activeQuestions.length);
+
+  const card = document.createElement("article");
+  card.className = "result-card finished";
+
+  const confetti = document.createElement("div");
+  confetti.className = "confetti";
+
+  const eyebrow = document.createElement("div");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = selectedPortion.full ? "Full quiz complete" : `Part ${selectedPortion.label} complete`;
+
+  const title = document.createElement("h1");
+  title.textContent = "Finished";
+
+  const scoreDisplay = document.createElement("div");
+  scoreDisplay.className = "score-display";
+  scoreDisplay.textContent = `${score}/${activeQuestions.length}`;
+
+  const percentage = document.createElement("div");
+  percentage.className = "score-percentage";
+  percentage.textContent = `${Math.round((score / activeQuestions.length) * 100)}% exact`;
+
+  const actions = document.createElement("div");
+  actions.className = "result-actions";
+
+  const retry = document.createElement("button");
+  retry.className = "primary-btn";
+  retry.type = "button";
+  retry.textContent = "Retry";
+  retry.addEventListener("click", () => { playActionSound(); startQuiz(selectedPortion); });
+
+  const choose = document.createElement("button");
+  choose.className = "ghost-btn";
+  choose.type = "button";
+  choose.textContent = "Select different portion";
+  choose.addEventListener("click", () => { playActionSound(); showPortionPicker(); });
+
+  const menu = document.createElement("a");
+  menu.className = "ghost-btn";
+  menu.href = QUIZ_CONFIG.homeUrl;
+  menu.textContent = QUIZ_CONFIG.homeLabel;
+  menu.addEventListener("click", playActionSound);
+
+  actions.append(retry, choose, menu);
+  card.append(confetti, eyebrow, title, scoreDisplay, percentage, actions);
+
+  const mistakes = userAnswers.filter((a) => a && !a.isCorrect);
+  if (mistakes.length) {
+    const section = document.createElement("div");
+    section.className = "mistakes-section";
+    const heading = document.createElement("h2");
+    heading.textContent = "Review mistakes";
+    const legend = document.createElement("div");
+    legend.className = "legend";
+    legend.append(
+      legendItem("w-wrong", "söz", "your wrong word"),
+      legendItem("w-fix", "söz", "correct word"),
+      legendItem("w-missing", "söz", "missing word"),
+      legendItem("w-extra", "söz", "extra word")
+    );
+    section.append(heading, legend);
+
+    mistakes.forEach((m) => {
+      const item = document.createElement("div");
+      item.className = "mistake-item";
+      const q = document.createElement("div");
+      q.className = "mistake-question";
+      q.textContent = `${m.questionNumber} ${m.question}`;
+      const sc = document.createElement("div");
+      sc.className = "mistake-score";
+      sc.textContent = m.gaveUp ? "Skipped — the whole answer is missing" : `${m.pct}% match`;
+      const details = document.createElement("details");
+      details.className = "full-answer";
+      const summary = document.createElement("summary");
+      summary.textContent = "Show full correct answer";
+      const p = document.createElement("p");
+      p.textContent = m.correctAnswer;
+      details.append(summary, p);
+      item.append(q, sc, renderDiff(m.ops), details);
+      section.appendChild(item);
+    });
+    card.appendChild(section);
+  }
+
+  slide.appendChild(card);
+  feed.appendChild(slide);
+  window.setTimeout(() => {
+    burstParticles(card, true, 72);
+    playFinishSound();
+    triggerFlash(true);
+  }, 120);
+}
+
+function showPortionPicker() {
+  quizScreen.classList.add("hidden");
+  portionScreen.classList.remove("hidden");
+  feed.innerHTML = "";
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+/* ---------- Sound / effects ---------- */
+
+function getAudio() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return null;
+  audioContext = audioContext || new AudioCtx();
+  return audioContext;
+}
+
+function playNotes(notes) {
+  try {
+    const ctx = getAudio();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    notes.forEach((n) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const start = now + n.start;
+      const end = start + n.duration;
+      osc.type = n.type || "triangle";
+      osc.frequency.setValueAtTime(n.frequency, start);
+      if (n.slideTo) osc.frequency.exponentialRampToValueAtTime(n.slideTo, end);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(n.volume, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(end + 0.02);
+    });
+  } catch (e) {}
+}
+
+function playSound(isCorrect) {
+  playNotes(isCorrect
+    ? [{ frequency: 523.25, start: 0, duration: 0.11, volume: 0.2 },
+       { frequency: 659.25, start: 0.08, duration: 0.12, volume: 0.22 },
+       { frequency: 987.77, start: 0.17, duration: 0.2, type: "sine", volume: 0.24 }]
+    : [{ frequency: 196, start: 0, duration: 0.16, type: "sawtooth", volume: 0.16, slideTo: 141 },
+       { frequency: 146.83, start: 0.1, duration: 0.22, type: "square", volume: 0.13, slideTo: 106 }]);
+}
+function playStartSound() {
+  playNotes([{ frequency: 329.63, start: 0, duration: 0.1, volume: 0.16 },
+             { frequency: 493.88, start: 0.055, duration: 0.12, volume: 0.18 },
+             { frequency: 659.25, start: 0.12, duration: 0.16, volume: 0.2 }]);
+}
+function playActionSound() {
+  playNotes([{ frequency: 587.33, start: 0, duration: 0.13, volume: 0.12, slideTo: 739.99 }]);
+}
+function playLockSound() {
+  playNotes([{ frequency: 330, start: 0, duration: 0.22, type: "square", volume: 0.14, slideTo: 180 }]);
+}
+function playFinishSound() {
+  playNotes([392, 523.25, 659.25, 783.99, 1046.5].map((f, i) => ({
+    frequency: f, start: i * 0.075, duration: 0.22, type: i === 4 ? "sine" : "triangle", volume: 0.2
+  })));
+}
+
+function triggerFlash(isCorrect) {
+  flashLayer = flashLayer || document.createElement("div");
+  if (!flashLayer.parentNode) document.body.appendChild(flashLayer);
+  flashLayer.className = `answer-flash ${isCorrect ? "correct" : "incorrect"}`;
+  window.setTimeout(() => { flashLayer.className = "answer-flash"; }, 700);
+}
+
+function triggerLockedFlash() {
+  flashLayer = flashLayer || document.createElement("div");
+  if (!flashLayer.parentNode) document.body.appendChild(flashLayer);
+  flashLayer.className = "answer-flash locked";
+  window.setTimeout(() => { flashLayer.className = "answer-flash"; }, 820);
+}
+
+function triggerHaptics(isCorrect) {
+  if (!navigator.vibrate) return;
+  navigator.vibrate(isCorrect ? [18, 28, 18] : [42, 32, 42]);
+}
+
+function burstParticles(card, isCorrect, overrideCount) {
+  const container = card.querySelector(".confetti");
+  const colors = isCorrect ? ["#2563eb","#16a34a","#f59e0b","#22c55e","#0f766e"] : ["#dc2626","#f97316","#991b1b","#fca5a5","#7f1d1d"];
+  const count = overrideCount || (isCorrect ? 48 : 28);
+  container.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement(isCorrect ? "i" : "span");
+    if (isCorrect) { piece.style.background = colors[i % colors.length]; }
+    else {
+      piece.className = "x-particle"; piece.textContent = "X";
+      piece.style.color = colors[i % colors.length];
+      piece.style.setProperty("--r", `${Math.round(Math.random() * 520 - 260)}deg`);
+    }
+    piece.style.setProperty("--x", `${Math.round(Math.random() * 620 - 310)}px`);
+    piece.style.setProperty("--y", `${Math.round(Math.random() * 420 - 290)}px`);
+    piece.style.animationDelay = `${Math.random() * 120}ms`;
+    container.appendChild(piece);
+  }
+  window.setTimeout(() => { container.innerHTML = ""; }, 1400);
+}
+
+function showToast(message) {
+  skipToast = skipToast || document.createElement("div");
+  if (!skipToast.parentNode) document.body.appendChild(skipToast);
+  skipToast.className = "skip-toast";
+  skipToast.textContent = message;
+  void skipToast.offsetWidth;
+  skipToast.classList.add("show");
+}
+
+function showSkipEffect() {
+  const now = Date.now();
+  if (now - lastSkipEffectAt < 850) return;
+  lastSkipEffectAt = now;
+
+  const currentSlide = feed.querySelector(`[data-index="${furthestUnlocked}"]`);
+  const card = currentSlide ? currentSlide.querySelector(".question-card") : null;
+  if (card) { card.classList.remove("lock-bounce"); void card.offsetWidth; card.classList.add("lock-bounce"); }
+
+  showToast("Answer this question first");
+  triggerLockedFlash();
+  playLockSound();
+  triggerHaptics(false);
+}
+
+feed.addEventListener("scroll", () => {
+  window.clearTimeout(scrollTimer);
+  scrollTimer = window.setTimeout(() => {
+    if (getNearestSlideIndex() > furthestUnlocked) bounceToCurrent();
+  }, 90);
+});
+
+applyConfig();
+
+if (sourceQuestions.length > PART_SIZE) {
+  renderPortions();
+} else {
+  startQuiz({ label: "Full", start: 0, end: sourceQuestions.length, full: true });
+}
+</script>
+</body>
+</html>
