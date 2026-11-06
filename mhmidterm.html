@@ -539,11 +539,11 @@ function resetForRetry(ui) {
   ui.card.classList.remove("correct-answer", "wrong-answer");
   ui.verdict.textContent = "";
   ui.verdict.className = "verdict";
+  ui.feedback.innerHTML = "";          // hide the highlight area while retrying
   ui.check.classList.remove("hidden");
   ui.giveUp.classList.remove("hidden");
   ui.kbd.classList.remove("hidden");
   ui.retry.classList.add("hidden");
-  // feedback stays visible so the user can see what to fix while editing
   ui.box.focus({ preventScroll: true });
   const len = ui.box.value.length;
   ui.box.setSelectionRange(len, len);
